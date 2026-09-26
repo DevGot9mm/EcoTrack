@@ -1,0 +1,35 @@
+name: ecotrack
+description: >-
+  EcoTrack — a carbon-footprint companion built around UN SDG 13 (Climate
+  Action). Flutter port of the EcoTrack UI prototype.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - image.png
+    - image-2.png
+    - image-5.png
+    - assets/mascot/
+
+  fonts:
+    - family: Fredoka
+      fonts:
+        - asset: assets/fonts/Fredoka-Variable.ttf
+    - family: NunitoSans
+      fonts:
+        - asset: assets/fonts/NunitoSans-Variable.ttf

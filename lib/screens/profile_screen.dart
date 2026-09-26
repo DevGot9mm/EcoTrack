@@ -1,0 +1,844 @@
+import 'package:flutter/material.dart' hide Badge;
+
+import '../icons.dart';
+import '../models.dart';
+import '../store.dart';
+import '../theme.dart';
+import '../widgets/common.dart';
+import '../widgets/sheets.dart';
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final EcoStore store = EcoScope.of(context);
+    final LevelInfo lvl = levelOf(store.points);
+
+    return EcoScreen(
+      header: EcoTopBar(
+        title: 'Profile',
+        right: Tooltip(
+          message: 'Light appearance',
+          child: Container(
+            width: 36,
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Eco.surface,
+              border: Border.all(color: Eco.line),
+              borderRadius: BorderRadius.circular(Eco.rSm),
+            ),
+            child: const EcoIcon('sun', size: 18, color: Eco.muted),
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const SizedBox(height: 10),
+          _ProfileIdentityCard(
+            store: store,
+            level: lvl,
+            onTap: () => _showAvatarPicker(context, store),
+          ),
+          const SizedBox(height: 18),
+          EcoGrid(
+            columns: 3,
+            gap: 10,
+            items: <Widget>[
+              StatTile(
+                value: fmt1(store.allTimeTotal),
+                caption: 'kg total CO₂e',
+                valueSize: 17,
+              ),
+              StatTile(
+                value: groupThousands(store.points),
+                caption: 'Eco Points',
+                valueSize: 17,
+              ),
+              Pressable(
+                onTap: () => showEcoSheet(
+                  context,
+                  _BadgesSection(store: store),
+                ),
+                child: StatTile(
+                  value: '${store.unlockedBadgeCount}/${store.badges.length}',
+                  caption: 'badges',
+                  valueSize: 17,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 22),
+          _GoalsSection(store: store),
+          const SizedBox(height: 24),
+          _SettingsSection(store: store),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileIdentityCard extends StatelessWidget {
+  const _ProfileIdentityCard({
+    required this.store,
+    required this.level,
+    required this.onTap,
+  });
+
+  final EcoStore store;
+  final LevelInfo level;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return EcoCard(
+      flat: true,
+      padding: const EdgeInsets.all(14),
+      onTap: onTap,
+      child: Row(
+        children: <Widget>[
+          Tooltip(
+            message:
+                'Profile picture: ${_avatarName(store.playerAvatar)}. Tap to change.',
+            child: MascotCrop(
+              store.playerAvatar,
+              size: 54,
+              radius: 17,
+              background: Eco.mint,
+              circular: true,
+              photoScale: 1.08,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(store.playerName, style: F.d(17)),
+                const SizedBox(height: 2),
+                Text(
+                  'Climate action since ${store.joined} · '
+                  'Level ${level.idx + 1} ${level.name}',
+                  style: F.b(12.5, wght: 600, color: Eco.muted),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          const EcoIcon('chevronR', size: 20, color: Eco.muted),
+        ],
+      ),
+    );
+  }
+}
+
+class _GoalsSection extends StatelessWidget {
+  const _GoalsSection({required this.store});
+
+  final EcoStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    final double weekTotal = store.total(store.inRange(0, 6));
+    final double todayTotal = store.total(store.inRange(0, 0));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const SectionHead(title: "This week's goal"),
+        EcoCard(
+          flat: true,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: <Widget>[
+              _GoalProgress(
+                label: 'Weekly carbon goal',
+                value: weekTotal,
+                target: store.weeklyTarget,
+              ),
+              const SizedBox(height: 16),
+              _GoalProgress(
+                label: 'Daily carbon goal',
+                value: todayTotal,
+                target: store.dailyTarget,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GoalProgress extends StatelessWidget {
+  const _GoalProgress({
+    required this.label,
+    required this.value,
+    required this.target,
+  });
+
+  final String label;
+  final double value;
+  final double target;
+
+  @override
+  Widget build(BuildContext context) {
+    final String targetText = '${fmt1(target)} kg';
+    final double progress = target <= 0 ? 0 : clampDouble(value / target, 0, 1);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(child: Text(label, style: F.b(14, wght: 700))),
+            Text(targetText, style: F.b(13, wght: 800, color: Eco.ink2)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        EcoBar(value: progress, color: Eco.leaf, height: 5),
+      ],
+    );
+  }
+}
+
+const List<String> _avatarOptions = <String>[
+  'image.png',
+  'image-2.png',
+  'image-5.png',
+];
+
+String _avatarName(String avatar) =>
+    'Portrait ${_avatarOptions.indexOf(avatar) + 1}';
+
+void _showAvatarPicker(BuildContext context, EcoStore store) {
+  showEcoSheet(
+    context,
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const SheetGrab(),
+        const SizedBox(height: 8),
+        const SheetTitle(title: 'Choose a profile picture'),
+        const SizedBox(height: 16),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12,
+          runSpacing: 12,
+          children: _avatarOptions.map((String avatar) {
+            final bool selected = store.playerAvatar == avatar;
+            return Tooltip(
+              message: 'Use ${_avatarName(avatar)} profile picture',
+              child: Semantics(
+                button: true,
+                selected: selected,
+                label: '${_avatarName(avatar)} profile picture',
+                child: Pressable(
+                  onTap: () {
+                    store.setPlayerAvatar(avatar);
+                    Navigator.of(context).pop();
+                  },
+                  scale: 0.95,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: selected ? Eco.mint : Eco.surface,
+                      border: Border.all(
+                        color: selected ? Eco.forest : Eco.line,
+                        width: selected ? 2 : 1,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: MascotCrop(
+                      avatar,
+                      size: 52,
+                      radius: 26,
+                      circular: true,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    ),
+  );
+}
+
+class _BadgesSection extends StatelessWidget {
+  const _BadgesSection({required this.store});
+  final EcoStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const SectionHead(title: 'Badges'),
+        const SizedBox(height: 12),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 3,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 0.85,
+          children: List<Widget>.generate(store.badges.length, (int i) {
+            final Badge b = store.badges[i];
+            return Pressable(
+              onTap: () => _showBadgeDetail(context, b),
+              scale: 0.97,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: b.unlocked ? Eco.surface : Eco.surface2,
+                  border: Border.all(
+                    color: b.unlocked ? Eco.line : Eco.lineStrong,
+                  ),
+                  borderRadius: BorderRadius.circular(Eco.rCard),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: b.unlocked ? Eco.mint : Eco.surface2,
+                        shape: BoxShape.circle,
+                      ),
+                      child: EcoIcon(
+                        b.icon,
+                        size: 24,
+                        color: b.unlocked ? Eco.forest : Eco.muted,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      b.name,
+                      style: F.b(11, wght: 700),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${b.progress.round()}/${b.target.round()}',
+                      style: F.caption,
+                    ),
+                    const SizedBox(height: 4),
+                    if (!b.unlocked)
+                      EcoBar(
+                        value: b.progress / b.target,
+                        color: Eco.forest,
+                        height: 4,
+                      ),
+                    if (b.unlocked)
+                      const EcoIcon('check', size: 14, color: Eco.forest),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  void _showBadgeDetail(BuildContext context, Badge b) {
+    showEcoSheet(
+      context,
+      Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const SheetGrab(),
+          const SizedBox(height: 8),
+          Center(
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: b.unlocked ? Eco.mint : Eco.surface2,
+                shape: BoxShape.circle,
+              ),
+              child: EcoIcon(b.icon,
+                  size: 26, color: b.unlocked ? Eco.forest : Eco.muted),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            b.name,
+            style: F.d(18),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            b.desc,
+            style: F.caption,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            b.unlocked ? 'Unlocked' : 'Locked',
+            style:
+                F.b(13, wght: 800, color: b.unlocked ? Eco.forest : Eco.muted),
+          ),
+          const SizedBox(height: 12),
+          EcoBar(
+            value: b.progress / b.target,
+            color: b.unlocked ? Eco.forest : Eco.muted,
+            height: 8,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${b.progress.round()} of ${b.target.round()} complete',
+            style: F.caption,
+          ),
+          const SizedBox(height: 14),
+          EcoButton(
+            label: 'Close',
+            block: true,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsSection extends StatelessWidget {
+  const _SettingsSection({required this.store});
+  final EcoStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const SectionHead(title: 'Account'),
+        const SizedBox(height: 8),
+        _SettingsRow(
+          icon: 'target',
+          label: 'Carbon target',
+          trailing: '${fmt1(store.dailyTarget)} kg / day',
+          onTap: () => _showTargetPicker(context, store),
+        ),
+        _SettingsRow(
+          icon: 'tips',
+          label: 'Tips',
+          onTap: () => store.go('tips'),
+        ),
+        _SettingsRow(
+          icon: 'shield',
+          label: 'Account & security',
+          onTap: () => _showAccountSettings(context, store),
+        ),
+        _SettingsRow(
+          icon: 'settings',
+          label: 'Units',
+          trailing: store.distanceUnit,
+          onTap: () => _showUnitSettings(context, store),
+        ),
+        _SettingsRow(
+          icon: 'help',
+          label: 'Help & support',
+          onTap: () => _showHelp(context, store),
+        ),
+        _SettingsRow(
+          icon: 'book',
+          label: 'About EcoTrack',
+          onTap: () => _showAbout(context),
+        ),
+        _SettingsRow(
+          icon: 'logout',
+          label: 'Log out',
+          danger: true,
+          onTap: () => _confirmSignOut(context, store),
+        ),
+      ],
+    );
+  }
+}
+
+class _SettingsRow extends StatelessWidget {
+  const _SettingsRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.trailing,
+    this.danger = false,
+  });
+
+  final String icon;
+  final String label;
+  final VoidCallback onTap;
+  final String? trailing;
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: onTap,
+      scale: 0.99,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Eco.surface,
+          border: Border.all(color: Eco.line),
+          borderRadius: BorderRadius.circular(Eco.rSm),
+        ),
+        child: Row(
+          children: <Widget>[
+            EcoIcon(icon, size: 19, color: Eco.forest),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                style: F.b(
+                  15,
+                  wght: 700,
+                  color: danger ? Eco.danger : Eco.ink,
+                ),
+              ),
+            ),
+            if (trailing != null) ...<Widget>[
+              Text(
+                trailing!,
+                style: F.b(12, wght: 700, color: Eco.muted),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(width: 4),
+            ],
+            EcoIcon(
+              'chevronR',
+              size: 18,
+              color: danger ? Eco.danger : Eco.muted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _showTargetPicker(BuildContext context, EcoStore store) {
+  showEcoSheet(
+    context,
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const SheetTitle(title: 'Daily carbon target'),
+        const SizedBox(height: 4),
+        Text(
+          'Pick the number you want EcoTrack to measure you against.',
+          style: F.caption,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        ...<double>[4, 6, 8].map((double value) {
+          final bool selected = value == store.dailyTarget;
+          return Pressable(
+            onTap: () {
+              Navigator.pop(context);
+              store.setDailyTarget(value);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: selected ? Eco.mint : Eco.surface,
+                border: Border.all(
+                  color: selected ? Eco.forest : Eco.line,
+                  width: selected ? 1.5 : 1,
+                ),
+                borderRadius: BorderRadius.circular(Eco.rCard),
+              ),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          '${value.toInt()} kg CO₂e per day',
+                          style: F.b(15, wght: 800),
+                        ),
+                        Text(
+                          value == 4
+                              ? 'Ambitious — close to a 1.5°C-aligned lifestyle.'
+                              : value == 6
+                                  ? 'Balanced — the average for a mindful urban household.'
+                                  : 'Forgiving — a gentle first step.',
+                          style: F.caption,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (selected)
+                    const EcoIcon('check', size: 20, color: Eco.forest),
+                ],
+              ),
+            ),
+          );
+        }),
+        EcoButton(
+          label: 'Cancel',
+          tone: EcoButtonTone.ghost,
+          block: true,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _showAccountSettings(
+  BuildContext context,
+  EcoStore store,
+) async {
+  final TextEditingController name =
+      TextEditingController(text: store.playerName);
+  await showEcoSheet(
+    context,
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const SheetTitle(title: 'Account & security'),
+        const SizedBox(height: 6),
+        Text(
+          'This demo keeps a local profile only. You can update its display name here.',
+          style: F.caption,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: name,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(labelText: 'Display name'),
+        ),
+        const SizedBox(height: 14),
+        EcoButton(
+          label: 'Save name',
+          block: true,
+          onPressed: () {
+            if (name.text.trim().length < 2) {
+              store.toast('Enter at least two characters');
+              return;
+            }
+            store.setPlayerName(name.text);
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    ),
+  );
+  name.dispose();
+}
+
+void _showUnitSettings(BuildContext context, EcoStore store) {
+  showEcoSheet(
+    context,
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const SheetTitle(title: 'Distance units'),
+        const SizedBox(height: 4),
+        Text(
+          'Used for transport activity input and history.',
+          style: F.caption,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+        _UnitChoice(
+          value: 'km',
+          label: 'Kilometres',
+          selected: store.distanceUnit == 'km',
+          onTap: () {
+            Navigator.pop(context);
+            store.setDistanceUnit('km');
+          },
+        ),
+        _UnitChoice(
+          value: 'mi',
+          label: 'Miles',
+          selected: store.distanceUnit == 'mi',
+          onTap: () {
+            Navigator.pop(context);
+            store.setDistanceUnit('mi');
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+class _UnitChoice extends StatelessWidget {
+  const _UnitChoice({
+    required this.value,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String value;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(label, style: F.b(15, wght: 700)),
+            ),
+            Container(
+              width: 22,
+              height: 22,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected ? Eco.forest : Eco.lineStrong,
+                  width: selected ? 7 : 1.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _showHelp(BuildContext context, EcoStore store) {
+  showEcoSheet(
+    context,
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const SheetTitle(title: 'Help & support'),
+        const SizedBox(height: 14),
+        _HelpItem(
+          title: 'How are emissions estimated?',
+          body:
+              'Each activity uses an illustrative emissions factor. Your logged amounts are converted before the estimate is calculated.',
+        ),
+        _HelpItem(
+          title: 'Where is my data stored?',
+          body:
+              'This demo keeps data in memory on this device session. It is not synced to an account or server.',
+        ),
+        const SizedBox(height: 12),
+        EcoButton(
+          label: 'Browse Eco Tips',
+          leading: 'tips',
+          block: true,
+          onPressed: () {
+            Navigator.pop(context);
+            store.go('tips');
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+class _HelpItem extends StatelessWidget {
+  const _HelpItem({required this.title, required this.body});
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: EcoCard(
+        flat: true,
+        background: Eco.surface2,
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(title, style: F.b(14, wght: 800)),
+            const SizedBox(height: 4),
+            Text(body, style: F.small.copyWith(color: Eco.ink2)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _showAbout(BuildContext context) {
+  showEcoSheet(
+    context,
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const SheetTitle(title: 'About EcoTrack'),
+        const SizedBox(height: 8),
+        Text(
+          'EcoTrack helps make everyday climate choices visible. Carbon figures are estimates for guidance, not audited measurements.',
+          style: F.body2,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        EcoButton(
+          label: 'Close',
+          tone: EcoButtonTone.ghost,
+          block: true,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _confirmSignOut(BuildContext context, EcoStore store) async {
+  final bool shouldSignOut = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext dialogContext) => AlertDialog(
+          title: const Text('Log out?'),
+          content: const Text(
+            'This resets the local demo profile and restores its sample data.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Log out'),
+            ),
+          ],
+        ),
+      ) ??
+      false;
+  if (shouldSignOut) store.signOut();
+}
+
+class SheetTitle extends StatelessWidget {
+  const SheetTitle({required this.title, super.key});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: F.d(20),
+      textAlign: TextAlign.center,
+    );
+  }
+}

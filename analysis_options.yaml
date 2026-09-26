@@ -1,0 +1,23 @@
+# EcoTrack analysis options.
+#
+# Deliberately self-contained: the project ships with no third-party packages,
+# so nothing here pulls a lint set from pub.
+analyzer:
+  exclude:
+    - build/**
+    - prototype/**
+    - web/**
+    - android/**
+    - ios/**
+    - windows/**
+    - macos/**
+    - linux/**
+  errors:
+    unused_local_variable: warning
+    dead_code: warning
+
+linter:
+  rules:
+    - avoid_print
+    - prefer_single_quotes
+    - unnecessary_this
