@@ -86,17 +86,24 @@ class TrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 320 / 132,
-      child: CustomPaint(
-        size: Size.infinite,
-        painter: _TrendPainter(
-          series: series,
-          max: max <= 0 ? 1 : max,
-          target: targetPerDay,
-          label: days > 7 ? '30 days ago' : '7 days ago',
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints c) {
+        final double availableWidth = c.maxWidth;
+        // Reference height maintains ~2.43:1 aspect ratio (320:132)
+        final double aspectRatio = 320.0 / 132.0;
+        return SizedBox(
+          width: availableWidth,
+          height: availableWidth / aspectRatio,
+          child: CustomPaint(
+            painter: _TrendPainter(
+              series: series,
+              max: max <= 0 ? 1 : max,
+              target: targetPerDay,
+              label: days > 7 ? '30 days ago' : '7 days ago',
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -114,22 +121,24 @@ class _TrendPainter extends CustomPainter {
   final double target;
   final String label;
 
-  static const double w = 320;
-  static const double h = 128;
-  static const double padT = 12;
-  static const double padB = 18;
+  // Reference coordinate system (logical canvas)
+  static const double refW = 320.0;
+  static const double refH = 132.0;
+  static const double padT = 12.0;
+  static const double padB = 18.0;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (series.isEmpty) return;
     canvas.save();
-    canvas.scale(size.width / w, size.height / (h + 4));
+    // Scale reference coords (320x132) to actual canvas dimensions
+    canvas.scale(size.width / refW, size.height / (refH + 4));
 
-    final double usable = h - padT - padB;
+    final double usable = refH - padT - padB;
     double y(double v) => padT + usable - (v / max) * usable;
 
     final int n = series.length;
-    final double stepX = n > 1 ? w / (n - 1) : w;
+    final double stepX = n > 1 ? refW / (n - 1) : refW;
     final List<Offset> pts = <Offset>[
       for (int i = 0; i < n; i++) Offset(i * stepX, y(series[i])),
     ];
@@ -148,12 +157,10 @@ class _TrendPainter extends CustomPainter {
     }
 
     final Path area = Path.from(line)
-      ..lineTo(pts.last.dx, h - padB)
-      ..lineTo(pts.first.dx, h - padB)
+      ..lineTo(pts.last.dx, refH - padB)
+      ..lineTo(pts.first.dx, refH - padB)
       ..close();
 
-    // Area fill — the gradient is mapped to the path's own bounding box, just
-    // like the prototype's objectBoundingBox gradient.
     final Rect bounds = area.getBounds();
     if (bounds.height > 0.5) {
       canvas.drawPath(
@@ -162,18 +169,9 @@ class _TrendPainter extends CustomPainter {
       );
     }
 
-    // Daily goal guideline.
     final double ty = y(target);
-    if (ty >= padT && ty <= h - padB) {
-      _dashedLine(
-        canvas,
-        Offset(0, ty),
-        Offset(w, ty),
-        const Color(0xFFA9C79A),
-        1.4,
-        4,
-        5,
-      );
+    if (ty >= padT && ty <= refH - padB) {
+      _dashedLine(canvas, 0, refW, ty, const Color(0xFFA9C79A), 1.4, 4, 5);
     }
 
     canvas.drawPath(
@@ -186,7 +184,6 @@ class _TrendPainter extends CustomPainter {
         ..color = Eco.leaf,
     );
 
-    // Data points, thinned on the 30-day range.
     final Paint dotFill = Paint()..color = Colors.white;
     final Paint dotStroke = Paint()
       ..style = PaintingStyle.stroke
@@ -198,14 +195,14 @@ class _TrendPainter extends CustomPainter {
       canvas.drawCircle(pts[i], 2.6, dotStroke);
     }
 
-    final double labelY = h - padB + 4;
-    _text(canvas, label, Offset(0, labelY), TextAlign.left);
-    _text(canvas, 'today', Offset(w, labelY), TextAlign.right);
+    final double labelY = refH - padB + 4;
+    _text(canvas, label, 0.0, labelY, TextAlign.left);
+    _text(canvas, 'today', refW, labelY, TextAlign.right);
 
     canvas.restore();
   }
 
-  void _text(Canvas canvas, String s, Offset at, TextAlign align) {
+  void _text(Canvas canvas, String s, double dx, double labelY, TextAlign align) {
     final TextPainter tp = TextPainter(
       text: TextSpan(
         text: s,
@@ -215,14 +212,15 @@ class _TrendPainter extends CustomPainter {
       textAlign: align,
     );
     tp.layout();
-    final double dx = align == TextAlign.right ? at.dx - tp.width : at.dx;
-    tp.paint(canvas, Offset(dx, at.dy));
+    final double adjustedDx = align == TextAlign.right ? dx - tp.width : dx;
+    tp.paint(canvas, Offset(adjustedDx, labelY));
   }
 
   void _dashedLine(
     Canvas canvas,
-    Offset a,
-    Offset b,
+    double startX,
+    double endX,
+    double y,
     Color color,
     double width,
     double dash,
@@ -232,13 +230,13 @@ class _TrendPainter extends CustomPainter {
       ..color = color
       ..strokeWidth = width
       ..strokeCap = StrokeCap.butt;
-    final double total = (b - a).distance;
-    final Offset dir = (b - a) / total;
+    final double total = endX - startX;
+    if (total <= 0) return;
     double t = 0;
     while (t < total) {
-      final double end = math.min(t + dash, total);
-      canvas.drawLine(a + dir * t, a + dir * end, p);
-      t = end + gap;
+      final double nextDash = math.min(t + dash, total);
+      canvas.drawLine(Offset(t, y), Offset(nextDash, y), p);
+      t = nextDash + gap;
     }
   }
 

@@ -132,58 +132,63 @@ class StatsScreen extends StatelessWidget {
                       const SectionHead(title: 'By category'),
                       EcoCard(
                         flat: true,
-                        child: Row(
-                          children: <Widget>[
-                            SizedBox(
-                              width: 132,
-                              height: 132,
-                              child: Stack(
-                                children: <Widget>[
-                                  DonutChart(totals: t, size: 132),
-                                  Positioned.fill(
-                                    child: Center(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: <Widget>[
-                                          Text(
-                                            fmt1(sum),
-                                            style: F.d(22, height: 1.05),
+                        child: LayoutBuilder(
+                          builder: (BuildContext ctx, BoxConstraints c) {
+                            final double donutSize = (c.maxWidth * 0.32).clamp(100.0, 160.0);
+                            return Row(
+                              children: <Widget>[
+                                SizedBox(
+                                  width: donutSize,
+                                  height: donutSize,
+                                  child: Stack(
+                                    children: <Widget>[
+                                      DonutChart(totals: t, size: donutSize),
+                                      Positioned.fill(
+                                        child: Center(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: <Widget>[
+                                              Text(
+                                                fmt1(sum),
+                                                style: F.d(22, height: 1.05),
+                                              ),
+                                              Text(
+                                                'kg total',
+                                                style: F.b(
+                                                  11,
+                                                  wght: 800,
+                                                  color: Eco.muted,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          Text(
-                                            'kg total',
-                                            style: F.b(
-                                              11,
-                                              wght: 800,
-                                              color: Eco.muted,
-                                            ),
-                                          ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 18),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  for (int i = 0; i < kCatOrder.length; i++)
-                                    Padding(
-                                      padding: EdgeInsets.only(
-                                        top: i == 0 ? 0 : 12,
-                                      ),
-                                      child: _catLegend(
-                                        catOf(kCatOrder[i]),
-                                        t[kCatOrder[i]] ?? 0,
-                                        tot,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
+                                ),
+                                const SizedBox(width: 18),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      for (int i = 0; i < kCatOrder.length; i++)
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                            top: i == 0 ? 0 : 12,
+                                          ),
+                                          child: _catLegend(
+                                            catOf(kCatOrder[i]),
+                                            t[kCatOrder[i]] ?? 0,
+                                            tot,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ],

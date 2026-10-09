@@ -633,7 +633,12 @@ class EcoScope extends InheritedNotifier<EcoStore> {
   static EcoStore of(BuildContext context) {
     final EcoScope? scope =
         context.dependOnInheritedWidgetOfExactType<EcoScope>();
-    assert(scope != null, 'No EcoScope found above this widget.');
-    return scope!.notifier!;
+    if (scope == null) {
+      throw FlutterError(
+        'No EcoScope found above this widget. '
+        'Ensure EcoScope is an ancestor of this context.',
+      );
+    }
+    return scope.notifier!;
   }
 }

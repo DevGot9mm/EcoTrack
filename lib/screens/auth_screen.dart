@@ -19,6 +19,10 @@ class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _pass = TextEditingController();
 
+  final FocusNode _nameFocus = FocusNode();
+  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _passFocus = FocusNode();
+
   bool _badName = false;
   bool _badEmail = false;
   bool _badPass = false;
@@ -31,6 +35,9 @@ class _AuthScreenState extends State<AuthScreen> {
     _name.dispose();
     _email.dispose();
     _pass.dispose();
+    _nameFocus.dispose();
+    _emailFocus.dispose();
+    _passFocus.dispose();
     super.dispose();
   }
 
@@ -97,6 +104,9 @@ class _AuthScreenState extends State<AuthScreen> {
     String? helper,
     bool obscure = false,
     TextInputType? keyboard,
+    TextInputAction? textInputAction,
+    FocusNode? focusNode,
+    void Function()? onSubmitted,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -124,6 +134,9 @@ class _AuthScreenState extends State<AuthScreen> {
             controller: ctrl,
             obscureText: obscure,
             keyboardType: keyboard,
+            textInputAction: textInputAction,
+            focusNode: focusNode,
+            onSubmitted: (_) => onSubmitted?.call(),
             style: F.b(16),
             cursorColor: Eco.forest,
             decoration: InputDecoration(
@@ -269,6 +282,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         invalid: _badName,
                         error: 'Enter the name you want shown on your profile.',
                         keyboard: TextInputType.name,
+                        textInputAction: TextInputAction.next,
+                        onSubmitted: () => _emailFocus.requestFocus(),
                       ),
                     _field(
                       label: 'Email',
@@ -278,6 +293,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       error:
                           'That email does not look right — check for a missing @ or dot.',
                       keyboard: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      focusNode: _emailFocus,
+                      onSubmitted: () => _passFocus.requestFocus(),
                     ),
                     _field(
                       label: 'Password',
@@ -291,6 +309,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       helper: isLogin
                           ? null
                           : 'We only use this to sign you back in — nothing is shared.',
+                      textInputAction: TextInputAction.done,
+                      focusNode: _passFocus,
+                      onSubmitted: () => _submit(store),
                     ),
                     const SizedBox(height: 6),
                     EcoButton(
