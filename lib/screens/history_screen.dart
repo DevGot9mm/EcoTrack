@@ -12,6 +12,7 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
+    final cs = Theme.of(context).colorScheme;
 
     List<Entry> acts = store.sortedActivities;
     if (store.historyFilter != 'all') {
@@ -52,7 +53,7 @@ class HistoryScreen extends StatelessWidget {
                       Expanded(child: Text(dayLabel(k), style: F.d(16))),
                       Text(
                         '${kgText(store.total(groups[k]!))} CO₂e',
-                        style: F.b(13, wght: 800, color: Eco.muted),
+                        style: F.b(13, wght: 800, color: cs.muted),
                       ),
                     ],
                   ),
@@ -87,7 +88,7 @@ class HistoryScreen extends StatelessWidget {
                       children: <Widget>[
                         Text(kgText(weekTotal), style: F.statNum),
                         const SizedBox(height: 2),
-                        Text('logged in the last 7 days', style: F.statCap),
+                        Text('logged in the last 7 days', style: F.b(12.5, wght: 700, color: cs.muted)),
                       ],
                     ),
                   ),
@@ -136,6 +137,7 @@ class _HistRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final ActivityDef? def = activityDef(entry.key);
     if (def == null) return const SizedBox.shrink();
     final Cat c = catOf(entry.cat);
@@ -146,16 +148,16 @@ class _HistRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         decoration: BoxDecoration(
-          color: Eco.surface,
-          border: Border.all(color: Eco.line),
+          color: cs.surface,
+          border: Border.all(color: cs.outline),
           borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
           children: <Widget>[
             CatBadge(
               icon: def.icon,
-              background: c.tint,
-              foreground: c.ink,
+              background: c.resolve(cs).tint,
+              foreground: c.resolve(cs).ink,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -167,7 +169,7 @@ class _HistRow extends StatelessWidget {
                   Text(
                     '${store.amountLabel(def, entry.amount)} · '
                     '${timeLabel(entry.at)}',
-                    style: F.b(12.5, wght: 600, color: Eco.muted),
+                    style: F.b(12.5, wght: 600, color: cs.muted),
                   ),
                 ],
               ),
@@ -178,7 +180,7 @@ class _HistRow extends StatelessWidget {
                   TextSpan(text: fmt2(entry.co2), style: F.d(16)),
                   TextSpan(
                     text: ' kg',
-                    style: F.b(11, wght: 800, color: Eco.muted),
+                    style: F.b(11, wght: 800, color: cs.muted),
                   ),
                 ],
               ),

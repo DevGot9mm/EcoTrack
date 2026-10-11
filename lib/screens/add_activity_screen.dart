@@ -12,6 +12,7 @@ class AddActivityScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
+    final cs = Theme.of(context).colorScheme;
     final int step = store.addStep;
 
     final String title = step == 0
@@ -39,14 +40,14 @@ class AddActivityScreen extends StatelessWidget {
         children: <Widget>[
           Text(title, style: F.h2),
           const SizedBox(height: 4),
-          Text(sub, style: F.caption),
+          Text(sub, style: F.b(13, height: 1.45, color: cs.muted)),
           const SizedBox(height: 18),
           if (step == 0)
-            _catStep(store)
+            _catStep(context, store)
           else if (step == 1)
-            _actStep(store)
+            _actStep(context, store)
           else
-            _amountStep(store),
+            _amountStep(store, cs),
         ],
       ),
       footer: FlowFooter(
@@ -70,7 +71,8 @@ class AddActivityScreen extends StatelessWidget {
     );
   }
 
-  Widget _catStep(EcoStore store) {
+  Widget _catStep(BuildContext context, EcoStore store) {
+    final cs = Theme.of(context).colorScheme;
     final List<Widget> tiles = <Widget>[];
     for (final String id in kCatOrder) {
       final Cat c = catOf(id);
@@ -85,8 +87,8 @@ class AddActivityScreen extends StatelessWidget {
             children: <Widget>[
               CatBadge(
                 icon: c.icon,
-                background: c.tint,
-                foreground: c.ink,
+                background: c.resolve(cs).tint,
+                foreground: c.resolve(cs).ink,
                 size: 48,
                 iconSize: 24,
                 radius: 16,
@@ -100,12 +102,12 @@ class AddActivityScreen extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '${c.blurb} · ${actsOf(id).length} activities',
-                      style: F.b(13, wght: 600, color: Eco.muted),
+                      style: F.b(13, wght: 600, color: cs.muted),
                     ),
                   ],
                 ),
               ),
-              const EcoIcon('chevronR', size: 20, color: Eco.muted),
+              EcoIcon('chevronR', size: 20, color: cs.muted),
             ],
           ),
         ),
@@ -117,7 +119,8 @@ class AddActivityScreen extends StatelessWidget {
     );
   }
 
-  Widget _actStep(EcoStore store) {
+  Widget _actStep(BuildContext context, EcoStore store) {
+    final cs = Theme.of(context).colorScheme;
     final Cat c = catOf(store.addCat ?? kCatOrder.first);
     final List<Widget> tiles = <Widget>[];
     for (final ActivityDef a in actsOf(store.addCat ?? kCatOrder.first)) {
@@ -133,8 +136,8 @@ class AddActivityScreen extends StatelessWidget {
             children: <Widget>[
               CatBadge(
                 icon: a.icon,
-                background: c.tint,
-                foreground: c.ink,
+                background: c.resolve(cs).tint,
+                foreground: c.resolve(cs).ink,
                 size: 44,
                 iconSize: 22,
                 radius: 15,
@@ -149,7 +152,7 @@ class AddActivityScreen extends StatelessWidget {
                 a.factor == 0
                     ? 'Zero emission'
                     : '${fmt2(store.displayFactor(a))} kg / ${store.unitFor(a)}',
-                style: F.b(12, wght: 700, color: Eco.muted),
+                style: F.b(12, wght: 700, color: cs.muted),
               ),
             ],
           ),
@@ -159,7 +162,7 @@ class AddActivityScreen extends StatelessWidget {
     return EcoGrid(items: tiles, columns: 2, gap: 12);
   }
 
-  Widget _amountStep(EcoStore store) {
+  Widget _amountStep(EcoStore store, ColorScheme cs) {
     final ActivityDef a = activityDef(store.addKey!)!;
     final Cat c = catOf(a.cat);
     final double co2 = round1(a.factor * store.addAmount);
@@ -183,8 +186,8 @@ class AddActivityScreen extends StatelessWidget {
             children: <Widget>[
               CatBadge(
                 icon: a.icon,
-                background: c.tint,
-                foreground: c.ink,
+                background: c.resolve(cs).tint,
+                foreground: c.resolve(cs).ink,
                 size: 44,
                 iconSize: 22,
                 radius: 15,
@@ -200,7 +203,7 @@ class AddActivityScreen extends StatelessWidget {
                       a.factor == 0
                           ? '${c.name} · zero emission'
                           : '${c.name} · ${fmt2(displayFactor)} kg CO₂e per $displayUnit',
-                      style: F.caption,
+                      style: F.b(13, height: 1.45, color: cs.muted),
                     ),
                   ],
                 ),
@@ -224,7 +227,7 @@ class AddActivityScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     displayUnit,
-                    style: F.b(16, wght: 800, color: Eco.muted),
+                    style: F.b(16, wght: 800, color: cs.muted),
                   ),
                 ],
               ),
@@ -236,7 +239,7 @@ class AddActivityScreen extends StatelessWidget {
                       ? 'No emissions on the way — this one is pure bonus.'
                       : 'About ${fmt2(displayFactor)} kg CO₂e for every $displayUnit.',
                   textAlign: TextAlign.center,
-                  style: F.b(13.5, wght: 600, color: Eco.muted),
+                  style: F.b(13.5, wght: 600, color: cs.muted),
                 ),
               ),
             ],
@@ -287,7 +290,7 @@ class AddActivityScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text('Estimated impact', style: F.statCap),
+                    Text('Estimated impact', style: F.b(12.5, wght: 700, color: cs.muted)),
                     const SizedBox(height: 2),
                     Text.rich(
                       TextSpan(
@@ -298,7 +301,7 @@ class AddActivityScreen extends StatelessWidget {
                           ),
                           TextSpan(
                             text: ' kg CO₂e',
-                            style: F.b(12.5, wght: 800, color: Eco.muted),
+                            style: F.b(12.5, wght: 800, color: cs.muted),
                           ),
                         ],
                       ),
@@ -313,7 +316,7 @@ class AddActivityScreen extends StatelessWidget {
         const SizedBox(height: 18),
         Text(
           'Estimate uses average emission factors — treat it as a good-enough guide, not a lab measurement.',
-          style: F.caption,
+          style: F.b(13, height: 1.45, color: cs.muted),
         ),
       ],
     );
@@ -337,6 +340,7 @@ class _StepHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 6, 20, 12),
       child: Column(
@@ -351,7 +355,7 @@ class _StepHeader extends StatelessWidget {
                 child: Center(
                   child: Text(
                     'Step ${step + 1} of 3',
-                    style: F.b(13, wght: 800, color: Eco.muted),
+                    style: F.b(13, wght: 800, color: cs.muted),
                   ),
                 ),
               ),
@@ -369,7 +373,7 @@ class _StepHeader extends StatelessWidget {
                     curve: Eco.easeOut,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: i <= step ? Eco.leaf : Eco.lineStrong,
+                      color: i <= step ? cs.leaf : cs.lineStrong,
                       borderRadius: BorderRadius.circular(Eco.rPill),
                     ),
                   ),
@@ -391,6 +395,7 @@ class _StepperBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Pressable(
       onTap: onTap,
       scale: 0.93,
@@ -399,11 +404,11 @@ class _StepperBtn extends StatelessWidget {
         height: 50,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Eco.surface,
+          color: cs.surface,
           shape: BoxShape.circle,
-          border: Border.all(color: Eco.lineStrong, width: 1.5),
+          border: Border.all(color: cs.lineStrong, width: 1.5),
         ),
-        child: EcoIcon(icon, size: 22, color: Eco.forest),
+        child: EcoIcon(icon, size: 22, color: cs.leaf),
       ),
     );
   }
@@ -439,6 +444,7 @@ class _AmountSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints c) {
         final double trackW = c.maxWidth;
@@ -465,9 +471,9 @@ class _AmountSlider extends StatelessWidget {
                   child: Container(
                     height: 10,
                     decoration: BoxDecoration(
-                      color: Eco.surface2,
+                      color: cs.surface2,
                       borderRadius: BorderRadius.circular(Eco.rPill),
-                      border: Border.all(color: Eco.line),
+                      border: Border.all(color: cs.outline),
                     ),
                   ),
                 ),
@@ -477,13 +483,13 @@ class _AmountSlider extends StatelessWidget {
                   child: Container(
                     width: _thumb,
                     height: _thumb,
-                    decoration: const BoxDecoration(
-                      color: Eco.forest,
+                    decoration: BoxDecoration(
+                      color: cs.leaf,
                       shape: BoxShape.circle,
                       border: Border.fromBorderSide(
                         BorderSide(color: Colors.white, width: 4),
                       ),
-                      boxShadow: <BoxShadow>[
+                      boxShadow: const <BoxShadow>[
                         BoxShadow(
                           color: Color(0x590F3320),
                           offset: Offset(0, 2),

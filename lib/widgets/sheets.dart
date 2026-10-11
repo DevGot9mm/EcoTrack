@@ -14,12 +14,13 @@ Future<void> showEcoSheet(BuildContext context, Widget child) {
     barrierColor: const Color(0x6B0F2818),
     isScrollControlled: true,
     builder: (BuildContext ctx) {
+      final cs = Theme.of(ctx).colorScheme;
       return Container(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(ctx).size.height * 0.82,
         ),
-        decoration: const BoxDecoration(
-          color: Eco.surface,
+        decoration: BoxDecoration(
+          color: cs.surface,
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(Eco.rSheet),
           ),
@@ -42,7 +43,7 @@ Future<void> showEcoSheet(BuildContext context, Widget child) {
                   width: 42,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Eco.lineStrong,
+                    color: cs.lineStrong,
                     borderRadius: BorderRadius.circular(Eco.rPill),
                   ),
                 ),
@@ -60,7 +61,7 @@ Future<void> showEcoSheet(BuildContext context, Widget child) {
 Widget _sheetTitle(String text) =>
     Text(text, style: F.d(20), maxLines: 1, overflow: TextOverflow.ellipsis);
 
-Widget _statCell(String value, String caption, {double size = 20}) {
+Widget _statCell(String value, String caption, {double size = 20, required ColorScheme cs}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: <Widget>[
@@ -71,7 +72,7 @@ Widget _statCell(String value, String caption, {double size = 20}) {
         overflow: TextOverflow.ellipsis,
       ),
       const SizedBox(height: 2),
-      Text(caption, style: F.statCap),
+      Text(caption, style: F.b(12.5, wght: 700, color: cs.muted)),
     ],
   );
 }
@@ -103,6 +104,7 @@ Future<void> showActivitySheet(
   EcoStore store,
   String id,
 ) {
+  final cs = Theme.of(context).colorScheme;
   Entry? entry;
   for (final Entry x in store.activities) {
     if (x.id == id) entry = x;
@@ -123,19 +125,20 @@ Future<void> showActivitySheet(
         const SizedBox(height: 4),
         Text(
           '${dayLabel(daysAgo(a.at))} · ${timeLabel(a.at)}',
-          style: F.caption,
+          style: F.b(13, height: 1.45, color: cs.muted),
         ),
         const SizedBox(height: 16),
         EcoCard(
           flat: true,
           child: _twoCol(<Widget>[
-            _statCell(store.amountLabel(def, a.amount), 'Amount'),
-            _statCell('${fmt2(a.co2)} kg', 'CO₂e'),
-            _statCell(c.name, 'Category', size: 16),
+            _statCell(store.amountLabel(def, a.amount), 'Amount', cs: cs),
+            _statCell('${fmt2(a.co2)} kg', 'CO₂e', cs: cs),
+            _statCell(c.name, 'Category', size: 16, cs: cs),
             _statCell(
               def.factor == 0 ? '0' : fmt2(store.displayFactor(def)),
               'kg per ${store.unitFor(def)}',
               size: 16,
+              cs: cs,
             ),
           ]),
         ),
@@ -157,6 +160,7 @@ Future<void> showActivitySheet(
 
 /// Badge detail — progress and description.
 Future<void> showBadgeSheet(BuildContext context, Badge b) {
+  final cs = Theme.of(context).colorScheme;
   final int pct = clampInt(
     ((b.progress / b.target) * 100).round(),
     0,
@@ -175,13 +179,13 @@ Future<void> showBadgeSheet(BuildContext context, Badge b) {
               height: 62,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: b.unlocked ? Eco.mint : Eco.surface2,
+                color: b.unlocked ? cs.mint : cs.surface2,
                 borderRadius: BorderRadius.circular(Eco.rPill),
               ),
               child: EcoIcon(
                 b.icon,
                 size: 29,
-                color: b.unlocked ? Eco.forest : const Color(0xFF9AA79B),
+                color: b.unlocked ? cs.leaf : const Color(0xFF9AA79B),
               ),
             ),
             const SizedBox(width: 14),
@@ -191,20 +195,20 @@ Future<void> showBadgeSheet(BuildContext context, Badge b) {
                 children: <Widget>[
                   _sheetTitle(b.name),
                   const SizedBox(height: 2),
-                  Text(b.unlocked ? 'Unlocked' : 'Locked', style: F.caption),
+                  Text(b.unlocked ? 'Unlocked' : 'Locked', style: F.b(13, height: 1.45, color: cs.muted)),
                 ],
               ),
             ),
           ],
         ),
         const SizedBox(height: 14),
-        Text(b.desc, style: F.body2),
+        Text(b.desc, style: F.b(14.5, height: 1.5, color: cs.ink2)),
         const SizedBox(height: 14),
         EcoBar(value: pct / 100),
         const SizedBox(height: 8),
         Text(
           '${fmtAmount(b.progress)} of ${fmtAmount(b.target)} complete',
-          style: F.caption,
+          style: F.b(13, height: 1.45, color: cs.muted),
         ),
         const SizedBox(height: 18),
         EcoButton(
@@ -220,6 +224,7 @@ Future<void> showBadgeSheet(BuildContext context, Badge b) {
 
 /// Daily carbon target picker.
 Future<void> showTargetSheet(BuildContext context, EcoStore store) {
+  final cs = Theme.of(context).colorScheme;
   const List<int> opts = <int>[4, 6, 8];
 
   String blurb(int v) {
@@ -247,11 +252,11 @@ Future<void> showTargetSheet(BuildContext context, EcoStore store) {
                     style: F.b(15, wght: 700),
                   ),
                   const SizedBox(height: 1),
-                  Text(blurb(v), style: F.caption),
+                  Text(blurb(v), style: F.b(13, height: 1.45, color: cs.muted)),
                 ],
               ),
             ),
-            if (on) const EcoIcon('check', size: 20, color: Eco.forest),
+            if (on) EcoIcon('check', size: 20, color: cs.leaf),
           ],
         ),
         onTap: () {
@@ -274,7 +279,7 @@ Future<void> showTargetSheet(BuildContext context, EcoStore store) {
         const SizedBox(height: 4),
         Text(
           'Pick the number you want EcoTrack to measure you against. You can change it any time.',
-          style: F.caption,
+          style: F.b(13, height: 1.45, color: cs.muted),
         ),
         const SizedBox(height: 16),
         Column(children: rows),
@@ -293,6 +298,7 @@ Future<void> showTargetSheet(BuildContext context, EcoStore store) {
 /// Generic settings detail.
 Future<void> showSettingSheet(
     BuildContext context, EcoStore store, String key) {
+  final cs = Theme.of(context).colorScheme;
   if (key == 'target') return showTargetSheet(context, store);
 
   const Map<String, List<String>> info = <String, List<String>>{
@@ -333,7 +339,7 @@ Future<void> showSettingSheet(
       children: <Widget>[
         _sheetTitle(v[0]),
         const SizedBox(height: 4),
-        Text(v[1], style: F.body2),
+        Text(v[1], style: F.b(14.5, height: 1.5, color: cs.ink2)),
         const SizedBox(height: 16),
         EcoList(
           children: <Widget>[

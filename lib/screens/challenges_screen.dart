@@ -4,6 +4,7 @@ import '../icons.dart';
 import '../models.dart';
 import '../store.dart';
 import '../theme.dart';
+import '../widgets/celebrations.dart';
 import '../widgets/common.dart';
 import '../widgets/sheets.dart';
 
@@ -42,7 +43,7 @@ class ChallengesScreen extends StatelessWidget {
               title: 'This week',
               action: Text(
                 '$completed of ${store.challenges.length} complete',
-                style: F.b(12, wght: 800, color: Eco.muted),
+                style: F.b(12, wght: 800, color: Theme.of(context).colorScheme.muted),
               ),
             ),
           ),
@@ -65,19 +66,23 @@ class _StreakPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: Eco.amberTint,
-        borderRadius: BorderRadius.circular(Eco.rPill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const EcoIcon('flame', size: 15, color: Eco.amberInk),
-          const SizedBox(width: 5),
-          Text('$days days', style: F.b(12, wght: 800, color: Eco.amberInk)),
-        ],
+    final cs = Theme.of(context).colorScheme;
+    return StreakPulse(
+      days: days,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: cs.amberTint,
+          borderRadius: BorderRadius.circular(Eco.rPill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            EcoIcon('flame', size: 15, color: cs.amberInk),
+            const SizedBox(width: 5),
+            Text('$days days', style: F.b(12, wght: 800, color: cs.amberInk)),
+          ],
+        ),
       ),
     );
   }
@@ -91,14 +96,7 @@ class _FeaturedChallengeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool done = challenge.state == ChallengeState.claimed;
-    final bool claimable = challenge.state == ChallengeState.claimable;
-    final String actionLabel = done
-        ? 'Challenge complete'
-        : claimable
-            ? 'Claim ${challenge.reward} points'
-            : 'Mark as done';
-
+    final cs = Theme.of(context).colorScheme;
     return EcoCard(
       tone: EcoCardTone.dark,
       padding: const EdgeInsets.all(16),
@@ -112,7 +110,7 @@ class _FeaturedChallengeCard extends StatelessWidget {
                 challenge.mascot,
                 size: 54,
                 radius: 17,
-                background: Eco.sage,
+                background: cs.leaf,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -139,46 +137,62 @@ class _FeaturedChallengeCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  '${challenge.progress.round()} of ${challenge.target.round()} done',
-                  style: F.b(12, wght: 800, color: const Color(0xD9FFFFFF)),
-                ),
-              ),
-              Text(
-                '+${challenge.reward} pts',
-                style: F.b(13, wght: 800, color: Colors.white),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          EcoBar(
-            value: challenge.progress / challenge.target,
-            color: Eco.sage,
-            track: const Color(0x42FFFFFF),
-            height: 6,
-          ),
-          const SizedBox(height: 14),
-          EcoButton(
-            label: actionLabel,
-            leading: done
-                ? 'check'
-                : claimable
-                    ? 'sparkles'
-                    : 'check',
-            tone: done ? EcoButtonTone.onDark : EcoButtonTone.amber,
-            block: true,
-            onPressed: done
-                ? null
-                : () {
-                    if (claimable) {
-                      store.claim(challenge.id);
-                    } else {
-                      store.challengeDone(challenge.id);
-                    }
-                  },
+          ListenableBuilder(
+            listenable: store,
+            builder: (BuildContext context, Widget? child) {
+              final bool isDone = challenge.state == ChallengeState.claimed;
+              final bool isClaimable = challenge.state == ChallengeState.claimable;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          '${challenge.progress.round()} of ${challenge.target.round()} done',
+                          style: F.b(12, wght: 800, color: const Color(0xD9FFFFFF)),
+                        ),
+                      ),
+                      Text(
+                        '+${challenge.reward} pts',
+                        style: F.b(13, wght: 800, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  EcoBar(
+                    value: challenge.progress / challenge.target,
+                    color: cs.leaf,
+                    track: const Color(0x42FFFFFF),
+                    height: 6,
+                  ),
+                  const SizedBox(height: 14),
+                  EcoButton(
+                    label: isDone
+                        ? 'Challenge complete'
+                        : isClaimable
+                            ? 'Claim ${challenge.reward} pts'
+                            : 'Mark as done',
+                    leading: isDone
+                        ? 'check'
+                        : isClaimable
+                            ? 'sparkles'
+                            : 'check',
+                    tone: isDone ? EcoButtonTone.onDark : EcoButtonTone.amber,
+                    block: true,
+                    onPressed: isDone
+                        ? null
+                        : () {
+                            if (isClaimable) {
+                              store.claim(challenge.id);
+                            } else {
+                              store.challengeDone(challenge.id);
+                            }
+                          },
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -191,17 +205,6 @@ class _ChallengeCard extends StatelessWidget {
 
   final Challenge challenge;
   final EcoStore store;
-
-  Color _stateColor(ChallengeState state) {
-    switch (state) {
-      case ChallengeState.active:
-        return Eco.forest;
-      case ChallengeState.claimable:
-        return Eco.amber;
-      case ChallengeState.claimed:
-        return Eco.muted;
-    }
-  }
 
   String _stateLabel(ChallengeState state) {
     switch (state) {
@@ -216,8 +219,25 @@ class _ChallengeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color stateColor = _stateColor(challenge.state);
-    final String stateLabel = _stateLabel(challenge.state);
+    final cs = Theme.of(context).colorScheme;
+    final Color stateColor;
+    switch (challenge.state) {
+      case ChallengeState.active:
+        stateColor = cs.leaf;
+      case ChallengeState.claimable:
+        stateColor = cs.amber;
+      case ChallengeState.claimed:
+        stateColor = cs.muted;
+    }
+    final String stateLabel;
+    switch (challenge.state) {
+      case ChallengeState.active:
+        stateLabel = 'Active';
+      case ChallengeState.claimable:
+        stateLabel = 'Claimable';
+      case ChallengeState.claimed:
+        stateLabel = 'Claimed';
+    }
 
     return Pressable(
       onTap: () => _showDetail(context),
@@ -226,11 +246,11 @@ class _ChallengeCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: challenge.state == ChallengeState.claimed
-              ? Eco.surface2
-              : Eco.surface,
+              ? cs.surface2
+              : cs.surface,
           border: Border.all(
             color: challenge.state == ChallengeState.claimed
-                ? Eco.line
+                ? cs.outline
                 : stateColor.withValues(alpha: 0.3),
           ),
           borderRadius: BorderRadius.circular(Eco.rCard),
@@ -272,7 +292,7 @@ class _ChallengeCard extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         challenge.why,
-                        style: F.caption,
+                        style: F.b(13, height: 1.45, color: cs.muted),
                       ),
                     ],
                   ),
@@ -282,11 +302,11 @@ class _ChallengeCard extends StatelessWidget {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: catOf(challenge.cat).tint,
+                    color: catOf(challenge.cat).resolve(cs).tint,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: EcoIcon(challenge.featured ? 'sparkles' : 'flag',
-                      size: 20, color: catOf(challenge.cat).ink),
+                      size: 20, color: catOf(challenge.cat).resolve(cs).ink),
                 ),
               ],
             ),
@@ -303,21 +323,26 @@ class _ChallengeCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   '${challenge.progress.round()} / ${challenge.target.round()}',
-                  style: F.b(12, wght: 800, color: Eco.muted),
+                  style: F.b(12, wght: 800, color: cs.muted),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                _StatePill(
-                  label: '+${challenge.reward} pts',
-                  background: Eco.amberTint,
-                  foreground: Eco.amberInk,
-                ),
-                _actionButton(),
-              ],
+            ListenableBuilder(
+              listenable: store,
+              builder: (BuildContext context, Widget? child) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    _StatePill(
+                      label: '+${challenge.reward} pts',
+                      background: cs.amberTint,
+                      foreground: cs.amberInk,
+                    ),
+                    _actionButton(),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -348,6 +373,7 @@ class _ChallengeCard extends StatelessWidget {
   }
 
   void _showDetail(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     showEcoSheet(
       context,
       Column(
@@ -363,18 +389,18 @@ class _ChallengeCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             challenge.why,
-            style: F.body2,
+            style: F.b(14.5, height: 1.5, color: cs.ink2),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           _StatePill(
             label: _stateLabel(challenge.state),
             background: challenge.state == ChallengeState.claimed
-                ? Eco.mint
-                : Eco.amberTint,
+                ? cs.mint
+                : cs.amberTint,
             foreground: challenge.state == ChallengeState.claimed
-                ? Eco.forestInk
-                : Eco.amberInk,
+                ? cs.forestInk
+                : cs.amberInk,
           ),
           const SizedBox(height: 16),
           EcoButton(

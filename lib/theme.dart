@@ -195,6 +195,18 @@ class Eco {
   );
 }
 
+/// Returns the current ColorScheme from the active navigator tree.
+/// Safe to call from any widget's build() context.
+/// Returns null if called outside a mounted widget tree.
+ColorScheme? _currentCs(BuildContext? ctx) {
+  if (ctx == null) return null;
+  try {
+    return Theme.of(ctx).colorScheme;
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Font families. Both are bundled locally as OFL variable fonts.
 class EcoFont {
   EcoFont._();
@@ -214,22 +226,28 @@ FontWeight _weight(double w) {
 
 /// The type scale.
 ///
-/// Every style pins both `fontWeight` and an explicit `wght` variation, so the
-/// bundled variable fonts render at the intended weight on every platform.
+/// When [color] is omitted, styles resolve from the current theme's
+/// ColorScheme — so they automatically switch between light and dark modes.
 class F {
   F._();
+
+  /// Returns a theme-aware text color from the current widget tree.
+  /// Call this as the default: `color: F.cs(ctx).ink`
+  static ColorScheme cs([BuildContext? ctx]) {
+    return _currentCs(ctx) ?? const ColorScheme.light();
+  }
 
   static TextStyle d(
     double size, {
     double wght = 600,
-    Color color = Eco.ink,
+    Color? color,
     double? height,
     double? ls,
   }) {
     return TextStyle(
       fontFamily: EcoFont.display,
       fontSize: size,
-      color: color,
+      color: color ?? cs().ink,
       height: height,
       letterSpacing: ls ?? -0.01,
       fontWeight: _weight(wght),
@@ -240,14 +258,14 @@ class F {
   static TextStyle b(
     double size, {
     double wght = 400,
-    Color color = Eco.ink,
+    Color? color,
     double? height,
     double ls = 0,
   }) {
     return TextStyle(
       fontFamily: EcoFont.body,
       fontSize: size,
-      color: color,
+      color: color ?? cs().ink,
       height: height,
       letterSpacing: ls,
       fontWeight: _weight(wght),
@@ -259,12 +277,16 @@ class F {
   static TextStyle get h2 => d(21, height: 1.2);
   static TextStyle get h3 => d(17, height: 1.25);
   static TextStyle get display20 => d(20);
-  static TextStyle get eyebrow => b(12, wght: 800, ls: 1.2, color: Eco.muted);
+  static TextStyle eyebrow(BuildContext ctx) =>
+      b(12, wght: 800, ls: 1.2, color: cs(ctx).muted);
   static TextStyle get small => b(14);
-  static TextStyle get caption => b(13, height: 1.45, color: Eco.muted);
-  static TextStyle get body2 => b(14.5, height: 1.5, color: Eco.ink2);
+  static TextStyle caption(BuildContext ctx) =>
+      b(13, height: 1.45, color: cs(ctx).muted);
+  static TextStyle body2(BuildContext ctx) =>
+      b(14.5, height: 1.5, color: cs(ctx).ink2);
   static TextStyle get statNum => d(20);
-  static TextStyle get statCap => b(12.5, wght: 700, color: Eco.muted);
+  static TextStyle statCap(BuildContext ctx) =>
+      b(12.5, wght: 700, color: cs(ctx).muted);
 }
 
 ThemeData ecoTheme() {
@@ -291,8 +313,8 @@ ThemeData ecoTheme() {
     useMaterial3: true,
     brightness: Brightness.light,
     colorScheme: scheme,
-    scaffoldBackgroundColor: Eco.ground,
-    canvasColor: Eco.ground,
+    scaffoldBackgroundColor: scheme.surface,
+    canvasColor: scheme.surface,
     splashFactory: NoSplash.splashFactory,
     splashColor: Colors.transparent,
     highlightColor: Colors.transparent,
@@ -302,4 +324,152 @@ ThemeData ecoTheme() {
     textTheme: text,
     hintColor: Eco.muted,
   );
+}
+
+ThemeData ecoDarkTheme() {
+  // Dark mode surface colours — warm near-black with a green undertone
+  const Color dkGround = Color(0xFF0D1510);
+  const Color dkSurface = Color(0xFF182218);
+  const Color dkInk = Color(0xFFE8F0E4);
+  const Color dkMuted = Color(0xFF6F8572);
+  const Color dkLine = Color(0xFF2A3A2C);
+
+  final ColorScheme scheme = ColorScheme.fromSeed(
+    seedColor: Eco.forest,
+    brightness: Brightness.dark,
+  ).copyWith(
+    primary: Eco.sage,
+    onPrimary: dkGround,
+    secondary: Eco.amber,
+    onSecondary: const Color(0xFF1A0F00),
+    error: const Color(0xFFE8806A),
+    onError: Colors.black,
+    surface: dkSurface,
+    onSurface: dkInk,
+  );
+
+  final TextTheme text = const TextTheme().apply(
+    fontFamily: EcoFont.body,
+    bodyColor: dkInk,
+    displayColor: dkInk,
+  );
+
+  return ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    colorScheme: scheme,
+    scaffoldBackgroundColor: scheme.surface,
+    canvasColor: scheme.surface,
+    splashFactory: NoSplash.splashFactory,
+    splashColor: Colors.transparent,
+    highlightColor: Colors.transparent,
+    hoverColor: Colors.transparent,
+    dividerColor: dkLine,
+    fontFamily: EcoFont.body,
+    textTheme: text,
+    hintColor: dkMuted,
+  );
+}
+
+/// Adds all Eco custom colors to ColorScheme so widgets can read them from
+/// Theme.of(context).colorScheme — enabling true dark-mode colour switching.
+extension EcoColorSchemeX on ColorScheme {
+  // Backgrounds
+  Color get ground =>
+      brightness == Brightness.dark ? const Color(0xFF0D1510) : Eco.ground;
+
+  // Surfaces
+  Color get surface2 =>
+      brightness == Brightness.dark ? const Color(0xFF1E2D20) : Eco.surface2;
+  Color get mint =>
+      brightness == Brightness.dark ? const Color(0xFF1E2D20) : Eco.mint;
+  Color get cream =>
+      brightness == Brightness.dark ? const Color(0xFF1A1F18) : Eco.cream;
+
+  // Text
+  Color get ink2 =>
+      brightness == Brightness.dark ? const Color(0xFFB0C4AE) : Eco.ink2;
+  Color get muted =>
+      brightness == Brightness.dark ? const Color(0xFF6F8572) : Eco.muted;
+
+  // Lines
+  Color get outline =>
+      brightness == Brightness.dark ? const Color(0xFF2A3A2C) : Eco.line;
+  Color get lineStrong =>
+      brightness == Brightness.dark ? const Color(0xFF3D5040) : Eco.lineStrong;
+  Color get lineMint =>
+      brightness == Brightness.dark ? const Color(0xFF1E2D20) : Eco.lineMint;
+  Color get lineAmber =>
+      brightness == Brightness.dark ? const Color(0xFF2A2010) : Eco.lineAmber;
+
+  // Greens
+  Color get leaf => brightness == Brightness.dark ? Eco.sage : Eco.leaf;
+  Color get forest =>
+      brightness == Brightness.dark ? Eco.sage : Eco.forest;
+  Color get forestHover =>
+      brightness == Brightness.dark ? const Color(0xFF7FBF8A) : Eco.forestHover;
+  Color get forestInk =>
+      brightness == Brightness.dark ? const Color(0xFFA8C4A4) : Eco.forestInk;
+  Color get sage => Eco.sage;
+
+  // Amber
+  Color get amber => Eco.amber;
+  Color get amberTint =>
+      brightness == Brightness.dark ? const Color(0xFF1A1400) : Eco.amberTint;
+  Color get amberInk =>
+      brightness == Brightness.dark ? const Color(0xFFE8C070) : Eco.amberInk;
+  Color get amberHover =>
+      brightness == Brightness.dark ? const Color(0xFFF5BC60) : Eco.amberHover;
+
+  // Categories
+  Color get transportTint =>
+      brightness == Brightness.dark ? const Color(0xFF1A2A2D) : Eco.transportTint;
+  Color get transportInk =>
+      brightness == Brightness.dark ? const Color(0xFF88A8B0) : Eco.transportInk;
+
+  Color get electricityTint =>
+      brightness == Brightness.dark ? const Color(0xFF1A1400) : Eco.electricityTint;
+  Color get electricityInk =>
+      brightness == Brightness.dark ? const Color(0xFFE8C070) : Eco.electricityInk;
+
+  Color get foodTint =>
+      brightness == Brightness.dark ? const Color(0xFF1A2010) : Eco.foodTint;
+  Color get foodInk =>
+      brightness == Brightness.dark ? const Color(0xFFB0C870) : Eco.foodInk;
+
+  // Danger
+  Color get danger =>
+      brightness == Brightness.dark ? const Color(0xFFE8806A) : Eco.danger;
+  Color get dangerTint =>
+      brightness == Brightness.dark ? const Color(0xFF2A1010) : Eco.dangerTint;
+
+  // Dark-only surfaces
+  Color get darkCardStart =>
+      brightness == Brightness.dark ? const Color(0xFF24683A) : const Color(0xFF2A7245);
+  Color get darkCardMid =>
+      brightness == Brightness.dark ? const Color(0xFF17482A) : const Color(0xFF17492B);
+  Color get darkCardEnd =>
+      brightness == Brightness.dark ? const Color(0xFF113A22) : const Color(0xFF0F3320);
+
+  // Semantic
+  Color get surface =>
+      brightness == Brightness.dark ? const Color(0xFF182218) : Eco.surface;
+  Color get ink =>
+      brightness == Brightness.dark ? const Color(0xFFE8F0E4) : Eco.ink;
+}
+
+/// Dark theme colour tokens — accessible as EcoDark members so widgets can
+/// reference dark-mode colours without needing a separate import.
+class EcoDark {
+  EcoDark._();
+  static const Color ground = Color(0xFF0D1510);
+  static const Color surface = Color(0xFF182218);
+  static const Color surface2 = Color(0xFF1E2D20);
+  static const Color ink = Color(0xFFE8F0E4);
+  static const Color ink2 = Color(0xFFB0C4AE);
+  static const Color muted = Color(0xFF6F8572);
+  static const Color line = Color(0xFF2A3A2C);
+  static const Color lineStrong = Color(0xFF3D5040);
+  static const Color mint = Color(0xFF1E2D20);
+  static const Color cream = Color(0xFF1A1F18);
 }

@@ -9,7 +9,8 @@ import '../theme.dart';
    Primitives
    ========================================================================== */
 
-/// Gives every tappable surface the prototype's subtle press transform.
+/// Gives every tappable surface the prototype's subtle press transform
+/// plus a smooth frosted-glass hover effect.
 class Pressable extends StatefulWidget {
   const Pressable({
     super.key,
@@ -28,24 +29,54 @@ class Pressable extends StatefulWidget {
 
 class _PressableState extends State<Pressable> {
   bool _down = false;
+  bool _hovering = false;
 
-  void _set(bool v) {
+  void _setDown(bool v) {
     if (_down != v) setState(() => _down = v);
+  }
+
+  void _setHover(bool v) {
+    if (_hovering != v) setState(() => _hovering = v);
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onTap,
-      onTapDown: widget.onTap == null ? null : (_) => _set(true),
-      onTapUp: widget.onTap == null ? null : (_) => _set(false),
-      onTapCancel: widget.onTap == null ? null : () => _set(false),
-      child: AnimatedScale(
-        scale: _down ? widget.scale : 1,
-        duration: Eco.dur1,
-        curve: Eco.easeOut,
-        child: widget.child,
+    final cs = Theme.of(context).colorScheme;
+
+    return MouseRegion(
+      onEnter: widget.onTap == null ? null : (_) => _setHover(true),
+      onExit: widget.onTap == null ? null : (_) => _setHover(false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        onTapDown: widget.onTap == null ? null : (_) => _setDown(true),
+        onTapUp: widget.onTap == null ? null : (_) => _setDown(false),
+        onTapCancel: widget.onTap == null ? null : () => _setDown(false),
+        child: Stack(
+          children: [
+            AnimatedScale(
+              scale: _down ? widget.scale : 1,
+              duration: Eco.dur1,
+              curve: Eco.easeOut,
+              child: widget.child,
+            ),
+            if (_hovering && widget.onTap != null)
+              Positioned.fill(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  decoration: BoxDecoration(
+                    color: cs.surface.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(Eco.rCard),
+                    border: Border.all(
+                      color: cs.leaf.withValues(alpha: 0.25),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -56,11 +87,12 @@ class SheetGrab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       width: 42,
       height: 5,
       decoration: BoxDecoration(
-        color: Eco.lineStrong,
+        color: cs.lineStrong,
         borderRadius: BorderRadius.circular(99),
       ),
     );
@@ -217,7 +249,7 @@ class MascotCrop extends StatelessWidget {
     this.scale = 1.28,
     this.dx = -0.14,
     this.dy = 0.04,
-    this.background = Eco.mint,
+    this.background,
     this.circular = false,
     this.photoScale = 1,
   });
@@ -228,16 +260,17 @@ class MascotCrop extends StatelessWidget {
   final double scale;
   final double dx;
   final double dy;
-  final Color background;
+  final Color? background;
   final bool circular;
   final double photoScale;
 
   @override
   Widget build(BuildContext context) {
+    final Color bg = background ?? Theme.of(context).colorScheme.mint;
     final Widget image = Container(
       width: size,
       height: size,
-      color: background,
+      color: bg,
       child: _avatarAssetPaths.containsKey(name)
           ? Image.asset(
               mascotPath(name),
@@ -306,8 +339,9 @@ class EcoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bg = Eco.surface;
-    Color border = Eco.line;
+    final cs = Theme.of(context).colorScheme;
+    Color bg = cs.surface;
+    Color border = cs.outline;
     List<BoxShadow> shadows = flat ? const <BoxShadow>[] : Eco.shadow1;
     Gradient? grad = gradient;
 
@@ -315,17 +349,17 @@ class EcoCard extends StatelessWidget {
       case EcoCardTone.plain:
         break;
       case EcoCardTone.mint:
-        bg = Eco.mint;
-        border = Eco.lineMint;
+        bg = cs.mint;
+        border = cs.lineMint;
         break;
       case EcoCardTone.amber:
-        bg = Eco.amberTint;
-        border = Eco.lineAmber;
+        bg = cs.amberTint;
+        border = cs.lineAmber;
         break;
       case EcoCardTone.dark:
-        grad = Eco.cardDark;
+        grad = cs.brightness == Brightness.dark ? null : Eco.cardDark;
         border = const Color(0x1AFFFFFF);
-        shadows = Eco.shadowDarkCard;
+        shadows = cs.brightness == Brightness.dark ? const <BoxShadow>[] : Eco.shadowDarkCard;
         break;
     }
 
@@ -333,10 +367,10 @@ class EcoCard extends StatelessWidget {
 
     double borderWidth = 1;
     if (highlighted) {
-      border = Eco.forest;
+      border = cs.leaf;
       borderWidth = 1.5;
-      shadows = const <BoxShadow>[
-        BoxShadow(color: Color(0x241F5C34), spreadRadius: 3),
+      shadows = <BoxShadow>[
+        BoxShadow(color: cs.leaf.withValues(alpha: 0.14), spreadRadius: 3),
       ];
     }
 
@@ -391,6 +425,7 @@ class EcoButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     Color bg;
     Color fg;
     Color? border;
@@ -398,21 +433,21 @@ class EcoButton extends StatelessWidget {
 
     switch (tone) {
       case EcoButtonTone.primary:
-        bg = Eco.forest;
+        bg = cs.leaf;
         fg = const Color(0xFFF4FAF0);
         border = null;
         shadows = Eco.shadowPrimaryBtn;
         break;
       case EcoButtonTone.amber:
-        bg = Eco.amber;
+        bg = cs.amber;
         fg = const Color(0xFF3A2703);
         border = null;
         shadows = Eco.shadowAmberBtn;
         break;
       case EcoButtonTone.ghost:
-        bg = Eco.surface;
-        fg = Eco.ink;
-        border = Eco.lineStrong;
+        bg = cs.surface;
+        fg = cs.ink;
+        border = cs.lineStrong;
         shadows = const <BoxShadow>[];
         break;
       case EcoButtonTone.onDark:
@@ -490,6 +525,7 @@ class EcoIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Pressable(
       onTap: onPressed,
       scale: 0.94,
@@ -498,13 +534,13 @@ class EcoIconButton extends StatelessWidget {
         height: size,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: plain ? Colors.transparent : Eco.surface,
+          color: plain ? Colors.transparent : cs.surface,
           border: Border.all(
-            color: plain ? Colors.transparent : Eco.line,
+            color: plain ? Colors.transparent : cs.outline,
           ),
           borderRadius: BorderRadius.circular(13),
         ),
-        child: EcoIcon(icon, size: iconSize, color: iconColor ?? Eco.ink2),
+        child: EcoIcon(icon, size: iconSize, color: iconColor ?? cs.ink2),
       ),
     );
   }
@@ -518,12 +554,13 @@ class SectionLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Text(label, style: F.b(13.5, wght: 800, color: Eco.forest)),
+        child: Text(label, style: F.b(13.5, wght: 800, color: cs.leaf)),
       ),
     );
   }
@@ -547,7 +584,8 @@ class MiniBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color fg = on ? const Color(0xFFF4FAF0) : Eco.ink2;
+    final cs = Theme.of(context).colorScheme;
+    final Color fg = on ? const Color(0xFFF4FAF0) : cs.ink2;
     final List<Widget> content = <Widget>[
       if (icon != null) EcoIcon(icon!, size: 16, color: fg),
       Flexible(
@@ -566,8 +604,8 @@ class MiniBtn extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 38),
         padding: const EdgeInsets.symmetric(horizontal: 13),
         decoration: BoxDecoration(
-          color: on ? Eco.forest : Eco.surface,
-          border: Border.all(color: on ? Eco.forest : Eco.lineStrong),
+          color: on ? cs.leaf : cs.surface,
+          border: Border.all(color: on ? cs.leaf : cs.lineStrong),
           borderRadius: BorderRadius.circular(Eco.rPill),
         ),
         alignment: Alignment.center,
@@ -598,15 +636,16 @@ class EcoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color fg = active ? const Color(0xFFF4FAF0) : Eco.ink2;
+    final cs = Theme.of(context).colorScheme;
+    final Color fg = active ? const Color(0xFFF4FAF0) : cs.ink2;
     return Pressable(
       onTap: onTap,
       child: Container(
         constraints: const BoxConstraints(minHeight: 38),
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: active ? Eco.forest : Eco.surface,
-          border: Border.all(color: active ? Eco.forest : Eco.lineStrong),
+          color: active ? cs.leaf : cs.surface,
+          border: Border.all(color: active ? cs.leaf : cs.lineStrong),
           borderRadius: BorderRadius.circular(Eco.rPill),
         ),
         alignment: Alignment.center,
@@ -646,6 +685,7 @@ class EcoSegmented extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final List<Widget> cells = <Widget>[];
     for (int i = 0; i < items.length; i++) {
       final bool on = i == index;
@@ -659,7 +699,7 @@ class EcoSegmented extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: 40),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: on ? Eco.surface : Colors.transparent,
+                color: on ? cs.surface : Colors.transparent,
                 borderRadius: BorderRadius.circular(Eco.rPill),
                 boxShadow: on ? Eco.shadow1 : const <BoxShadow>[],
               ),
@@ -668,7 +708,7 @@ class EcoSegmented extends StatelessWidget {
                 style: F.b(
                   14,
                   wght: 800,
-                  color: on ? Eco.forest : Eco.muted,
+                  color: on ? cs.leaf : cs.muted,
                 ),
               ),
             ),
@@ -679,8 +719,8 @@ class EcoSegmented extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Eco.surface2,
-        border: Border.all(color: Eco.line),
+        color: cs.surface2,
+        border: Border.all(color: cs.outline),
         borderRadius: BorderRadius.circular(Eco.rPill),
       ),
       child: Row(children: _gapped(cells, 4)),
@@ -696,19 +736,20 @@ class EcoBar extends StatelessWidget {
   const EcoBar({
     super.key,
     required this.value,
-    this.color = Eco.leaf,
+    this.color,
     this.height = 8,
-    this.track = Eco.surface2,
+    this.track,
   });
 
   /// 0..1
   final double value;
-  final Color color;
+  final Color? color;
   final double height;
-  final Color track;
+  final Color? track;
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final double v = value.isNaN ? 0 : clampDouble(value, 0, 1);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints c) {
@@ -718,7 +759,7 @@ class EcoBar extends StatelessWidget {
             Container(
               height: height,
               decoration: BoxDecoration(
-                color: track,
+                color: track ?? cs.surface2,
                 borderRadius: BorderRadius.circular(Eco.rPill),
               ),
             ),
@@ -728,7 +769,7 @@ class EcoBar extends StatelessWidget {
               height: height,
               width: w * v,
               decoration: BoxDecoration(
-                color: color,
+                color: color ?? cs.leaf,
                 borderRadius: BorderRadius.circular(Eco.rPill),
               ),
             ),
@@ -776,32 +817,35 @@ class StatePill extends StatelessWidget {
   const StatePill({
     super.key,
     required this.label,
-    this.background = Eco.surface2,
-    this.foreground = Eco.muted,
+    this.background,
+    this.foreground,
     this.icon,
   });
 
   final String label;
-  final Color background;
-  final Color foreground;
+  final Color? background;
+  final Color? foreground;
   final String? icon;
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final Color bg = background ?? cs.surface2;
+    final Color fg = foreground ?? cs.muted;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
       decoration: BoxDecoration(
-        color: background,
+        color: bg,
         borderRadius: BorderRadius.circular(Eco.rPill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           if (icon != null) ...<Widget>[
-            EcoIcon(icon!, size: 14, color: foreground),
+            EcoIcon(icon!, size: 14, color: fg),
             const SizedBox(width: 6),
           ],
-          Text(label, style: F.b(12.5, wght: 800, color: foreground)),
+          Text(label, style: F.b(12.5, wght: 800, color: fg)),
         ],
       ),
     );
@@ -987,6 +1031,7 @@ class StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return EcoCard(
       flat: true,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -1000,7 +1045,7 @@ class StatTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
-          Text(caption, style: F.statCap),
+          Text(caption, style: F.b(12.5, wght: 700, color: cs.muted)),
         ],
       ),
     );
@@ -1030,33 +1075,34 @@ class EcoListRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Pressable(
       onTap: onTap,
       scale: 0.99,
       child: Container(
         constraints: const BoxConstraints(minHeight: 58),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        color: Eco.surface,
+        color: cs.surface,
         child: Row(
           children: <Widget>[
             if (leadingIcon != null) ...<Widget>[
               EcoIcon(
                 leadingIcon!,
                 size: 19,
-                color: danger ? Eco.danger : Eco.forest,
+                color: danger ? cs.danger : cs.leaf,
               ),
               const SizedBox(width: 12),
             ],
             Expanded(
               child: Text(
                 label,
-                style: F.b(15, wght: 700, color: danger ? Eco.danger : Eco.ink),
+                style: F.b(15, wght: 700, color: danger ? cs.danger : cs.ink),
               ),
             ),
             if (valueText != null)
-              Text(valueText!, style: F.caption)
+              Text(valueText!, style: F.b(13, height: 1.45, color: cs.muted))
             else if (trailingText != null)
-              Text(trailingText!, style: F.caption),
+              Text(trailingText!, style: F.b(13, height: 1.45, color: cs.muted)),
             if (showChevron) ...<Widget>[
               const SizedBox(width: 8),
               const Icon(
@@ -1079,15 +1125,16 @@ class EcoList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final List<Widget> rows = <Widget>[];
     for (int i = 0; i < children.length; i++) {
-      if (i > 0) rows.add(Container(height: 1, color: Eco.line));
+      if (i > 0) rows.add(Container(height: 1, color: cs.outline));
       rows.add(children[i]);
     }
     return Container(
       decoration: BoxDecoration(
-        color: Eco.surface,
-        border: Border.all(color: Eco.line),
+        color: cs.surface,
+        border: Border.all(color: cs.outline),
         borderRadius: BorderRadius.circular(Eco.rCard),
       ),
       clipBehavior: Clip.antiAlias,
@@ -1112,6 +1159,7 @@ class EcoEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
       child: Column(
@@ -1123,7 +1171,7 @@ class EcoEmptyState extends StatelessWidget {
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 250),
             child: Text(body,
-                style: F.small.copyWith(color: Eco.muted),
+                style: F.small.copyWith(color: cs.muted),
                 textAlign: TextAlign.center),
           ),
           if (action != null) ...<Widget>[
@@ -1150,6 +1198,7 @@ class EcoFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Pressable(
       onTap: onTap,
       scale: 0.96,
@@ -1157,7 +1206,7 @@ class EcoFab extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 54),
         padding: const EdgeInsets.only(left: 17, right: 20),
         decoration: BoxDecoration(
-          color: Eco.amber,
+          color: cs.amber,
           borderRadius: BorderRadius.circular(Eco.rPill),
           boxShadow: Eco.shadowFab,
         ),
@@ -1186,9 +1235,10 @@ class Eyebrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Text(
       text.toUpperCase(),
-      style: F.eyebrow.copyWith(color: color ?? Eco.muted),
+      style: F.eyebrow(context).copyWith(color: color ?? cs.muted),
     );
   }
 }

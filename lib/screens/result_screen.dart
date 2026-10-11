@@ -15,6 +15,7 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
+    final cs = Theme.of(context).colorScheme;
     final Entry? entry = store.lastActivity;
     if (entry == null) return const HomeScreen();
 
@@ -75,7 +76,7 @@ class ResultScreen extends StatelessWidget {
                       constraints: const BoxConstraints(maxWidth: 260),
                       child: Text(
                         '${def.name} · ${store.amountLabel(def, a.amount)}',
-                        style: F.body2,
+                        style: F.b(14.5, height: 1.5, color: cs.ink2),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -91,7 +92,7 @@ class ResultScreen extends StatelessWidget {
                           ),
                           TextSpan(
                             text: ' kg CO₂e',
-                            style: F.b(15, wght: 800, color: Eco.muted),
+                            style: F.b(15, wght: 800, color: cs.muted),
                           ),
                         ],
                       ),
@@ -104,8 +105,8 @@ class ResultScreen extends StatelessWidget {
                         vertical: 11,
                       ),
                       decoration: BoxDecoration(
-                        color: Eco.surface,
-                        border: Border.all(color: Eco.line),
+                        color: cs.surface,
+                        border: Border.all(color: cs.outline),
                         borderRadius: BorderRadius.circular(Eco.rBtn),
                       ),
                       child: Text(
@@ -113,7 +114,7 @@ class ResultScreen extends StatelessWidget {
                             ? 'That is a journey with no emissions at all — the best kind of number.'
                             : 'About the same as driving ${equiv.round()} km in a petrol car.',
                         textAlign: TextAlign.center,
-                        style: F.b(14, wght: 700, color: Eco.ink2),
+                        style: F.b(14, wght: 700, color: cs.ink2),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -123,8 +124,8 @@ class ResultScreen extends StatelessWidget {
                       runSpacing: 8,
                       children: <Widget>[
                         _pill(
-                          background: Eco.surface,
-                          border: Eco.lineStrong,
+                          background: cs.surface,
+                          border: cs.lineStrong,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
@@ -140,27 +141,27 @@ class ResultScreen extends StatelessWidget {
                               const SizedBox(width: 7),
                               Text(
                                 c.name,
-                                style: F.b(13.5, wght: 700, color: Eco.ink2),
+                                style: F.b(13.5, wght: 700, color: cs.ink2),
                               ),
                             ],
                           ),
                         ),
                         _pill(
-                          background: Eco.amberTint,
-                          border: Eco.lineAmber,
+                          background: cs.amberTint,
+                          border: cs.lineAmber,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
-                              const EcoIcon(
+                              EcoIcon(
                                 'sparkles',
                                 size: 16,
-                                color: Eco.amberInk,
+                                color: cs.amberInk,
                               ),
                               const SizedBox(width: 7),
                               Text(
                                 '+15 Eco Points',
                                 style:
-                                    F.b(13.5, wght: 700, color: Eco.amberInk),
+                                    F.b(13.5, wght: 700, color: cs.amberInk),
                               ),
                             ],
                           ),

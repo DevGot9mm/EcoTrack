@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 
 import 'theme.dart';
 
@@ -6,14 +6,19 @@ import 'theme.dart';
    Domain data — honest, plausible illustrative estimates.
    ========================================================================== */
 
+/// Resolved category colors — tint and ink adapt to light/dark brightness.
+class CatColors {
+  const CatColors({required this.tint, required this.ink});
+  final Color tint;
+  final Color ink;
+}
+
 class Cat {
   const Cat({
     required this.id,
     required this.name,
     required this.blurb,
     required this.color,
-    required this.tint,
-    required this.ink,
     required this.icon,
   });
 
@@ -21,9 +26,29 @@ class Cat {
   final String name;
   final String blurb;
   final Color color;
-  final Color tint;
-  final Color ink;
   final String icon;
+
+  CatColors resolve(ColorScheme cs) {
+    final bool dark = cs.brightness == Brightness.dark;
+    switch (id) {
+      case 'transport':
+        return CatColors(
+          tint: dark ? cs.transportTint : const Color(0xFFE3F0F1),
+          ink: dark ? cs.transportInk : const Color(0xFF2A5F68),
+        );
+      case 'electricity':
+        return CatColors(
+          tint: dark ? cs.electricityTint : const Color(0xFFFBF0DA),
+          ink: dark ? cs.electricityInk : const Color(0xFF7F5606),
+        );
+      case 'food':
+        return CatColors(
+          tint: dark ? cs.foodTint : const Color(0xFFEDF4DE),
+          ink: dark ? cs.foodInk : const Color(0xFF546D2C),
+        );
+    }
+    return const CatColors(tint: Color(0xFFE3F0F1), ink: Color(0xFF2A5F68));
+  }
 }
 
 const Map<String, Cat> kCats = <String, Cat>{
@@ -32,8 +57,6 @@ const Map<String, Cat> kCats = <String, Cat>{
     name: 'Transport',
     blurb: 'Getting around',
     color: Eco.transport,
-    tint: Eco.transportTint,
-    ink: Eco.transportInk,
     icon: 'bus',
   ),
   'electricity': Cat(
@@ -41,8 +64,6 @@ const Map<String, Cat> kCats = <String, Cat>{
     name: 'Electricity',
     blurb: 'Power at home',
     color: Eco.electricity,
-    tint: Eco.electricityTint,
-    ink: Eco.electricityInk,
     icon: 'bolt',
   ),
   'food': Cat(
@@ -50,8 +71,6 @@ const Map<String, Cat> kCats = <String, Cat>{
     name: 'Food',
     blurb: 'What you eat',
     color: Eco.food,
-    tint: Eco.foodTint,
-    ink: Eco.foodInk,
     icon: 'sprout',
   ),
 };

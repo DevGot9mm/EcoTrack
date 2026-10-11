@@ -85,11 +85,11 @@ class _AuthScreenState extends State<AuthScreen> {
     });
   }
 
-  InputBorder _border(bool invalid, {bool focused = false}) {
+  InputBorder _border(bool invalid, {bool focused = false, required ColorScheme cs}) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(Eco.rBtn),
       borderSide: BorderSide(
-        color: invalid ? Eco.danger : (focused ? Eco.forest : Eco.lineStrong),
+        color: invalid ? cs.danger : (focused ? cs.leaf : cs.lineStrong),
         width: 1.5,
       ),
     );
@@ -107,6 +107,7 @@ class _AuthScreenState extends State<AuthScreen> {
     TextInputAction? textInputAction,
     FocusNode? focusNode,
     void Function()? onSubmitted,
+    required ColorScheme cs,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -120,11 +121,11 @@ class _AuthScreenState extends State<AuthScreen> {
                 children: <InlineSpan>[
                   TextSpan(
                     text: label,
-                    style: F.b(13.5, wght: 800, color: Eco.ink2),
+                    style: F.b(13.5, wght: 800, color: cs.ink2),
                   ),
                   TextSpan(
                     text: ' *',
-                    style: F.b(13.5, wght: 800, color: Eco.danger),
+                    style: F.b(13.5, wght: 800, color: cs.danger),
                   ),
                 ],
               ),
@@ -138,22 +139,22 @@ class _AuthScreenState extends State<AuthScreen> {
             focusNode: focusNode,
             onSubmitted: (_) => onSubmitted?.call(),
             style: F.b(16),
-            cursorColor: Eco.forest,
+            cursorColor: cs.leaf,
             decoration: InputDecoration(
               isDense: true,
               filled: true,
-              fillColor: Eco.surface,
+              fillColor: cs.surface,
               hintText: hint,
               hintStyle: F.b(16, color: const Color(0xFF9AA79B)),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 15,
                 vertical: 17,
               ),
-              border: _border(invalid),
-              enabledBorder: _border(invalid),
-              focusedBorder: _border(invalid, focused: true),
-              errorBorder: _border(true),
-              focusedErrorBorder: _border(true, focused: true),
+              border: _border(invalid, cs: cs),
+              enabledBorder: _border(invalid, cs: cs),
+              focusedBorder: _border(invalid, focused: true, cs: cs),
+              errorBorder: _border(true, cs: cs),
+              focusedErrorBorder: _border(true, focused: true, cs: cs),
             ),
           ),
           if (invalid)
@@ -161,12 +162,12 @@ class _AuthScreenState extends State<AuthScreen> {
               padding: const EdgeInsets.only(top: 6),
               child: Row(
                 children: <Widget>[
-                  const EcoIcon('info', size: 15, color: Eco.danger),
+                  EcoIcon('info', size: 15, color: cs.danger),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       error,
-                      style: F.b(13, wght: 700, color: Eco.danger),
+                      style: F.b(13, wght: 700, color: cs.danger),
                     ),
                   ),
                 ],
@@ -175,7 +176,7 @@ class _AuthScreenState extends State<AuthScreen> {
           if (helper != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text(helper, style: F.b(12.5, color: Eco.muted)),
+              child: Text(helper, style: F.b(12.5, color: cs.muted)),
             ),
         ],
       ),
@@ -185,13 +186,14 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
+    final cs = Theme.of(context).colorScheme;
     final bool isLogin = store.authMode == 'login';
 
     final Widget alert = Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Eco.dangerTint,
+        color: cs.dangerTint,
         borderRadius: BorderRadius.circular(Eco.rSm),
       ),
       child: Row(
@@ -218,7 +220,7 @@ class _AuthScreenState extends State<AuthScreen> {
     );
 
     return Scaffold(
-      backgroundColor: Eco.ground,
+      backgroundColor: cs.ground,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -256,7 +258,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 isLogin
                                     ? 'Pick up where you left off.'
                                     : 'Your first activity takes about 20 seconds.',
-                                style: F.b(14, color: Eco.muted),
+                                style: F.b(14, color: cs.muted),
                               ),
                             ],
                           ),
@@ -284,6 +286,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         keyboard: TextInputType.name,
                         textInputAction: TextInputAction.next,
                         onSubmitted: () => _emailFocus.requestFocus(),
+                        cs: cs,
                       ),
                     _field(
                       label: 'Email',
@@ -296,6 +299,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       textInputAction: TextInputAction.next,
                       focusNode: _emailFocus,
                       onSubmitted: () => _passFocus.requestFocus(),
+                      cs: cs,
                     ),
                     _field(
                       label: 'Password',
@@ -312,6 +316,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       textInputAction: TextInputAction.done,
                       focusNode: _passFocus,
                       onSubmitted: () => _submit(store),
+                      cs: cs,
                     ),
                     const SizedBox(height: 6),
                     EcoButton(
@@ -324,14 +329,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     const SizedBox(height: 20),
                     Row(
                       children: <Widget>[
-                        const Expanded(
-                          child: Divider(color: Eco.line, height: 1),
+                        Expanded(
+                          child: Divider(color: cs.outline, height: 1),
                         ),
                         const SizedBox(width: 12),
-                        Text('or', style: F.caption),
+                        Text('or', style: F.b(13, height: 1.45, color: cs.muted)),
                         const SizedBox(width: 12),
-                        const Expanded(
-                          child: Divider(color: Eco.line, height: 1),
+                        Expanded(
+                          child: Divider(color: cs.outline, height: 1),
                         ),
                       ],
                     ),
@@ -358,7 +363,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     Text(
                       'Prototype only — no account is created and nothing leaves this device.',
                       textAlign: TextAlign.center,
-                      style: F.caption,
+                      style: F.b(13, height: 1.45, color: cs.muted),
                     ),
                   ],
                 ),

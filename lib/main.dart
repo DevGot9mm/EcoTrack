@@ -13,21 +13,34 @@ import 'screens/profile_screen.dart';
 import 'store.dart';
 import 'theme.dart';
 import 'widgets/tab_bar.dart';
+import 'widgets/celebrations.dart';
 
 void main() => runApp(const EcoTrackApp());
 
-class EcoTrackApp extends StatelessWidget {
+class EcoTrackApp extends StatefulWidget {
   const EcoTrackApp({super.key});
 
   @override
+  State<EcoTrackApp> createState() => _EcoTrackAppState();
+}
+
+class _EcoTrackAppState extends State<EcoTrackApp> {
+  final EcoStore _store = EcoStore();
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'EcoTrack',
-      debugShowCheckedModeBanner: false,
-      theme: ecoTheme(),
-      home: EcoScope(
-        notifier: EcoStore(),
-        child: const AppGate(),
+    return EcoScope(
+      notifier: _store,
+      child: ListenableBuilder(
+        listenable: _store,
+        builder: (BuildContext context, Widget? child) {
+          return MaterialApp(
+            title: 'EcoTrack',
+            debugShowCheckedModeBanner: false,
+            theme: _store.isDark ? ecoDarkTheme() : ecoTheme(),
+            home: const AppGate(),
+          );
+        },
       ),
     );
   }
@@ -43,30 +56,42 @@ class AppGate extends StatelessWidget {
     if (store.route == 'welcome') return const WelcomeScreen();
     if (store.route == 'auth') return const AuthScreen();
 
-    return SafeArea(
-      bottom: false,
-      child: Column(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (didPop) return;
+        store.back();
+      },
+      child: Stack(
         children: <Widget>[
-          Expanded(
-            child: Stack(
+          SafeArea(
+            bottom: false,
+            child: Column(
               children: <Widget>[
-                _buildBody(store),
-                if (store.toastVisible)
-                  Positioned(
-                    top: 12,
-                    left: 20,
-                    right: 20,
-                    child: IgnorePointer(
-                      child: EcoToast(
-                        text: store.toastText,
-                        icon: store.toastIcon,
-                      ),
-                    ),
+                Expanded(
+                  child: Stack(
+                    children: <Widget>[
+                      _buildBody(store),
+                      if (store.toastVisible)
+                        Positioned(
+                          top: 12,
+                          left: 20,
+                          right: 20,
+                          child: IgnorePointer(
+                            child: EcoToast(
+                              text: store.toastText,
+                              icon: store.toastIcon,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
+                ),
+                if (store.showTabBar) const EcoTabBar(),
               ],
             ),
           ),
-          if (store.showTabBar) const EcoTabBar(),
+          const CelebrationHost(),
         ],
       ),
     );

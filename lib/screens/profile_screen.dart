@@ -14,22 +14,30 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
     final LevelInfo lvl = levelOf(store.points);
+    final cs = Theme.of(context).colorScheme;
 
     return EcoScreen(
       header: EcoTopBar(
         title: 'Profile',
         right: Tooltip(
-          message: 'Light appearance',
-          child: Container(
-            width: 36,
-            height: 36,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Eco.surface,
-              border: Border.all(color: Eco.line),
-              borderRadius: BorderRadius.circular(Eco.rSm),
+          message: store.isDark ? 'Dark appearance' : 'Light appearance',
+          child: Pressable(
+            onTap: () => store.toggleTheme(),
+            child: Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: cs.surface,
+                border: Border.all(color: cs.outline),
+                borderRadius: BorderRadius.circular(Eco.rSm),
+              ),
+              child: EcoIcon(
+                store.isDark ? 'moon' : 'sun',
+                size: 18,
+                color: cs.muted,
+              ),
             ),
-            child: const EcoIcon('sun', size: 18, color: Eco.muted),
           ),
         ),
       ),
@@ -94,6 +102,7 @@ class _ProfileIdentityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return EcoCard(
       flat: true,
       padding: const EdgeInsets.all(14),
@@ -107,7 +116,7 @@ class _ProfileIdentityCard extends StatelessWidget {
               store.playerAvatar,
               size: 54,
               radius: 17,
-              background: Eco.mint,
+              background: cs.mint,
               circular: true,
               photoScale: 1.08,
             ),
@@ -122,7 +131,7 @@ class _ProfileIdentityCard extends StatelessWidget {
                 Text(
                   'Climate action since ${store.joined} · '
                   'Level ${level.idx + 1} ${level.name}',
-                  style: F.b(12.5, wght: 600, color: Eco.muted),
+                  style: F.b(12.5, wght: 600, color: cs.muted),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -130,7 +139,7 @@ class _ProfileIdentityCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          const EcoIcon('chevronR', size: 20, color: Eco.muted),
+          EcoIcon('chevronR', size: 20, color: cs.muted),
         ],
       ),
     );
@@ -188,6 +197,7 @@ class _GoalProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final String targetText = '${fmt1(target)} kg';
     final double progress = target <= 0 ? 0 : clampDouble(value / target, 0, 1);
 
@@ -197,11 +207,11 @@ class _GoalProgress extends StatelessWidget {
         Row(
           children: <Widget>[
             Expanded(child: Text(label, style: F.b(14, wght: 700))),
-            Text(targetText, style: F.b(13, wght: 800, color: Eco.ink2)),
+            Text(targetText, style: F.b(13, wght: 800, color: cs.ink2)),
           ],
         ),
         const SizedBox(height: 8),
-        EcoBar(value: progress, color: Eco.leaf, height: 5),
+        EcoBar(value: progress, color: cs.leaf, height: 5),
       ],
     );
   }
@@ -219,54 +229,59 @@ String _avatarName(String avatar) =>
 void _showAvatarPicker(BuildContext context, EcoStore store) {
   showEcoSheet(
     context,
-    Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        const SheetGrab(),
-        const SizedBox(height: 8),
-        const SheetTitle(title: 'Choose a profile picture'),
-        const SizedBox(height: 16),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 12,
-          runSpacing: 12,
-          children: _avatarOptions.map((String avatar) {
-            final bool selected = store.playerAvatar == avatar;
-            return Tooltip(
-              message: 'Use ${_avatarName(avatar)} profile picture',
-              child: Semantics(
-                button: true,
-                selected: selected,
-                label: '${_avatarName(avatar)} profile picture',
-                child: Pressable(
-                  onTap: () {
-                    store.setPlayerAvatar(avatar);
-                    Navigator.of(context).pop();
-                  },
-                  scale: 0.95,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: selected ? Eco.mint : Eco.surface,
-                      border: Border.all(
-                        color: selected ? Eco.forest : Eco.line,
-                        width: selected ? 2 : 1,
+    Builder(
+      builder: (BuildContext ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const SheetGrab(),
+            const SizedBox(height: 8),
+            const SheetTitle(title: 'Choose a profile picture'),
+            const SizedBox(height: 16),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 12,
+              runSpacing: 12,
+              children: _avatarOptions.map((String avatar) {
+                final bool selected = store.playerAvatar == avatar;
+                return Tooltip(
+                  message: 'Use ${_avatarName(avatar)} profile picture',
+                  child: Semantics(
+                    button: true,
+                    selected: selected,
+                    label: '${_avatarName(avatar)} profile picture',
+                    child: Pressable(
+                      onTap: () {
+                        store.setPlayerAvatar(avatar);
+                        Navigator.of(ctx).pop();
+                      },
+                      scale: 0.95,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: selected ? cs.mint : cs.surface,
+                          border: Border.all(
+                            color: selected ? cs.leaf : cs.outline,
+                            width: selected ? 2 : 1,
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: MascotCrop(
+                          avatar,
+                          size: 52,
+                          radius: 26,
+                          circular: true,
+                        ),
                       ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: MascotCrop(
-                      avatar,
-                      size: 52,
-                      radius: 26,
-                      circular: true,
                     ),
                   ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
+                );
+              }).toList(),
+            ),
+          ],
+        );
+      },
     ),
   );
 }
@@ -277,6 +292,7 @@ class _BadgesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -291,58 +307,7 @@ class _BadgesSection extends StatelessWidget {
           childAspectRatio: 0.85,
           children: List<Widget>.generate(store.badges.length, (int i) {
             final Badge b = store.badges[i];
-            return Pressable(
-              onTap: () => _showBadgeDetail(context, b),
-              scale: 0.97,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: b.unlocked ? Eco.surface : Eco.surface2,
-                  border: Border.all(
-                    color: b.unlocked ? Eco.line : Eco.lineStrong,
-                  ),
-                  borderRadius: BorderRadius.circular(Eco.rCard),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: b.unlocked ? Eco.mint : Eco.surface2,
-                        shape: BoxShape.circle,
-                      ),
-                      child: EcoIcon(
-                        b.icon,
-                        size: 24,
-                        color: b.unlocked ? Eco.forest : Eco.muted,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      b.name,
-                      style: F.b(11, wght: 700),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${b.progress.round()}/${b.target.round()}',
-                      style: F.caption,
-                    ),
-                    const SizedBox(height: 4),
-                    if (!b.unlocked)
-                      EcoBar(
-                        value: b.progress / b.target,
-                        color: Eco.forest,
-                        height: 4,
-                      ),
-                    if (b.unlocked)
-                      const EcoIcon('check', size: 14, color: Eco.forest),
-                  ],
-                ),
-              ),
-            );
+            return _BadgeItem(b: b, cs: cs, onTap: () => _showBadgeDetail(context, b));
           }),
         ),
       ],
@@ -350,6 +315,7 @@ class _BadgesSection extends StatelessWidget {
   }
 
   void _showBadgeDetail(BuildContext context, Badge b) {
+    final cs = Theme.of(context).colorScheme;
     showEcoSheet(
       context,
       Column(
@@ -362,11 +328,11 @@ class _BadgesSection extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: b.unlocked ? Eco.mint : Eco.surface2,
+                color: b.unlocked ? cs.mint : cs.surface2,
                 shape: BoxShape.circle,
               ),
               child: EcoIcon(b.icon,
-                  size: 26, color: b.unlocked ? Eco.forest : Eco.muted),
+                  size: 26, color: b.unlocked ? cs.leaf : cs.muted),
             ),
           ),
           const SizedBox(height: 12),
@@ -378,25 +344,25 @@ class _BadgesSection extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             b.desc,
-            style: F.caption,
+            style: F.b(13, height: 1.45, color: cs.muted),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
             b.unlocked ? 'Unlocked' : 'Locked',
             style:
-                F.b(13, wght: 800, color: b.unlocked ? Eco.forest : Eco.muted),
+                F.b(13, wght: 800, color: b.unlocked ? cs.leaf : cs.muted),
           ),
           const SizedBox(height: 12),
           EcoBar(
             value: b.progress / b.target,
-            color: b.unlocked ? Eco.forest : Eco.muted,
+            color: b.unlocked ? cs.leaf : cs.muted,
             height: 8,
           ),
           const SizedBox(height: 6),
           Text(
             '${b.progress.round()} of ${b.target.round()} complete',
-            style: F.caption,
+            style: F.b(13, height: 1.45, color: cs.muted),
           ),
           const SizedBox(height: 14),
           EcoButton(
@@ -405,6 +371,70 @@ class _BadgesSection extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BadgeItem extends StatelessWidget {
+  const _BadgeItem({required this.b, required this.cs, required this.onTap});
+
+  final Badge b;
+  final ColorScheme cs;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: onTap,
+      scale: 0.97,
+      child: Container(
+        decoration: BoxDecoration(
+          color: b.unlocked ? cs.surface : cs.surface2,
+          border: Border.all(
+            color: b.unlocked ? cs.outline : cs.lineStrong,
+          ),
+          borderRadius: BorderRadius.circular(Eco.rCard),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: b.unlocked ? cs.mint : cs.surface2,
+                shape: BoxShape.circle,
+              ),
+              child: EcoIcon(
+                b.icon,
+                size: 24,
+                color: b.unlocked ? cs.leaf : cs.muted,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              b.name,
+              style: F.b(11, wght: 700),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${b.progress.round()}/${b.target.round()}',
+              style: F.b(13, height: 1.45, color: cs.muted),
+            ),
+            const SizedBox(height: 4),
+            if (!b.unlocked)
+              EcoBar(
+                value: b.progress / b.target,
+                color: cs.leaf,
+                height: 4,
+              ),
+            if (b.unlocked)
+              EcoIcon('check', size: 14, color: cs.leaf),
+          ],
+        ),
       ),
     );
   }
@@ -481,19 +511,20 @@ class _SettingsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Pressable(
       onTap: onTap,
       scale: 0.99,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Eco.surface,
-          border: Border.all(color: Eco.line),
+          color: cs.surface,
+          border: Border.all(color: cs.outline),
           borderRadius: BorderRadius.circular(Eco.rSm),
         ),
         child: Row(
           children: <Widget>[
-            EcoIcon(icon, size: 19, color: Eco.forest),
+            EcoIcon(icon, size: 19, color: cs.leaf),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
@@ -501,14 +532,14 @@ class _SettingsRow extends StatelessWidget {
                 style: F.b(
                   15,
                   wght: 700,
-                  color: danger ? Eco.danger : Eco.ink,
+                  color: danger ? cs.danger : cs.ink,
                 ),
               ),
             ),
             if (trailing != null) ...<Widget>[
               Text(
                 trailing!,
-                style: F.b(12, wght: 700, color: Eco.muted),
+                style: F.b(12, wght: 700, color: cs.muted),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -517,7 +548,7 @@ class _SettingsRow extends StatelessWidget {
             EcoIcon(
               'chevronR',
               size: 18,
-              color: danger ? Eco.danger : Eco.muted,
+              color: danger ? cs.danger : cs.muted,
             ),
           ],
         ),
@@ -529,70 +560,75 @@ class _SettingsRow extends StatelessWidget {
 void _showTargetPicker(BuildContext context, EcoStore store) {
   showEcoSheet(
     context,
-    Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        const SheetTitle(title: 'Daily carbon target'),
-        const SizedBox(height: 4),
-        Text(
-          'Pick the number you want EcoTrack to measure you against.',
-          style: F.caption,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 16),
-        ...<double>[4, 6, 8].map((double value) {
-          final bool selected = value == store.dailyTarget;
-          return Pressable(
-            onTap: () {
-              Navigator.pop(context);
-              store.setDailyTarget(value);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              margin: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: selected ? Eco.mint : Eco.surface,
-                border: Border.all(
-                  color: selected ? Eco.forest : Eco.line,
-                  width: selected ? 1.5 : 1,
-                ),
-                borderRadius: BorderRadius.circular(Eco.rCard),
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          '${value.toInt()} kg CO₂e per day',
-                          style: F.b(15, wght: 800),
-                        ),
-                        Text(
-                          value == 4
-                              ? 'Ambitious — close to a 1.5°C-aligned lifestyle.'
-                              : value == 6
-                                  ? 'Balanced — the average for a mindful urban household.'
-                                  : 'Forgiving — a gentle first step.',
-                          style: F.caption,
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (selected)
-                    const EcoIcon('check', size: 20, color: Eco.forest),
-                ],
-              ),
+    Builder(
+      builder: (BuildContext ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const SheetTitle(title: 'Daily carbon target'),
+            const SizedBox(height: 4),
+            Text(
+              'Pick the number you want EcoTrack to measure you against.',
+              style: F.b(13, height: 1.45, color: cs.muted),
+              textAlign: TextAlign.center,
             ),
-          );
-        }),
-        EcoButton(
-          label: 'Cancel',
-          tone: EcoButtonTone.ghost,
-          block: true,
-          onPressed: () => Navigator.pop(context),
-        ),
-      ],
+            const SizedBox(height: 16),
+            ...<double>[4, 6, 8].map((double value) {
+              final bool selected = value == store.dailyTarget;
+              return Pressable(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  store.setDailyTarget(value);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: selected ? cs.mint : cs.surface,
+                    border: Border.all(
+                      color: selected ? cs.leaf : cs.outline,
+                      width: selected ? 1.5 : 1,
+                    ),
+                    borderRadius: BorderRadius.circular(Eco.rCard),
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              '${value.toInt()} kg CO₂e per day',
+                              style: F.b(15, wght: 800),
+                            ),
+                            Text(
+                              value == 4
+                                  ? 'Ambitious — close to a 1.5°C-aligned lifestyle.'
+                                  : value == 6
+                                      ? 'Balanced — the average for a mindful urban household.'
+                                      : 'Forgiving — a gentle first step.',
+                              style: F.b(13, height: 1.45, color: cs.muted),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (selected)
+                        EcoIcon('check', size: 20, color: cs.leaf),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            EcoButton(
+              label: 'Cancel',
+              tone: EcoButtonTone.ghost,
+              block: true,
+              onPressed: () => Navigator.pop(ctx),
+            ),
+          ],
+        );
+      },
     ),
   );
 }
@@ -605,36 +641,41 @@ Future<void> _showAccountSettings(
       TextEditingController(text: store.playerName);
   await showEcoSheet(
     context,
-    Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        const SheetTitle(title: 'Account & security'),
-        const SizedBox(height: 6),
-        Text(
-          'This demo keeps a local profile only. You can update its display name here.',
-          style: F.caption,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: name,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(labelText: 'Display name'),
-        ),
-        const SizedBox(height: 14),
-        EcoButton(
-          label: 'Save name',
-          block: true,
-          onPressed: () {
-            if (name.text.trim().length < 2) {
-              store.toast('Enter at least two characters');
-              return;
-            }
-            store.setPlayerName(name.text);
-            Navigator.pop(context);
-          },
-        ),
-      ],
+    Builder(
+      builder: (BuildContext ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const SheetTitle(title: 'Account & security'),
+            const SizedBox(height: 6),
+            Text(
+              'This demo keeps a local profile only. You can update its display name here.',
+              style: F.b(13, height: 1.45, color: cs.muted),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: name,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(labelText: 'Display name'),
+            ),
+            const SizedBox(height: 14),
+            EcoButton(
+              label: 'Save name',
+              block: true,
+              onPressed: () {
+                if (name.text.trim().length < 2) {
+                  store.toast('Enter at least two characters');
+                  return;
+                }
+                store.setPlayerName(name.text);
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        );
+      },
     ),
   );
   name.dispose();
@@ -643,36 +684,41 @@ Future<void> _showAccountSettings(
 void _showUnitSettings(BuildContext context, EcoStore store) {
   showEcoSheet(
     context,
-    Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        const SheetTitle(title: 'Distance units'),
-        const SizedBox(height: 4),
-        Text(
-          'Used for transport activity input and history.',
-          style: F.caption,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 12),
-        _UnitChoice(
-          value: 'km',
-          label: 'Kilometres',
-          selected: store.distanceUnit == 'km',
-          onTap: () {
-            Navigator.pop(context);
-            store.setDistanceUnit('km');
-          },
-        ),
-        _UnitChoice(
-          value: 'mi',
-          label: 'Miles',
-          selected: store.distanceUnit == 'mi',
-          onTap: () {
-            Navigator.pop(context);
-            store.setDistanceUnit('mi');
-          },
-        ),
-      ],
+    Builder(
+      builder: (BuildContext ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const SheetTitle(title: 'Distance units'),
+            const SizedBox(height: 4),
+            Text(
+              'Used for transport activity input and history.',
+              style: F.b(13, height: 1.45, color: cs.muted),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            _UnitChoice(
+              value: 'km',
+              label: 'Kilometres',
+              selected: store.distanceUnit == 'km',
+              onTap: () {
+                Navigator.pop(ctx);
+                store.setDistanceUnit('km');
+              },
+            ),
+            _UnitChoice(
+              value: 'mi',
+              label: 'Miles',
+              selected: store.distanceUnit == 'mi',
+              onTap: () {
+                Navigator.pop(ctx);
+                store.setDistanceUnit('mi');
+              },
+            ),
+          ],
+        );
+      },
     ),
   );
 }
@@ -692,6 +738,7 @@ class _UnitChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Pressable(
       onTap: onTap,
       child: Padding(
@@ -708,7 +755,7 @@ class _UnitChoice extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected ? Eco.forest : Eco.lineStrong,
+                  color: selected ? cs.leaf : cs.lineStrong,
                   width: selected ? 7 : 1.5,
                 ),
               ),
@@ -761,18 +808,19 @@ class _HelpItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: EcoCard(
         flat: true,
-        background: Eco.surface2,
+        background: cs.surface2,
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(title, style: F.b(14, wght: 800)),
             const SizedBox(height: 4),
-            Text(body, style: F.small.copyWith(color: Eco.ink2)),
+            Text(body, style: F.small.copyWith(color: cs.ink2)),
           ],
         ),
       ),
@@ -783,24 +831,29 @@ class _HelpItem extends StatelessWidget {
 void _showAbout(BuildContext context) {
   showEcoSheet(
     context,
-    Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        const SheetTitle(title: 'About EcoTrack'),
-        const SizedBox(height: 8),
-        Text(
-          'EcoTrack helps make everyday climate choices visible. Carbon figures are estimates for guidance, not audited measurements.',
-          style: F.body2,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 16),
-        EcoButton(
-          label: 'Close',
-          tone: EcoButtonTone.ghost,
-          block: true,
-          onPressed: () => Navigator.pop(context),
-        ),
-      ],
+    Builder(
+      builder: (BuildContext ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const SheetTitle(title: 'About EcoTrack'),
+            const SizedBox(height: 8),
+            Text(
+              'EcoTrack helps make everyday climate choices visible. Carbon figures are estimates for guidance, not audited measurements.',
+              style: F.b(14.5, height: 1.5, color: cs.ink2),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            EcoButton(
+              label: 'Close',
+              tone: EcoButtonTone.ghost,
+              block: true,
+              onPressed: () => Navigator.pop(ctx),
+            ),
+          ],
+        );
+      },
     ),
   );
 }

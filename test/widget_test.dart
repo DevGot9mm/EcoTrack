@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ecotrack/main.dart';
+import 'package:ecotrack/widgets/celebrations.dart';
+import 'package:ecotrack/widgets/common.dart';
 
 void main() {
   testWidgets('shows the EcoTrack onboarding screen',
       (WidgetTester tester) async {
+    // Disable infinite animations for testing
+    debugDisableCelebrationAnimations = true;
+    addTearDown(() => debugDisableCelebrationAnimations = false);
+
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -111,12 +117,16 @@ void main() {
     await tester.tap(find.text('Challenges').last);
     await tester.pumpAndSettle();
     expect(find.text('Challenges'), findsWidgets);
-    await tester.tap(find.text('Mark as done'));
+    // Tap the featured challenge's "Mark as done" button
+    await tester.tap(find.widgetWithText(EcoButton, 'Mark as done').first);
     await tester.pumpAndSettle();
-    expect(find.text('Claim 30 points'), findsOneWidget);
-    await tester.tap(find.text('Claim 30 points'));
+    expect(find.text('Claim 30 pts'), findsOneWidget);
+    await tester.tap(find.text('Claim 30 pts'));
+    // Pump to trigger post-frame callback for celebration
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.textContaining('Challenge complete'), findsOneWidget);
     await tester.pumpAndSettle();
-    expect(find.textContaining('+30 Eco Points'), findsOneWidget);
 
     await tester.tap(find.text('Home').last);
     await tester.pumpAndSettle();

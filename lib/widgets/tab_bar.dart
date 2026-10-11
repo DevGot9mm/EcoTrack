@@ -13,6 +13,7 @@ class EcoTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
+    final cs = Theme.of(context).colorScheme;
     final String active = store.activeTab;
 
     final List<Widget> tabs = <Widget>[];
@@ -36,7 +37,7 @@ class EcoTabBar extends StatelessWidget {
                           child: EcoIcon(
                             t.icon,
                             size: 21,
-                            color: on ? Eco.forest : Eco.muted,
+                            color: on ? cs.leaf : cs.muted,
                           ),
                         ),
                       ),
@@ -46,7 +47,7 @@ class EcoTabBar extends StatelessWidget {
                         style: F.b(
                           11,
                           wght: 700,
-                          color: on ? Eco.forest : Eco.muted,
+                          color: on ? cs.leaf : cs.muted,
                         ),
                       ),
                     ],
@@ -62,7 +63,7 @@ class EcoTabBar extends StatelessWidget {
                         width: 18,
                         height: 3,
                         decoration: BoxDecoration(
-                          color: Eco.leaf,
+                          color: cs.forest,
                           borderRadius: BorderRadius.circular(Eco.rPill),
                         ),
                       ),
@@ -76,9 +77,9 @@ class EcoTabBar extends StatelessWidget {
     }
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFAFFFFFF),
-        border: Border(top: BorderSide(color: Eco.line)),
+      decoration: BoxDecoration(
+        color: const Color(0xFAFFFFFF),
+        border: Border(top: BorderSide(color: cs.outline)),
         boxShadow: Eco.shadowTabBar,
       ),
       child: SafeArea(
@@ -98,16 +99,17 @@ class EcoToast extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
       decoration: BoxDecoration(
-        color: Eco.forestInk,
+        color: cs.forestInk,
         borderRadius: BorderRadius.circular(18),
         boxShadow: Eco.shadowToast,
       ),
       child: Row(
         children: <Widget>[
-          Icon(icon, size: 19, color: Eco.sage),
+          Icon(icon, size: 19, color: cs.sage),
           const SizedBox(width: 11),
           Expanded(
             child: Text(

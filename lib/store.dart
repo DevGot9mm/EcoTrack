@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' hide Badge;
 
 import 'icons.dart';
 import 'models.dart';
+import 'widgets/celebrations.dart';
 
 /* ==========================================================================
    Routes
@@ -83,6 +84,7 @@ class EcoStore extends ChangeNotifier {
   String tipFilter = 'all';
   final Map<String, bool> openTips = <String, bool>{};
   Entry? lastActivity;
+  bool isDark = false;
 
   String toastText = '';
   IconData toastIcon = Icons.check;
@@ -142,6 +144,48 @@ class EcoStore extends ChangeNotifier {
 
   String get activeTab => kTabActiveFor[route] ?? route;
 
+  /* ---- UI state ---------------------------------------------------------- */
+
+  void toggleTheme() {
+    isDark = !isDark;
+    _emit();
+  }
+
+  /* ---- Celebrations ---------------------------------------------------- */
+
+  CelebrationKind? celebrationKind;
+  Map<String, dynamic> celebrationData = <String, dynamic>{};
+
+  void showPoints(int amount, String reason) {
+    celebrationKind = CelebrationKind.points;
+    celebrationData = <String, dynamic>{'amount': amount, 'reason': reason};
+    _emit();
+  }
+
+  void showBadgeUnlock(Badge badge) {
+    celebrationKind = CelebrationKind.badge;
+    celebrationData = <String, dynamic>{'badge': badge};
+    _emit();
+  }
+
+  void showLevelUp(String name, int idx) {
+    celebrationKind = CelebrationKind.levelUp;
+    celebrationData = <String, dynamic>{'name': name, 'idx': idx};
+    _emit();
+  }
+
+  void showChallengeComplete(String title, int points) {
+    celebrationKind = CelebrationKind.challengeComplete;
+    celebrationData = <String, dynamic>{'title': title, 'points': points};
+    _emit();
+  }
+
+  void clearCelebration() {
+    celebrationKind = null;
+    celebrationData = <String, dynamic>{};
+    _emit();
+  }
+
   /* ---- Routing ---------------------------------------------------------- */
 
   void go(String r) {
@@ -181,8 +225,14 @@ class EcoStore extends ChangeNotifier {
   }
 
   void award(int n, String reason) {
+    final int oldLevel = levelOf(points).idx;
     points += n;
-    toast('+$n Eco Points · $reason', kIcons['sparkles']);
+    final int newLevel = levelOf(points).idx;
+    if (newLevel > oldLevel) {
+      showLevelUp(kLevels[newLevel].name, newLevel);
+    } else {
+      showPoints(n, reason);
+    }
   }
 
   List<Badge> checkBadges() {
@@ -223,7 +273,7 @@ class EcoStore extends ChangeNotifier {
     }
     if (newly.isNotEmpty) {
       points += 50 * newly.length;
-      toast('Badge unlocked · ${newly.first.name}', kIcons['trophy']);
+      showBadgeUnlock(newly.first);
     }
     return newly;
   }
@@ -337,7 +387,14 @@ class EcoStore extends ChangeNotifier {
     );
     activities.add(entry);
     lastActivity = entry;
+    final int oldLevel = levelOf(points).idx;
     points += 15;
+    final int newLevel = levelOf(points).idx;
+    if (newLevel > oldLevel) {
+      showLevelUp(kLevels[newLevel].name, newLevel);
+    } else {
+      showPoints(15, 'Activity logged');
+    }
     checkBadges();
     onboarded = true;
     go('result');
@@ -437,7 +494,8 @@ class EcoStore extends ChangeNotifier {
     final Challenge? c = challengeOf(id);
     if (c == null || c.state != ChallengeState.claimable) return;
     c.state = ChallengeState.claimed;
-    award(c.reward, c.title);
+    points += c.reward;
+    showChallengeComplete(c.title, c.reward);
     checkBadges();
     _emit();
   }
@@ -494,6 +552,9 @@ class EcoStore extends ChangeNotifier {
     tipFilter = 'all';
     lastActivity = null;
     toastVisible = false;
+    isDark = false;
+    celebrationKind = null;
+    celebrationData = <String, dynamic>{};
     _emit();
   }
 

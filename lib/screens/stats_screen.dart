@@ -15,6 +15,7 @@ class StatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
+    final cs = Theme.of(context).colorScheme;
     final int days = store.statsPeriod == 'week' ? 7 : 30;
 
     final List<double> series = <double>[];
@@ -59,8 +60,8 @@ class StatsScreen extends StatelessWidget {
       spacing: 14,
       runSpacing: 8,
       children: <Widget>[
-        _legendItem(Eco.leaf, 'Daily', '${fmt1(avg)} kg avg'),
-        _legendItem(Eco.sage, 'Goal', '${fmt1(targetPerDay)} kg/day'),
+        _legendItem(cs.leaf, 'Daily', '${fmt1(avg)} kg avg', cs),
+        _legendItem(cs.muted, 'Goal', '${fmt1(targetPerDay)} kg/day', cs),
       ],
     );
 
@@ -157,7 +158,7 @@ class StatsScreen extends StatelessWidget {
                                                 style: F.b(
                                                   11,
                                                   wght: 800,
-                                                  color: Eco.muted,
+                                                  color: cs.muted,
                                                 ),
                                               ),
                                             ],
@@ -181,6 +182,7 @@ class StatsScreen extends StatelessWidget {
                                             catOf(kCatOrder[i]),
                                             t[kCatOrder[i]] ?? 0,
                                             tot,
+                                            cs,
                                           ),
                                         ),
                                     ],
@@ -208,7 +210,7 @@ class StatsScreen extends StatelessWidget {
                             for (int i = 0; i < top.length; i++)
                               Padding(
                                 padding: EdgeInsets.only(top: i == 0 ? 0 : 12),
-                                child: _rankRow(top[i], rankMax),
+                                child: _rankRow(top[i], rankMax, cs),
                               ),
                           ],
                         ),
@@ -239,7 +241,7 @@ class StatsScreen extends StatelessWidget {
                                 'It is ${((t[biggest] ?? 0) / tot * 100).round()}% of '
                                 'the last $days days. Small changes here move '
                                 'your number the most.',
-                                style: F.small.copyWith(color: Eco.ink2),
+                                style: F.small.copyWith(color: cs.ink2),
                               ),
                               const SizedBox(height: 10),
                               MiniBtn(
@@ -263,7 +265,7 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _legendItem(Color dot, String label, String value) {
+  Widget _legendItem(Color dot, String label, String value, ColorScheme cs) {
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.centerLeft,
@@ -279,15 +281,15 @@ class StatsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 7),
-          Text(label, style: F.b(13, wght: 700, color: Eco.ink2)),
+          Text(label, style: F.b(13, wght: 700, color: cs.ink2)),
           const SizedBox(width: 4),
-          Text(value, style: F.b(13, wght: 700, color: Eco.ink)),
+          Text(value, style: F.b(13, wght: 700, color: cs.ink)),
         ],
       ),
     );
   }
 
-  Widget _catLegend(Cat c, double value, double tot) {
+  Widget _catLegend(Cat c, double value, double tot, ColorScheme cs) {
     final int pc = ((value / tot) * 100).round();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,7 +300,7 @@ class StatsScreen extends StatelessWidget {
               width: 10,
               height: 10,
               decoration: BoxDecoration(
-                color: c.color,
+                color: c.resolve(cs).tint,
                 borderRadius: BorderRadius.circular(Eco.rPill),
               ),
             ),
@@ -314,12 +316,12 @@ class StatsScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 2),
-        Text('$pc% · ${kgText(value)}', style: F.caption),
+        Text('$pc% · ${kgText(value)}', style: F.b(13, height: 1.45, color: cs.muted)),
       ],
     );
   }
 
-  Widget _rankRow(MapEntry<String, double> e, double rankMax) {
+  Widget _rankRow(MapEntry<String, double> e, double rankMax, ColorScheme cs) {
     final ActivityDef? def = activityDef(e.key);
     if (def == null) return const SizedBox.shrink();
     final Cat c = catOf(def.cat);
@@ -334,12 +336,12 @@ class StatsScreen extends StatelessWidget {
             Expanded(child: Text(def.name, style: F.b(14.5, wght: 800))),
             Text(
               kgText(e.value),
-              style: F.b(13, wght: 800, color: Eco.muted),
+              style: F.b(13, wght: 800, color: cs.muted),
             ),
           ],
         ),
         const SizedBox(height: 7),
-        EcoBar(value: pc / 100, color: c.color, height: 6),
+        EcoBar(value: pc / 100, color: c.resolve(cs).tint, height: 6),
       ],
     );
   }

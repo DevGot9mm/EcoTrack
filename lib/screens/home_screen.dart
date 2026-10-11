@@ -21,6 +21,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
+    final cs = Theme.of(context).colorScheme;
     final double screenW = MediaQuery.of(context).size.width;
 
     final double todayTotal = store.total(store.inRange(0, 0));
@@ -85,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                             ),
                             Text(
                               longDate(DateTime.now()),
-                              style: F.b(13, wght: 600, color: Eco.muted),
+                              style: F.b(13, wght: 600, color: cs.muted),
                             ),
                           ],
                         ),
@@ -217,7 +218,7 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       EcoBar(
                         value: targetPct / 100,
-                        color: Eco.sage,
+                        color: cs.leaf,
                         track: const Color(0x2EFFFFFF),
                       ),
                       const SizedBox(height: 16),
@@ -243,7 +244,7 @@ class HomeScreen extends StatelessWidget {
                         title: 'This week',
                         action: Text(
                           '${fmt1(tw)} kg of ${fmt1(store.weeklyTarget)} kg goal',
-                          style: F.b(13, wght: 800, color: Eco.ink2),
+                          style: F.b(13, wght: 800, color: cs.ink2),
                         ),
                       ),
                       EcoCard(
@@ -259,7 +260,7 @@ class HomeScreen extends StatelessWidget {
                                   ? 'You are ${delta.abs()}% below last week — about '
                                       '${fmt1((lw - tw).abs())} kg kept out of the air.'
                                   : 'You are $delta% above last week. One swapped trip usually closes the gap.',
-                              style: F.caption,
+                              style: F.b(13, height: 1.45, color: cs.muted),
                             ),
                           ],
                         ),
@@ -321,7 +322,7 @@ class HomeScreen extends StatelessWidget {
                                       vertical: 5,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Eco.amberTint,
+                                      color: cs.amberTint,
                                       borderRadius: BorderRadius.circular(
                                         Eco.rPill,
                                       ),
@@ -329,10 +330,10 @@ class HomeScreen extends StatelessWidget {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: <Widget>[
-                                        const EcoIcon(
+                                        EcoIcon(
                                           'sparkles',
                                           size: 14,
-                                          color: Eco.amberInk,
+                                          color: cs.amberInk,
                                         ),
                                         const SizedBox(width: 5),
                                         Text(
@@ -340,7 +341,7 @@ class HomeScreen extends StatelessWidget {
                                           style: F.b(
                                             12.5,
                                             wght: 800,
-                                            color: Eco.amberInk,
+                                            color: cs.amberInk,
                                           ),
                                         ),
                                       ],
@@ -352,7 +353,7 @@ class HomeScreen extends StatelessWidget {
                                     style: F.d(16.5),
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(featured.why, style: F.caption),
+                                  Text(featured.why, style: F.b(13, height: 1.45, color: cs.muted)),
                                 ],
                               ),
                             ),
@@ -391,20 +392,20 @@ class HomeScreen extends StatelessWidget {
                                 children: <Widget>[
                                   Row(
                                     children: <Widget>[
-                                      const EcoIcon(
+                                      EcoIcon(
                                         'trophy',
                                         size: 17,
-                                        color: Eco.amber,
+                                        color: cs.amber,
                                       ),
                                       const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          'Eco Points',
-                                          style: F.statCap,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
+Expanded(
+                                    child: Text(
+                                      'Eco Points',
+                                      style: F.b(12.5, wght: 700, color: cs.muted),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
@@ -417,7 +418,7 @@ class HomeScreen extends StatelessWidget {
                                     width: double.infinity,
                                     child: Text(
                                       'Level ${lvl.idx + 1} · ${lvl.name}',
-                                      style: F.caption,
+                                      style: F.b(13, height: 1.45, color: cs.muted),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -437,13 +438,13 @@ class HomeScreen extends StatelessWidget {
                                 children: <Widget>[
                                   Row(
                                     children: <Widget>[
-                                      const EcoIcon(
+                                      EcoIcon(
                                         'flame',
                                         size: 17,
-                                        color: Eco.forest,
+                                        color: cs.forest,
                                       ),
                                       const SizedBox(width: 8),
-                                      Text('Streak', style: F.statCap),
+                                      Text('Streak', style: F.b(12.5, wght: 700, color: cs.muted)),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
@@ -454,7 +455,7 @@ class HomeScreen extends StatelessWidget {
                                   ),
                                   Text(
                                     'Best run: 12 days',
-                                    style: F.caption,
+                                    style: F.b(13, height: 1.45, color: cs.muted),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -496,8 +497,8 @@ class HomeScreen extends StatelessWidget {
                           children: <Widget>[
                             CatBadge(
                               icon: tp.icon,
-                              background: catOf(tp.cat).tint,
-                              foreground: catOf(tp.cat).ink,
+                              background: catOf(tp.cat).resolve(cs).tint,
+                              foreground: catOf(tp.cat).resolve(cs).ink,
                               size: 38,
                               iconSize: 19,
                               radius: 12,
@@ -512,7 +513,7 @@ class HomeScreen extends StatelessWidget {
                             const SizedBox(height: 8),
                             Text(
                               tp.action,
-                              style: F.caption,
+                              style: F.b(13, height: 1.45, color: cs.muted),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -551,6 +552,7 @@ class _BreakdownRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Pressable(
       onTap: onTap,
       scale: 0.99,
@@ -560,8 +562,8 @@ class _BreakdownRow extends StatelessWidget {
           children: <Widget>[
             CatBadge(
               icon: cat.icon,
-              background: cat.tint,
-              foreground: cat.ink,
+              background: cat.resolve(cs).tint,
+              foreground: cat.resolve(cs).ink,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -572,10 +574,10 @@ class _BreakdownRow extends StatelessWidget {
                   const SizedBox(height: 5),
                   EcoBar(value: pct / 100, color: cat.color, height: 6),
                   const SizedBox(height: 5),
-                  Text(
-                    '$pct% of your week',
-                    style: F.b(12.5, wght: 600, color: Eco.muted),
-                  ),
+Text(
+                              '$pct% of your week',
+                              style: F.b(12.5, wght: 600, color: cs.muted),
+                            ),
                 ],
               ),
             ),
@@ -586,7 +588,7 @@ class _BreakdownRow extends StatelessWidget {
                   TextSpan(text: fmt1(value), style: F.d(16)),
                   TextSpan(
                     text: ' kg',
-                    style: F.b(11.5, wght: 800, color: Eco.muted),
+                    style: F.b(11.5, wght: 800, color: cs.muted),
                   ),
                 ],
               ),

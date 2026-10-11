@@ -26,6 +26,7 @@ class WeekBars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final List<Widget> cols = <Widget>[];
     for (int i = 0; i < days.length; i++) {
       final DayBar d = days[i];
@@ -42,7 +43,7 @@ class WeekBars extends StatelessWidget {
                 height: h,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: d.isToday ? Eco.leaf : Eco.mint,
+                  color: d.isToday ? cs.leaf : cs.mint,
                   borderRadius: BorderRadius.circular(7),
                 ),
               ),
@@ -52,7 +53,7 @@ class WeekBars extends StatelessWidget {
                 style: F.b(
                   11,
                   wght: 800,
-                  color: d.isToday ? Eco.forest : Eco.muted,
+                  color: d.isToday ? cs.leaf : cs.muted,
                 ),
               ),
             ],
@@ -86,6 +87,7 @@ class TrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints c) {
         final double availableWidth = c.maxWidth;
@@ -100,6 +102,9 @@ class TrendChart extends StatelessWidget {
               max: max <= 0 ? 1 : max,
               target: targetPerDay,
               label: days > 7 ? '30 days ago' : '7 days ago',
+              lineColor: cs.leaf,
+              targetColor: cs.forest,
+              mutedColor: cs.muted,
             ),
           ),
         );
@@ -114,12 +119,18 @@ class _TrendPainter extends CustomPainter {
     required this.max,
     required this.target,
     required this.label,
+    required this.lineColor,
+    required this.targetColor,
+    required this.mutedColor,
   });
 
   final List<double> series;
   final double max;
   final double target;
   final String label;
+  final Color lineColor;
+  final Color targetColor;
+  final Color mutedColor;
 
   // Reference coordinate system (logical canvas)
   static const double refW = 320.0;
@@ -171,7 +182,7 @@ class _TrendPainter extends CustomPainter {
 
     final double ty = y(target);
     if (ty >= padT && ty <= refH - padB) {
-      _dashedLine(canvas, 0, refW, ty, const Color(0xFFA9C79A), 1.4, 4, 5);
+      _dashedLine(canvas, 0, refW, ty, targetColor, 1.4, 4, 5);
     }
 
     canvas.drawPath(
@@ -181,14 +192,14 @@ class _TrendPainter extends CustomPainter {
         ..strokeWidth = 2.6
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
-        ..color = Eco.leaf,
+        ..color = lineColor,
     );
 
     final Paint dotFill = Paint()..color = Colors.white;
     final Paint dotStroke = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
-      ..color = Eco.leaf;
+      ..color = lineColor;
     for (int i = 0; i < n; i++) {
       if (n > 10 && i % 3 != 0 && i != n - 1) continue;
       canvas.drawCircle(pts[i], 2.6, dotFill);
@@ -206,7 +217,7 @@ class _TrendPainter extends CustomPainter {
     final TextPainter tp = TextPainter(
       text: TextSpan(
         text: s,
-        style: F.b(10, color: Eco.muted),
+        style: F.b(10, color: mutedColor),
       ),
       textDirection: TextDirection.ltr,
       textAlign: align,
@@ -242,7 +253,8 @@ class _TrendPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _TrendPainter old) =>
-      old.series != series || old.max != max || old.target != target;
+      old.series != series || old.max != max || old.target != target ||
+      old.lineColor != lineColor || old.targetColor != targetColor || old.mutedColor != mutedColor;
 }
 
 /* ==========================================================================
@@ -336,22 +348,25 @@ class LevelRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return SizedBox(
       width: size,
       height: size,
       child: CustomPaint(
         size: Size(size, size),
-        painter: _RingPainter(pct, thickness),
+        painter: _RingPainter(pct, thickness, cs.mint, cs.leaf),
       ),
     );
   }
 }
 
 class _RingPainter extends CustomPainter {
-  _RingPainter(this.pct, this.thickness);
+  _RingPainter(this.pct, this.thickness, this.trackColor, this.arcColor);
 
   final int pct;
   final double thickness;
+  final Color trackColor;
+  final Color arcColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -367,7 +382,7 @@ class _RingPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = thickness
-        ..color = Eco.mint,
+        ..color = trackColor,
     );
 
     final double frac = clampInt(pct, 0, 100) / 100;
@@ -381,11 +396,12 @@ class _RingPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = thickness
           ..strokeCap = StrokeCap.round
-          ..color = Eco.forest,
+          ..color = arcColor,
       );
     }
   }
 
   @override
-  bool shouldRepaint(covariant _RingPainter old) => old.pct != pct;
+  bool shouldRepaint(covariant _RingPainter old) =>
+      old.pct != pct || old.trackColor != trackColor || old.arcColor != arcColor;
 }

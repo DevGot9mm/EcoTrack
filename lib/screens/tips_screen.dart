@@ -43,39 +43,40 @@ class _FilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: <Widget>[
-          _filterChip('All', 'all', store),
+          _filterChip('All', 'all', store, cs),
           const SizedBox(width: 8),
           ...kCatOrder.map((String cat) {
             final c = catOf(cat);
-            return _filterChip(c.name, cat, store);
+            return _filterChip(c.name, cat, store, cs);
           }),
         ],
       ),
     );
   }
 
-  Widget _filterChip(String label, String cat, EcoStore store) {
+  Widget _filterChip(String label, String cat, EcoStore store, ColorScheme cs) {
     final bool active = store.tipFilter == cat;
     return Pressable(
       onTap: () => store.setTipFilter(cat),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: active ? Eco.forest : Eco.surface,
+          color: active ? cs.leaf : cs.surface,
           border: Border.all(
-            color: active ? Eco.forest : Eco.lineStrong,
+            color: active ? cs.leaf : cs.lineStrong,
           ),
           borderRadius: BorderRadius.circular(Eco.rPill),
         ),
         child: Text(
           label,
-          style: F.b(13, wght: 700, color: active ? Colors.white : Eco.ink2),
+          style: F.b(13, wght: 700, color: active ? Colors.white : cs.ink2),
         ),
       ),
     );
@@ -90,6 +91,7 @@ class _TipCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final c = catOf(tip.cat);
     final bool open = store.openTips[tip.id] ?? false;
 
@@ -109,10 +111,10 @@ class _TipCard extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: c.tint,
+                      color: c.resolve(cs).tint,
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: EcoIcon(tip.icon, size: 22, color: c.ink),
+                    child: EcoIcon(tip.icon, size: 22, color: c.resolve(cs).ink),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -121,12 +123,12 @@ class _TipCard extends StatelessWidget {
                       children: <Widget>[
                         Text(tip.title, style: F.d(16.5)),
                         const SizedBox(height: 4),
-                        Text(tip.action, style: F.body2),
+                        Text(tip.action, style: F.b(14.5, height: 1.5, color: cs.ink2)),
                       ],
                     ),
                   ),
                   if (store.savedTips[tip.id] ?? false)
-                    const EcoIcon('bookmark', size: 20, color: Eco.amber),
+                    EcoIcon('bookmark', size: 20, color: cs.amber),
                 ],
               ),
             ),
@@ -140,12 +142,12 @@ class _TipCard extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     'Why it matters',
-                    style: F.b(13, wght: 800, color: Eco.forest),
+                    style: F.b(13, wght: 800, color: cs.leaf),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     tip.why,
-                    style: F.small.copyWith(color: Eco.ink2),
+                    style: F.small.copyWith(color: cs.ink2),
                   ),
                   const SizedBox(height: 12),
                   EcoButton(
@@ -171,7 +173,7 @@ class _TipCard extends StatelessWidget {
                 store.savedTips[tip.id] ?? false ? 'bookmark' : 'bookmark',
                 plain: true,
                 iconSize: 18,
-                iconColor: (store.savedTips[tip.id] ?? false) ? Eco.amber : Eco.ink2,
+                iconColor: (store.savedTips[tip.id] ?? false) ? cs.amber : cs.ink2,
                 onPressed: () => store.toggleTipSave(tip.id),
               ),
             ],
