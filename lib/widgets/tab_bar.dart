@@ -78,7 +78,7 @@ class EcoTabBar extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFAFFFFFF),
+        color: cs.surface,
         border: Border(top: BorderSide(color: cs.outline)),
         boxShadow: Eco.shadowTabBar,
       ),
@@ -103,7 +103,7 @@ class EcoToast extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
       decoration: BoxDecoration(
-        color: cs.forestInk,
+        color: cs.darkCardEnd,
         borderRadius: BorderRadius.circular(18),
         boxShadow: Eco.shadowToast,
       ),

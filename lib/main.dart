@@ -38,6 +38,12 @@ class _EcoTrackAppState extends State<EcoTrackApp> {
             title: 'EcoTrack',
             debugShowCheckedModeBanner: false,
             theme: _store.isDark ? ecoDarkTheme() : ecoTheme(),
+            builder: (BuildContext context, Widget? child) {
+              return DefaultTextStyle(
+                style: Theme.of(context).textTheme.bodyMedium!,
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
             home: const AppGate(),
           );
         },
@@ -64,6 +70,11 @@ class AppGate extends StatelessWidget {
       },
       child: Stack(
         children: <Widget>[
+          Positioned.fill(
+            child: ColoredBox(
+              color: Theme.of(context).colorScheme.ground,
+            ),
+          ),
           SafeArea(
             bottom: false,
             child: Column(

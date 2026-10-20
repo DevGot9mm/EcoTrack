@@ -17,9 +17,13 @@ class _TipsScreenState extends State<TipsScreen> {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
-    final List<Tip> filtered = store.tipFilter == 'all'
-        ? kTips
-        : kTips.where((Tip t) => t.cat == store.tipFilter).toList();
+    final List<Tip> filtered = switch (store.tipFilter) {
+      'all' => kTips,
+      'saved' => kTips
+          .where((Tip tip) => store.savedTips[tip.id] ?? false)
+          .toList(),
+      _ => kTips.where((Tip tip) => tip.cat == store.tipFilter).toList(),
+    };
 
     return EcoScreen(
       header: const EcoTopBar(title: 'Eco Tips'),
@@ -30,7 +34,14 @@ class _TipsScreenState extends State<TipsScreen> {
           const SizedBox(height: 16),
           _FilterBar(store: store),
           const SizedBox(height: 22),
-          ...filtered.map((Tip tip) => _TipCard(tip: tip, store: store)),
+          if (filtered.isEmpty)
+            const EcoEmptyState(
+              mascot: 'face-curious',
+              title: 'No saved tips yet',
+              body: 'Bookmark a tip and it will appear here for later.',
+            )
+          else
+            ...filtered.map((Tip tip) => _TipCard(tip: tip, store: store)),
         ],
       ),
     );
@@ -56,17 +67,25 @@ class _FilterBar extends StatelessWidget {
             final c = catOf(cat);
             return _filterChip(c.name, cat, store, cs);
           }),
+          const SizedBox(width: 8),
+          _filterChip('Saved', 'saved', store, cs, icon: 'bookmark'),
         ],
       ),
     );
   }
 
-  Widget _filterChip(String label, String cat, EcoStore store, ColorScheme cs) {
+  Widget _filterChip(
+    String label,
+    String cat,
+    EcoStore store,
+    ColorScheme cs, {
+    String? icon,
+  }) {
     final bool active = store.tipFilter == cat;
     return Pressable(
       onTap: () => store.setTipFilter(cat),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
           color: active ? cs.leaf : cs.surface,
           border: Border.all(
@@ -74,9 +93,22 @@ class _FilterBar extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(Eco.rPill),
         ),
-        child: Text(
-          label,
-          style: F.b(13, wght: 700, color: active ? Colors.white : cs.ink2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            if (icon != null) ...<Widget>[
+              EcoIcon(
+                icon,
+                size: 14,
+                color: active ? cs.onPrimary : cs.ink2,
+              ),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label,
+              style: F.b(13, wght: 700, color: active ? cs.onPrimary : cs.ink2),
+            ),
+          ],
         ),
       ),
     );
@@ -114,7 +146,8 @@ class _TipCard extends StatelessWidget {
                       color: c.resolve(cs).tint,
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: EcoIcon(tip.icon, size: 22, color: c.resolve(cs).ink),
+                    child:
+                        EcoIcon(tip.icon, size: 22, color: c.resolve(cs).ink),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -123,7 +156,8 @@ class _TipCard extends StatelessWidget {
                       children: <Widget>[
                         Text(tip.title, style: F.d(16.5)),
                         const SizedBox(height: 4),
-                        Text(tip.action, style: F.b(14.5, height: 1.5, color: cs.ink2)),
+                        Text(tip.action,
+                            style: F.b(14.5, height: 1.5, color: cs.ink2)),
                       ],
                     ),
                   ),
@@ -162,7 +196,8 @@ class _TipCard extends StatelessWidget {
                 ],
               ),
             ),
-            crossFadeState: open ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            crossFadeState:
+                open ? CrossFadeState.showSecond : CrossFadeState.showFirst,
             duration: Eco.dur2,
           ),
           const Divider(height: 1),
@@ -173,7 +208,8 @@ class _TipCard extends StatelessWidget {
                 store.savedTips[tip.id] ?? false ? 'bookmark' : 'bookmark',
                 plain: true,
                 iconSize: 18,
-                iconColor: (store.savedTips[tip.id] ?? false) ? cs.amber : cs.ink2,
+                iconColor:
+                    (store.savedTips[tip.id] ?? false) ? cs.amber : cs.ink2,
                 onPressed: () => store.toggleTipSave(tip.id),
               ),
             ],

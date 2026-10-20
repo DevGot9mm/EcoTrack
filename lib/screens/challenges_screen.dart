@@ -221,13 +221,17 @@ class _ChallengeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final Color stateColor;
+    final Color stateForeground;
     switch (challenge.state) {
       case ChallengeState.active:
         stateColor = cs.leaf;
+        stateForeground = cs.onPrimary;
       case ChallengeState.claimable:
         stateColor = cs.amber;
+        stateForeground = cs.onSecondary;
       case ChallengeState.claimed:
-        stateColor = cs.muted;
+        stateColor = cs.surface2;
+        stateForeground = cs.muted;
     }
     final String stateLabel;
     switch (challenge.state) {
@@ -284,7 +288,11 @@ class _ChallengeCard extends StatelessWidget {
                             ),
                             child: Text(
                               stateLabel,
-                              style: F.b(11, wght: 800, color: Colors.white),
+                              style: F.b(
+                                11,
+                                wght: 800,
+                                color: stateForeground,
+                              ),
                             ),
                           ),
                         ],

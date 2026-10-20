@@ -45,12 +45,11 @@ class StatsScreen extends StatelessWidget {
     for (final Entry a in store.inRange(0, days - 1)) {
       byAct[a.key] = (byAct[a.key] ?? 0) + a.co2;
     }
-    final List<MapEntry<String, double>> ranked =
-        byAct.entries.toList()
-          ..sort(
-            (MapEntry<String, double> a, MapEntry<String, double> b) =>
-                b.value.compareTo(a.value),
-          );
+    final List<MapEntry<String, double>> ranked = byAct.entries.toList()
+      ..sort(
+        (MapEntry<String, double> a, MapEntry<String, double> b) =>
+            b.value.compareTo(a.value),
+      );
     final List<MapEntry<String, double>> top = ranked.take(4).toList();
     final double rankMax = top.isNotEmpty ? top.first.value : 1;
 
@@ -99,7 +98,6 @@ class StatsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 _section(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -125,7 +123,6 @@ class StatsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 _section(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -135,7 +132,8 @@ class StatsScreen extends StatelessWidget {
                         flat: true,
                         child: LayoutBuilder(
                           builder: (BuildContext ctx, BoxConstraints c) {
-                            final double donutSize = (c.maxWidth * 0.32).clamp(100.0, 160.0);
+                            final double donutSize =
+                                (c.maxWidth * 0.32).clamp(100.0, 160.0);
                             return Row(
                               children: <Widget>[
                                 SizedBox(
@@ -171,7 +169,8 @@ class StatsScreen extends StatelessWidget {
                                 const SizedBox(width: 18),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: <Widget>[
                                       for (int i = 0; i < kCatOrder.length; i++)
                                         Padding(
@@ -196,7 +195,6 @@ class StatsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 _section(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -218,7 +216,6 @@ class StatsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 _section(
                   child: EcoCard(
                     tone: EcoCardTone.mint,
@@ -300,7 +297,7 @@ class StatsScreen extends StatelessWidget {
               width: 10,
               height: 10,
               decoration: BoxDecoration(
-                color: c.resolve(cs).tint,
+                color: c.color,
                 borderRadius: BorderRadius.circular(Eco.rPill),
               ),
             ),
@@ -316,7 +313,8 @@ class StatsScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 2),
-        Text('$pc% · ${kgText(value)}', style: F.b(13, height: 1.45, color: cs.muted)),
+        Text('$pc% · ${kgText(value)}',
+            style: F.b(13, height: 1.45, color: cs.muted)),
       ],
     );
   }
@@ -341,7 +339,7 @@ class StatsScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 7),
-        EcoBar(value: pc / 100, color: c.resolve(cs).tint, height: 6),
+        EcoBar(value: pc / 100, color: c.color, height: 6),
       ],
     );
   }

@@ -105,6 +105,7 @@ class TrendChart extends StatelessWidget {
               lineColor: cs.leaf,
               targetColor: cs.forest,
               mutedColor: cs.muted,
+              dotFillColor: cs.surface,
             ),
           ),
         );
@@ -122,6 +123,7 @@ class _TrendPainter extends CustomPainter {
     required this.lineColor,
     required this.targetColor,
     required this.mutedColor,
+    required this.dotFillColor,
   });
 
   final List<double> series;
@@ -131,6 +133,7 @@ class _TrendPainter extends CustomPainter {
   final Color lineColor;
   final Color targetColor;
   final Color mutedColor;
+  final Color dotFillColor;
 
   // Reference coordinate system (logical canvas)
   static const double refW = 320.0;
@@ -195,7 +198,7 @@ class _TrendPainter extends CustomPainter {
         ..color = lineColor,
     );
 
-    final Paint dotFill = Paint()..color = Colors.white;
+    final Paint dotFill = Paint()..color = dotFillColor;
     final Paint dotStroke = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
@@ -213,7 +216,8 @@ class _TrendPainter extends CustomPainter {
     canvas.restore();
   }
 
-  void _text(Canvas canvas, String s, double dx, double labelY, TextAlign align) {
+  void _text(
+      Canvas canvas, String s, double dx, double labelY, TextAlign align) {
     final TextPainter tp = TextPainter(
       text: TextSpan(
         text: s,
@@ -253,8 +257,12 @@ class _TrendPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _TrendPainter old) =>
-      old.series != series || old.max != max || old.target != target ||
-      old.lineColor != lineColor || old.targetColor != targetColor || old.mutedColor != mutedColor;
+      old.series != series ||
+      old.max != max ||
+      old.target != target ||
+      old.lineColor != lineColor ||
+      old.targetColor != targetColor ||
+      old.mutedColor != mutedColor;
 }
 
 /* ==========================================================================
@@ -403,5 +411,7 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RingPainter old) =>
-      old.pct != pct || old.trackColor != trackColor || old.arcColor != arcColor;
+      old.pct != pct ||
+      old.trackColor != trackColor ||
+      old.arcColor != arcColor;
 }

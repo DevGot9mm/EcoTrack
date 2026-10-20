@@ -129,6 +129,7 @@ class AddActivityScreen extends StatelessWidget {
         EcoCard(
           flat: true,
           highlighted: on,
+          fillWidth: true,
           padding: const EdgeInsets.all(15),
           onTap: () => store.pickAct(a.key),
           child: Column(
@@ -290,7 +291,8 @@ class AddActivityScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text('Estimated impact', style: F.b(12.5, wght: 700, color: cs.muted)),
+                    Text('Estimated impact',
+                        style: F.b(12.5, wght: 700, color: cs.muted)),
                     const SizedBox(height: 2),
                     Text.rich(
                       TextSpan(

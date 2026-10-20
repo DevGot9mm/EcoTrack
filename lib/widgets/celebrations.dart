@@ -103,7 +103,8 @@ class _CelebrationHostState extends State<CelebrationHost>
 
         Widget? overlay;
         if (kind != null && kind != _active) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => _show(kind, data));
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => _show(kind, data));
         }
 
         if (_active == null) return const SizedBox.shrink();
@@ -210,7 +211,8 @@ class _BadgeCelebration extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Badge Unlocked!', style: F.eyebrow(context).copyWith(color: cs.leaf)),
+            Text('Badge Unlocked!',
+                style: F.eyebrow(context).copyWith(color: cs.leaf)),
             const SizedBox(height: 6),
             Text(
               badge.name,
@@ -260,7 +262,7 @@ class _LevelUpCelebration extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 40),
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-          gradient: Eco.cardDark,
+          gradient: cs.heroCardGradient,
           borderRadius: BorderRadius.circular(Eco.rSheet),
           boxShadow: Eco.shadowToast,
           border: Border.all(color: const Color(0x47FFFFFF)),
@@ -271,9 +273,9 @@ class _LevelUpCelebration extends StatelessWidget {
             Text(
               'LEVEL UP',
               style: F.eyebrow(context).copyWith(
-                color: const Color(0xB3FFFFFF),
-                letterSpacing: 2,
-              ),
+                    color: const Color(0xB3FFFFFF),
+                    letterSpacing: 2,
+                  ),
             ),
             const SizedBox(height: 10),
             Text(

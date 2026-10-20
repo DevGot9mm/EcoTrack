@@ -361,11 +361,39 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      EcoButton(
-                        label: 'I did this today',
-                        leading: 'check',
-                        block: true,
-                        onPressed: () => store.challengeDone(featured.id),
+                      ListenableBuilder(
+                        listenable: store,
+                        builder: (BuildContext context, Widget? child) {
+                          final bool claimable =
+                              featured.state == ChallengeState.claimable;
+                          final bool completed =
+                              featured.state == ChallengeState.claimed;
+                          return EcoButton(
+                            label: completed
+                                ? 'Challenge complete'
+                                : claimable
+                                    ? 'Claim ${featured.reward} pts'
+                                    : 'I did this today',
+                            leading: completed
+                                ? 'check'
+                                : claimable
+                                    ? 'sparkles'
+                                    : 'check',
+                            tone: completed
+                                ? EcoButtonTone.ghost
+                                : EcoButtonTone.primary,
+                            block: true,
+                            onPressed: completed
+                                ? null
+                                : () {
+                                    if (claimable) {
+                                      store.claim(featured.id);
+                                    } else {
+                                      store.challengeDone(featured.id);
+                                    }
+                                  },
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -488,9 +516,10 @@ Expanded(
                   for (final Tip tp in kTips.take(4))
                     SizedBox(
                       width: 214,
+                      height: 142,
                       child: EcoCard(
                         flat: true,
-                        padding: const EdgeInsets.all(15),
+                        padding: const EdgeInsets.all(12),
                         onTap: () => store.openTipFromRail(tp.id),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -499,21 +528,21 @@ Expanded(
                               icon: tp.icon,
                               background: catOf(tp.cat).resolve(cs).tint,
                               foreground: catOf(tp.cat).resolve(cs).ink,
-                              size: 38,
-                              iconSize: 19,
-                              radius: 12,
+                              size: 32,
+                              iconSize: 17,
+                              radius: 11,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
                             Text(
                               tp.title,
-                              style: F.d(15.5, height: 1.25),
+                              style: F.d(14.5, height: 1.2),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
                             Text(
                               tp.action,
-                              style: F.b(13, height: 1.45, color: cs.muted),
+                              style: F.b(12, height: 1.35, color: cs.muted),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
