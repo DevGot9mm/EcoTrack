@@ -1,29 +1,49 @@
-# EcoTrack
+# EcoTrack Pages
 
-EcoTrack is a Flutter and Dart carbon-footprint companion. All application screens, styling, navigation, state, forms, and interactions are implemented with Flutter widgets. The `web/` directory contains Flutter's web bootstrap only; it does not render application UI with HTML.
+1. **Home**
 
-## Run
+   <img src="docs/screenshots/01-home.png" width="160" alt="Home">
 
-```sh
-flutter pub get
-flutter run
-```
+2. **History**
 
-## Verify
+   <img src="docs/screenshots/02-history.png" width="160" alt="History">
 
-```sh
-flutter analyze
-flutter test
-```
+3. **Statistics**
 
-## App Structure
+   <img src="docs/screenshots/03-statistics.png" width="160" alt="Statistics">
 
-- `lib/main.dart` starts the app and maps store routes to screens.
-- `lib/screens/` contains onboarding, authentication, home, activity logging, results, history, statistics, challenges, tips, and profile screens.
-- `lib/widgets/` contains shared navigation, sheets, common controls, and charts.
-- `lib/models.dart` defines activities, emission estimates, tips, challenges, and badges.
-- `lib/store.dart` manages app state and in-app navigation.
-- `lib/theme.dart` defines Flutter design tokens and the app theme.
-- `assets/` contains mascot artwork and bundled fonts.
+4. **Challenges**
 
-The app currently uses seeded illustrative data held in memory. No backend or API is configured; entries and settings reset when the app process restarts.
+   <img src="docs/screenshots/04-challenges.png" width="160" alt="Challenges">
+
+5. **Profile**
+
+   <img src="docs/screenshots/05-profile.png" width="160" alt="Profile">
+
+6. **Eco Tips**
+
+   <img src="docs/screenshots/06-eco-tips.png" width="160" alt="Eco Tips">
+
+7. **Add Activity — Choose Category**
+
+   <img src="docs/screenshots/07-add-activity-category.png" width="160" alt="Add Activity — Choose Category">
+
+8. **Add Activity — Choose Activity**
+
+   <img src="docs/screenshots/08-add-activity-selection.png" width="160" alt="Add Activity — Choose Activity">
+
+9. **Add Activity — Set Amount**
+
+   <img src="docs/screenshots/09-add-activity-amount.png" width="160" alt="Add Activity — Set Amount">
+
+10. **Welcome / Onboarding**
+
+    <img src="docs/screenshots/10-onboarding.png" width="160" alt="Welcome / Onboarding">
+
+11. **Log In**
+
+    <img src="docs/screenshots/11-log-in.png" width="160" alt="Log In">
+
+12. **Sign Up**
+
+    <img src="docs/screenshots/12-sign-up.png" width="160" alt="Sign Up">

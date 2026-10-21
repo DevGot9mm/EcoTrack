@@ -108,7 +108,8 @@ void main() {
           (Widget widget) =>
               widget is Image &&
               widget.image is AssetImage &&
-              (widget.image as AssetImage).assetName == 'image.png',
+              (widget.image as AssetImage).assetName ==
+                  'assets/images/portraits/image.png',
         ),
       ),
       findsOneWidget,

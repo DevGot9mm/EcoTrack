@@ -23,9 +23,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - image.png
-    - image-2.png
-    - image-5.png
+    - assets/images/portraits/
     - assets/mascot/
 
   fonts:

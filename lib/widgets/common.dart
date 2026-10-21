@@ -478,9 +478,9 @@ class EcoGrid extends StatelessWidget {
    ========================================================================== */
 
 const Map<String, String> _avatarAssetPaths = <String, String>{
-  'image.png': 'image.png',
-  'image-2.png': 'image-2.png',
-  'image-5.png': 'image-5.png',
+  'image.png': 'assets/images/portraits/image.png',
+  'image-2.png': 'assets/images/portraits/image-2.png',
+  'image-5.png': 'assets/images/portraits/image-5.png',
 };
 
 String mascotPath(String name) =>
