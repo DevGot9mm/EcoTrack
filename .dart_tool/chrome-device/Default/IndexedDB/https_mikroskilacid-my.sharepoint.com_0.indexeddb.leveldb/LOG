@@ -1,0 +1,46 @@
+2026/10/31-16:26:34.993 7bc0 Creating DB C:\Users\User\AppData\Local\Temp\flutter_tools.2265f447\flutter_tools_chrome_device.95a3aeb7\Default\IndexedDB\https_mikroskilacid-my.sharepoint.com_0.indexeddb.leveldb since it was missing.
+2026/10/31-16:26:34.997 7bc0 Reusing MANIFEST C:\Users\User\AppData\Local\Temp\flutter_tools.2265f447\flutter_tools_chrome_device.95a3aeb7\Default\IndexedDB\https_mikroskilacid-my.sharepoint.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/10/31-16:26:36.308 7bc0 Level-0 table #5: started
+2026/10/31-16:26:36.321 7bc0 Level-0 table #5: 1407035 bytes OK
+2026/10/31-16:26:36.322 7bc0 Delete type=0 #3
+2026/10/31-16:26:45.160 65c4 Level-0 table #7: started
+2026/10/31-16:26:45.173 65c4 Level-0 table #7: 2025891 bytes OK
+2026/10/31-16:26:45.174 65c4 Delete type=0 #4
+2026/10/31-16:26:45.313 4888 Compacting 1@1 + 1@2 files
+2026/10/31-16:26:45.331 4888 Generated table #8@1: 3316 keys, 1800539 bytes
+2026/10/31-16:26:45.331 4888 Compacted 1@1 + 1@2 files => 1800539 bytes
+2026/10/31-16:26:45.331 4888 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/10/31-16:26:56.766 7bc0 Level-0 table #10: started
+2026/10/31-16:26:56.775 7bc0 Level-0 table #10: 2320718 bytes OK
+2026/10/31-16:26:56.777 7bc0 Delete type=2 #5
+2026/10/31-16:26:56.777 7bc0 Delete type=0 #6
+2026/10/31-16:26:56.777 7bc0 Delete type=2 #7
+2026/10/31-16:26:57.711 7bc0 Compacting 1@1 + 1@2 files
+2026/10/31-16:26:57.729 7bc0 Generated table #11@1: 4611 keys, 2143135 bytes
+2026/10/31-16:26:57.732 7bc0 Generated table #12@1: 123 keys, 207689 bytes
+2026/10/31-16:26:57.732 7bc0 Compacted 1@1 + 1@2 files => 2350824 bytes
+2026/10/31-16:26:57.732 7bc0 compacted to: files[ 0 0 2 0 0 0 0 ]
+2026/10/31-16:26:57.732 7bc0 Delete type=2 #8
+2026/10/31-16:26:57.732 7bc0 Delete type=2 #10
+2026/10/31-16:27:23.631 1e44 Level-0 table #14: started
+2026/10/31-16:27:23.644 1e44 Level-0 table #14: 1748975 bytes OK
+2026/10/31-16:27:23.644 1e44 Delete type=0 #9
+2026/10/31-16:27:23.893 7bc0 Compacting 1@1 + 2@2 files
+2026/10/31-16:27:23.918 7bc0 Generated table #15@1: 4717 keys, 2164777 bytes
+2026/10/31-16:27:23.920 7bc0 Generated table #16@1: 144 keys, 260426 bytes
+2026/10/31-16:27:23.920 7bc0 Compacted 1@1 + 2@2 files => 2425203 bytes
+2026/10/31-16:27:23.921 7bc0 compacted to: files[ 0 0 2 0 0 0 0 ]
+2026/10/31-16:27:23.921 7bc0 Delete type=2 #11
+2026/10/31-16:27:23.921 7bc0 Delete type=2 #12
+2026/10/31-16:27:23.921 7bc0 Delete type=2 #14
+2026/10/31-16:27:34.924 1e44 Level-0 table #18: started
+2026/10/31-16:27:34.934 1e44 Level-0 table #18: 1371066 bytes OK
+2026/10/31-16:27:34.935 1e44 Delete type=0 #13
+2026/10/31-16:27:35.603 7bc0 Compacting 1@1 + 2@2 files
+2026/10/31-16:27:35.632 7bc0 Generated table #19@1: 4842 keys, 2163110 bytes
+2026/10/31-16:27:35.634 7bc0 Generated table #20@1: 153 keys, 209350 bytes
+2026/10/31-16:27:35.634 7bc0 Compacted 1@1 + 2@2 files => 2372460 bytes
+2026/10/31-16:27:35.635 7bc0 compacted to: files[ 0 0 2 0 0 0 0 ]
+2026/10/31-16:27:35.635 7bc0 Delete type=2 #15
+2026/10/31-16:27:35.635 7bc0 Delete type=2 #16
+2026/10/31-16:27:35.635 7bc0 Delete type=2 #18

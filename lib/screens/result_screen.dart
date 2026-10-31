@@ -133,7 +133,7 @@ class ResultScreen extends StatelessWidget {
                                 width: 10,
                                 height: 10,
                                 decoration: BoxDecoration(
-                                  color: c.color,
+                                  color: store.categoryColor(c.id),
                                   borderRadius:
                                       BorderRadius.circular(Eco.rPill),
                                 ),
@@ -160,8 +160,7 @@ class ResultScreen extends StatelessWidget {
                               const SizedBox(width: 7),
                               Text(
                                 '+15 Eco Points',
-                                style:
-                                    F.b(13.5, wght: 700, color: cs.amberInk),
+                                style: F.b(13.5, wght: 700, color: cs.amberInk),
                               ),
                             ],
                           ),

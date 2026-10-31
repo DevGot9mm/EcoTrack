@@ -27,11 +27,14 @@ class WeekBars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final bool tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final double barMaxHeight = tablet ? 82 : 62;
+    final double chartHeight = tablet ? 110 : 88;
     final List<Widget> cols = <Widget>[];
     for (int i = 0; i < days.length; i++) {
       final DayBar d = days[i];
       final double ratio = maxDay <= 0 ? 0 : d.total / maxDay;
-      final double h = math.max(5, (ratio * 62).roundToDouble());
+      final double h = math.max(5, (ratio * barMaxHeight).roundToDouble());
       cols.add(
         Expanded(
           child: Column(
@@ -63,7 +66,7 @@ class WeekBars extends StatelessWidget {
       if (i < days.length - 1) cols.add(const SizedBox(width: 6));
     }
 
-    return SizedBox(height: 88, child: Row(children: cols));
+    return SizedBox(height: chartHeight, child: Row(children: cols));
   }
 }
 
@@ -92,7 +95,10 @@ class TrendChart extends StatelessWidget {
       builder: (BuildContext context, BoxConstraints c) {
         final double availableWidth = c.maxWidth;
         // Reference height maintains ~2.43:1 aspect ratio (320:132)
-        final double aspectRatio = 320.0 / 132.0;
+        final double aspectRatio =
+            MediaQuery.sizeOf(context).shortestSide >= 600
+                ? 320.0 / 110.0
+                : 320.0 / 132.0;
         return SizedBox(
           width: availableWidth,
           height: availableWidth / aspectRatio,
@@ -273,11 +279,13 @@ class DonutChart extends StatelessWidget {
   const DonutChart({
     super.key,
     required this.totals,
+    required this.categoryColors,
     this.size = 132,
     this.thickness = 16,
   });
 
   final Map<String, double> totals;
+  final Map<String, Color> categoryColors;
   final double size;
   final double thickness;
 
@@ -288,16 +296,17 @@ class DonutChart extends StatelessWidget {
       height: size,
       child: CustomPaint(
         size: Size(size, size),
-        painter: _DonutPainter(totals, thickness),
+        painter: _DonutPainter(totals, categoryColors, thickness),
       ),
     );
   }
 }
 
 class _DonutPainter extends CustomPainter {
-  _DonutPainter(this.totals, this.thickness);
+  _DonutPainter(this.totals, this.categoryColors, this.thickness);
 
   final Map<String, double> totals;
+  final Map<String, Color> categoryColors;
   final double thickness;
 
   @override
@@ -327,7 +336,7 @@ class _DonutPainter extends CustomPainter {
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = thickness
-            ..color = catOf(id).color,
+            ..color = categoryColors[id] ?? catOf(id).color,
         );
       }
       off += len;
@@ -335,7 +344,8 @@ class _DonutPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _DonutPainter old) => old.totals != totals;
+  bool shouldRepaint(covariant _DonutPainter old) =>
+      old.totals != totals || old.categoryColors != categoryColors;
 }
 
 /* ==========================================================================

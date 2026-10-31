@@ -75,8 +75,7 @@ class ProfileScreen extends StatelessWidget {
                 child: SizedBox(
                   width: double.infinity,
                   child: StatTile(
-                    value:
-                        '${store.unlockedBadgeCount}/${store.badges.length}',
+                    value: '${store.unlockedBadgeCount}/${store.badges.length}',
                     caption: 'badges',
                     valueSize: 17,
                   ),
@@ -253,13 +252,17 @@ class _CarbonMixBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final EcoStore store = EcoScope.of(context);
     final double fill = clampDouble(progress, 0, 1);
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final double filledWidth = constraints.maxWidth * fill;
-        final List<String> categoriesInOrder =
-            <String>['transport', 'electricity', 'food'];
+        final List<String> categoriesInOrder = <String>[
+          'transport',
+          'electricity',
+          'food'
+        ];
         double left = 0;
         final List<Widget> segments = <Widget>[
           Positioned.fill(
@@ -282,7 +285,7 @@ class _CarbonMixBar extends StatelessWidget {
                       top: 0,
                       bottom: 0,
                       width: width,
-                      child: ColoredBox(color: catOf(category).color),
+                      child: ColoredBox(color: store.categoryColor(category)),
                     );
                     left += width;
                     return segment;
@@ -447,8 +450,7 @@ class _BadgesSection extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             b.unlocked ? 'Unlocked' : 'Locked',
-            style:
-                F.b(13, wght: 800, color: b.unlocked ? cs.leaf : cs.muted),
+            style: F.b(13, wght: 800, color: b.unlocked ? cs.leaf : cs.muted),
           ),
           const SizedBox(height: 12),
           EcoBar(
@@ -625,48 +627,76 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<_SettingsRow> settings = <_SettingsRow>[
+      _SettingsRow(
+        icon: 'target',
+        label: 'Carbon target',
+        trailing: '${fmt1(store.dailyTarget)} kg / day',
+        onTap: () => _showTargetPicker(context, store),
+      ),
+      _SettingsRow(
+        icon: 'tips',
+        label: 'Tips',
+        onTap: () => store.go('tips'),
+      ),
+      _SettingsRow(
+        icon: 'shield',
+        label: 'Account & security',
+        onTap: () => _showAccountSettings(context, store),
+      ),
+      _SettingsRow(
+        icon: 'settings',
+        label: 'Units & colors',
+        trailing: store.distanceUnit,
+        onTap: () => _showUnitSettings(context, store),
+      ),
+      _SettingsRow(
+        icon: 'help',
+        label: 'Help & support',
+        onTap: () => _showHelp(context, store),
+      ),
+      _SettingsRow(
+        icon: 'book',
+        label: 'About EcoTrack',
+        onTap: () => _showAbout(context),
+      ),
+      _SettingsRow(
+        icon: 'logout',
+        label: 'Log out',
+        danger: true,
+        onTap: () => _confirmSignOut(context, store),
+      ),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         const SectionHead(title: 'Account'),
         const SizedBox(height: 8),
-        _SettingsRow(
-          icon: 'target',
-          label: 'Carbon target',
-          trailing: '${fmt1(store.dailyTarget)} kg / day',
-          onTap: () => _showTargetPicker(context, store),
-        ),
-        _SettingsRow(
-          icon: 'tips',
-          label: 'Tips',
-          onTap: () => store.go('tips'),
-        ),
-        _SettingsRow(
-          icon: 'shield',
-          label: 'Account & security',
-          onTap: () => _showAccountSettings(context, store),
-        ),
-        _SettingsRow(
-          icon: 'settings',
-          label: 'Units',
-          trailing: store.distanceUnit,
-          onTap: () => _showUnitSettings(context, store),
-        ),
-        _SettingsRow(
-          icon: 'help',
-          label: 'Help & support',
-          onTap: () => _showHelp(context, store),
-        ),
-        _SettingsRow(
-          icon: 'book',
-          label: 'About EcoTrack',
-          onTap: () => _showAbout(context),
-        ),
-        _SettingsRow(
-          icon: 'logout',
-          label: 'Log out',
-          danger: true,
-          onTap: () => _confirmSignOut(context, store),
+        LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final bool tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+            final double itemWidth =
+                tablet ? (constraints.maxWidth - 12) / 2 : constraints.maxWidth;
+            return Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: <Widget>[
+                for (final _SettingsRow setting in settings)
+                  SizedBox(
+                    width: itemWidth,
+                    child: _SettingsRow(
+                      icon: setting.icon,
+                      label: setting.label,
+                      onTap: setting.onTap,
+                      trailing: setting.trailing,
+                      danger: setting.danger,
+                      roomy: tablet,
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -771,6 +801,7 @@ class _SettingsRow extends StatelessWidget {
     required this.onTap,
     this.trailing,
     this.danger = false,
+    this.roomy = false,
   });
 
   final String icon;
@@ -778,6 +809,7 @@ class _SettingsRow extends StatelessWidget {
   final VoidCallback onTap;
   final String? trailing;
   final bool danger;
+  final bool roomy;
 
   @override
   Widget build(BuildContext context) {
@@ -786,7 +818,11 @@ class _SettingsRow extends StatelessWidget {
       onTap: onTap,
       scale: 0.99,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        constraints: BoxConstraints(minHeight: roomy ? 72 : 0),
+        padding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: roomy ? 18 : 14,
+        ),
         decoration: BoxDecoration(
           color: cs.surface,
           border: Border.all(color: cs.outline),
@@ -852,7 +888,8 @@ void _showTargetPicker(BuildContext context, EcoStore store) {
                   store.setDailyTarget(value);
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
                     color: selected ? cs.mint : cs.surface,
@@ -883,8 +920,7 @@ void _showTargetPicker(BuildContext context, EcoStore store) {
                           ],
                         ),
                       ),
-                      if (selected)
-                        EcoIcon('check', size: 20, color: cs.leaf),
+                      if (selected) EcoIcon('check', size: 20, color: cs.leaf),
                     ],
                   ),
                 ),
@@ -920,11 +956,24 @@ Future<void> _showAccountSettings(
             const SheetTitle(title: 'Account & security'),
             const SizedBox(height: 6),
             Text(
-              'This demo keeps a local profile only. You can update its display name here.',
+              'This demo keeps profile data on this device for the current session.',
               style: F.b(13, height: 1.45, color: cs.muted),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
+            Row(
+              children: <Widget>[
+                const MascotArt('face-curious', width: 58),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Personalize your profile and choose how your activity categories look.',
+                    style: F.b(13, height: 1.4, color: cs.ink2),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: name,
               textCapitalization: TextCapitalization.words,
@@ -941,6 +990,17 @@ Future<void> _showAccountSettings(
                 }
                 store.setPlayerName(name.text);
                 Navigator.pop(ctx);
+              },
+            ),
+            const SizedBox(height: 8),
+            EcoButton(
+              label: 'Change profile picture',
+              leading: 'user',
+              tone: EcoButtonTone.ghost,
+              block: true,
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showAvatarPicker(context, store);
               },
             ),
           ],
@@ -960,7 +1020,7 @@ void _showUnitSettings(BuildContext context, EcoStore store) {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const SheetTitle(title: 'Distance units'),
+            const SheetTitle(title: 'Units & category colors'),
             const SizedBox(height: 4),
             Text(
               'Used for transport activity input and history.',
@@ -986,12 +1046,132 @@ void _showUnitSettings(BuildContext context, EcoStore store) {
                 store.setDistanceUnit('mi');
               },
             ),
+            const SizedBox(height: 22),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Carbon source colors', style: F.d(17)),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Choose a color for each category. Your selection updates charts, bars, and category indicators.',
+              style: F.b(13, height: 1.45, color: cs.muted),
+            ),
+            const SizedBox(height: 12),
+            _CategoryColorPicker(store: store),
           ],
         );
       },
     ),
   );
 }
+
+class _CategoryColorPicker extends StatefulWidget {
+  const _CategoryColorPicker({required this.store});
+
+  final EcoStore store;
+
+  @override
+  State<_CategoryColorPicker> createState() => _CategoryColorPickerState();
+}
+
+class _CategoryColorPickerState extends State<_CategoryColorPicker> {
+  static const List<Color> _palette = <Color>[
+    Eco.transport,
+    Eco.electricity,
+    Eco.food,
+    Color(0xFF8E44AD),
+    Color(0xFFE53935),
+    Color(0xFFE91E63),
+    Color(0xFF1976D2),
+    Color(0xFF00897B),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Column(
+      children: <Widget>[
+        for (final String id in kCatOrder) ...<Widget>[
+          EcoCard(
+            flat: true,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: widget.store.categoryColor(id),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(catOf(id).name, style: F.b(14, wght: 800)),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  children: <Widget>[
+                    for (final Color color in _palette)
+                      Semantics(
+                        button: true,
+                        selected: widget.store.categoryColor(id) == color,
+                        label: '${catOf(id).name} color ${_colorHex(color)}',
+                        child: Tooltip(
+                          message: _colorHex(color),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: () {
+                              widget.store.setCategoryColor(id, color);
+                              setState(() {});
+                            },
+                            child: Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: widget.store.categoryColor(id) == color
+                                      ? cs.ink
+                                      : cs.outline,
+                                  width: widget.store.categoryColor(id) == color
+                                      ? 3
+                                      : 1,
+                                ),
+                              ),
+                              child: widget.store.categoryColor(id) == color
+                                  ? Icon(
+                                      Icons.check,
+                                      size: 17,
+                                      color: color.computeLuminance() < 0.4
+                                          ? Colors.white
+                                          : Colors.black,
+                                    )
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ],
+    );
+  }
+}
+
+String _colorHex(Color color) =>
+    '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
 
 class _UnitChoice extends StatelessWidget {
   const _UnitChoice({

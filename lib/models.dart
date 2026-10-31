@@ -28,7 +28,18 @@ class Cat {
   final Color color;
   final String icon;
 
-  CatColors resolve(ColorScheme cs) {
+  CatColors resolve(ColorScheme cs, {Color? color}) {
+    if (color != null) {
+      final Color tint = Color.alphaBlend(
+        color.withValues(alpha: cs.brightness == Brightness.dark ? 0.24 : 0.12),
+        cs.surface,
+      );
+      final Color ink = cs.brightness == Brightness.dark
+          ? Color.lerp(color, Colors.white, 0.28)!
+          : Color.lerp(color, Colors.black, 0.3)!;
+      return CatColors(tint: tint, ink: ink);
+    }
+
     final bool dark = cs.brightness == Brightness.dark;
     switch (id) {
       case 'transport':
@@ -106,23 +117,156 @@ class ActivityDef {
 }
 
 const List<ActivityDef> kActivities = <ActivityDef>[
-  ActivityDef(key: 'car', cat: 'transport', name: 'Car', unit: 'km', factor: 0.192, step: 5, max: 200, chips: <double>[5, 15, 40], icon: 'car'),
-  ActivityDef(key: 'motorcycle', cat: 'transport', name: 'Motorcycle', unit: 'km', factor: 0.103, step: 5, max: 200, chips: <double>[5, 15, 40], icon: 'motorcycle'),
-  ActivityDef(key: 'bus', cat: 'transport', name: 'Bus', unit: 'km', factor: 0.082, step: 5, max: 200, chips: <double>[5, 15, 40], icon: 'bus'),
-  ActivityDef(key: 'train', cat: 'transport', name: 'Train', unit: 'km', factor: 0.035, step: 5, max: 400, chips: <double>[5, 20, 60], icon: 'train'),
-  ActivityDef(key: 'bicycle', cat: 'transport', name: 'Bicycle', unit: 'km', factor: 0, step: 1, max: 60, chips: <double>[1, 5, 10], icon: 'bike'),
-  ActivityDef(key: 'walking', cat: 'transport', name: 'Walking', unit: 'km', factor: 0, step: 1, max: 30, chips: <double>[1, 3, 5], icon: 'walk'),
-
-  ActivityDef(key: 'home', cat: 'electricity', name: 'Home electricity', unit: 'kWh', factor: 0.72, step: 1, max: 40, chips: <double>[2, 5, 10], icon: 'bolt'),
-  ActivityDef(key: 'ac', cat: 'electricity', name: 'Air conditioner', unit: 'hours', factor: 0.62, step: 1, max: 18, chips: <double>[1, 3, 8], icon: 'snow'),
-  ActivityDef(key: 'appliance', cat: 'electricity', name: 'Other appliances', unit: 'hours', factor: 0.45, step: 1, max: 18, chips: <double>[1, 4, 8], icon: 'plug'),
-
-  ActivityDef(key: 'beef', cat: 'food', name: 'Beef dish', unit: 'servings', factor: 4.0, step: 1, max: 6, chips: <double>[1, 2, 3], icon: 'steak'),
-  ActivityDef(key: 'chicken', cat: 'food', name: 'Chicken dish', unit: 'servings', factor: 1.6, step: 1, max: 6, chips: <double>[1, 2, 3], icon: 'chicken'),
-  ActivityDef(key: 'fish', cat: 'food', name: 'Fish dish', unit: 'servings', factor: 1.1, step: 1, max: 6, chips: <double>[1, 2, 3], icon: 'fish'),
-  ActivityDef(key: 'dairy', cat: 'food', name: 'Dairy & eggs', unit: 'servings', factor: 1.0, step: 1, max: 6, chips: <double>[1, 2, 3], icon: 'egg'),
-  ActivityDef(key: 'vegetarian', cat: 'food', name: 'Vegetarian meal', unit: 'servings', factor: 0.7, step: 1, max: 6, chips: <double>[1, 2, 3], icon: 'leaf'),
-  ActivityDef(key: 'vegan', cat: 'food', name: 'Vegan meal', unit: 'servings', factor: 0.45, step: 1, max: 6, chips: <double>[1, 2, 3], icon: 'sprout'),
+  ActivityDef(
+      key: 'car',
+      cat: 'transport',
+      name: 'Car',
+      unit: 'km',
+      factor: 0.192,
+      step: 5,
+      max: 200,
+      chips: <double>[5, 15, 40],
+      icon: 'car'),
+  ActivityDef(
+      key: 'motorcycle',
+      cat: 'transport',
+      name: 'Motorcycle',
+      unit: 'km',
+      factor: 0.103,
+      step: 5,
+      max: 200,
+      chips: <double>[5, 15, 40],
+      icon: 'motorcycle'),
+  ActivityDef(
+      key: 'bus',
+      cat: 'transport',
+      name: 'Bus',
+      unit: 'km',
+      factor: 0.082,
+      step: 5,
+      max: 200,
+      chips: <double>[5, 15, 40],
+      icon: 'bus'),
+  ActivityDef(
+      key: 'train',
+      cat: 'transport',
+      name: 'Train',
+      unit: 'km',
+      factor: 0.035,
+      step: 5,
+      max: 400,
+      chips: <double>[5, 20, 60],
+      icon: 'train'),
+  ActivityDef(
+      key: 'bicycle',
+      cat: 'transport',
+      name: 'Bicycle',
+      unit: 'km',
+      factor: 0,
+      step: 1,
+      max: 60,
+      chips: <double>[1, 5, 10],
+      icon: 'bike'),
+  ActivityDef(
+      key: 'walking',
+      cat: 'transport',
+      name: 'Walking',
+      unit: 'km',
+      factor: 0,
+      step: 1,
+      max: 30,
+      chips: <double>[1, 3, 5],
+      icon: 'walk'),
+  ActivityDef(
+      key: 'home',
+      cat: 'electricity',
+      name: 'Home electricity',
+      unit: 'kWh',
+      factor: 0.72,
+      step: 1,
+      max: 40,
+      chips: <double>[2, 5, 10],
+      icon: 'bolt'),
+  ActivityDef(
+      key: 'ac',
+      cat: 'electricity',
+      name: 'Air conditioner',
+      unit: 'hours',
+      factor: 0.62,
+      step: 1,
+      max: 18,
+      chips: <double>[1, 3, 8],
+      icon: 'snow'),
+  ActivityDef(
+      key: 'appliance',
+      cat: 'electricity',
+      name: 'Other appliances',
+      unit: 'hours',
+      factor: 0.45,
+      step: 1,
+      max: 18,
+      chips: <double>[1, 4, 8],
+      icon: 'plug'),
+  ActivityDef(
+      key: 'beef',
+      cat: 'food',
+      name: 'Beef dish',
+      unit: 'servings',
+      factor: 4.0,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'steak'),
+  ActivityDef(
+      key: 'chicken',
+      cat: 'food',
+      name: 'Chicken dish',
+      unit: 'servings',
+      factor: 1.6,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'chicken'),
+  ActivityDef(
+      key: 'fish',
+      cat: 'food',
+      name: 'Fish dish',
+      unit: 'servings',
+      factor: 1.1,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'fish'),
+  ActivityDef(
+      key: 'dairy',
+      cat: 'food',
+      name: 'Dairy & eggs',
+      unit: 'servings',
+      factor: 1.0,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'egg'),
+  ActivityDef(
+      key: 'vegetarian',
+      cat: 'food',
+      name: 'Vegetarian meal',
+      unit: 'servings',
+      factor: 0.7,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'leaf'),
+  ActivityDef(
+      key: 'vegan',
+      cat: 'food',
+      name: 'Vegan meal',
+      unit: 'servings',
+      factor: 0.45,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'sprout'),
 ];
 
 ActivityDef? activityDef(String key) {
@@ -158,14 +302,86 @@ class Tip {
 }
 
 const List<Tip> kTips = <Tip>[
-  Tip(id: 't1', cat: 'transport', icon: 'walk', title: 'Walk trips under 2 km', action: 'Leave the bike helmet at home for short errands.', why: 'Trips under 2 km are the easiest to replace — and they are the ones where a cold engine burns the most fuel per kilometre.', ctaKey: 'walking', ctaAmount: 2),
-  Tip(id: 't2', cat: 'electricity', icon: 'snow', title: 'Set the AC to 25°C', action: 'Each degree warmer cuts roughly 6% of its power draw.', why: 'Cooling is usually the single biggest load in a home. One degree is invisible to your comfort and visible on your footprint.', ctaKey: 'ac', ctaAmount: 3),
-  Tip(id: 't3', cat: 'food', icon: 'leaf', title: 'Swap one beef meal a week', action: 'Try a vegetarian dish on the day you would have had beef.', why: 'A beef dish carries roughly six times the emissions of a vegetarian one. One swap a week is a real dent.', ctaKey: 'vegetarian', ctaAmount: 1),
-  Tip(id: 't4', cat: 'electricity', icon: 'plug', title: 'Unplug chargers when idle', action: 'Switch off the strip before you leave the room.', why: 'Standby load is small per device, but it runs every hour you are asleep or away — and it adds up across a house.', ctaKey: 'appliance', ctaAmount: 1),
-  Tip(id: 't5', cat: 'transport', icon: 'bus', title: 'Take the bus once a week', action: 'Pick your longest regular drive and ride it instead.', why: 'A bus spreads its emissions across everyone aboard, so your share of a full bus is a fraction of a solo car trip.', ctaKey: 'bus', ctaAmount: 15),
-  Tip(id: 't6', cat: 'food', icon: 'sprout', title: 'Eat what you buy', action: 'Plan two meals around what is already in the fridge.', why: 'Food that is grown, shipped and then thrown away carries all of its emissions and returns none of the nutrition.', ctaKey: 'vegan', ctaAmount: 1),
-  Tip(id: 't7', cat: 'electricity', icon: 'refresh', title: 'Air-dry your laundry', action: 'Skip the dryer on the next sunny day.', why: 'A tumble dryer is one of the hungriest appliances per cycle — a line costs nothing and produces nothing.', ctaKey: 'home', ctaAmount: 3),
-  Tip(id: 't8', cat: 'transport', icon: 'bike', title: 'Cycle the short hop', action: 'Replace one short ride with pedal power.', why: 'Cycling is genuinely zero-emission in use, and it replaces the trips where a car is least efficient.', ctaKey: 'bicycle', ctaAmount: 5),
+  Tip(
+      id: 't1',
+      cat: 'transport',
+      icon: 'walk',
+      title: 'Walk trips under 2 km',
+      action: 'Leave the bike helmet at home for short errands.',
+      why:
+          'Trips under 2 km are the easiest to replace — and they are the ones where a cold engine burns the most fuel per kilometre.',
+      ctaKey: 'walking',
+      ctaAmount: 2),
+  Tip(
+      id: 't2',
+      cat: 'electricity',
+      icon: 'snow',
+      title: 'Set the AC to 25°C',
+      action: 'Each degree warmer cuts roughly 6% of its power draw.',
+      why:
+          'Cooling is usually the single biggest load in a home. One degree is invisible to your comfort and visible on your footprint.',
+      ctaKey: 'ac',
+      ctaAmount: 3),
+  Tip(
+      id: 't3',
+      cat: 'food',
+      icon: 'leaf',
+      title: 'Swap one beef meal a week',
+      action: 'Try a vegetarian dish on the day you would have had beef.',
+      why:
+          'A beef dish carries roughly six times the emissions of a vegetarian one. One swap a week is a real dent.',
+      ctaKey: 'vegetarian',
+      ctaAmount: 1),
+  Tip(
+      id: 't4',
+      cat: 'electricity',
+      icon: 'plug',
+      title: 'Unplug chargers when idle',
+      action: 'Switch off the strip before you leave the room.',
+      why:
+          'Standby load is small per device, but it runs every hour you are asleep or away — and it adds up across a house.',
+      ctaKey: 'appliance',
+      ctaAmount: 1),
+  Tip(
+      id: 't5',
+      cat: 'transport',
+      icon: 'bus',
+      title: 'Take the bus once a week',
+      action: 'Pick your longest regular drive and ride it instead.',
+      why:
+          'A bus spreads its emissions across everyone aboard, so your share of a full bus is a fraction of a solo car trip.',
+      ctaKey: 'bus',
+      ctaAmount: 15),
+  Tip(
+      id: 't6',
+      cat: 'food',
+      icon: 'sprout',
+      title: 'Eat what you buy',
+      action: 'Plan two meals around what is already in the fridge.',
+      why:
+          'Food that is grown, shipped and then thrown away carries all of its emissions and returns none of the nutrition.',
+      ctaKey: 'vegan',
+      ctaAmount: 1),
+  Tip(
+      id: 't7',
+      cat: 'electricity',
+      icon: 'refresh',
+      title: 'Air-dry your laundry',
+      action: 'Skip the dryer on the next sunny day.',
+      why:
+          'A tumble dryer is one of the hungriest appliances per cycle — a line costs nothing and produces nothing.',
+      ctaKey: 'home',
+      ctaAmount: 3),
+  Tip(
+      id: 't8',
+      cat: 'transport',
+      icon: 'bike',
+      title: 'Cycle the short hop',
+      action: 'Replace one short ride with pedal power.',
+      why:
+          'Cycling is genuinely zero-emission in use, and it replaces the trips where a car is least efficient.',
+      ctaKey: 'bicycle',
+      ctaAmount: 5),
 ];
 
 Tip? tipOf(String id) {
@@ -205,12 +421,54 @@ class Challenge {
 }
 
 List<Challenge> seedChallenges() => <Challenge>[
-  Challenge(id: 'c1', cat: 'transport', title: 'Legs before engine', why: 'Choose walking or cycling for one short trip today.', reward: 30, target: 1, progress: 0, state: ChallengeState.active, featured: true, mascot: 'face-excited'),
-  Challenge(id: 'c2', cat: 'electricity', title: 'Lights off when you leave', why: 'Turn off unused lights for three days running.', reward: 20, target: 3, progress: 2, state: ChallengeState.active),
-  Challenge(id: 'c3', cat: 'food', title: 'Meat-free for a meal', why: 'Pick one plant-forward meal today.', reward: 25, target: 1, progress: 1, state: ChallengeState.claimable),
-  Challenge(id: 'c4', cat: 'electricity', title: 'Unplug overnight', why: 'Kill the standby load before bed.', reward: 20, target: 1, progress: 1, state: ChallengeState.claimed),
-  Challenge(id: 'c5', cat: 'transport', title: 'Ride the bus once', why: 'Swap one regular drive for the bus this week.', reward: 25, target: 1, progress: 0, state: ChallengeState.active),
-];
+      Challenge(
+          id: 'c1',
+          cat: 'transport',
+          title: 'Legs before engine',
+          why: 'Choose walking or cycling for one short trip today.',
+          reward: 30,
+          target: 1,
+          progress: 0,
+          state: ChallengeState.active,
+          featured: true,
+          mascot: 'face-excited'),
+      Challenge(
+          id: 'c2',
+          cat: 'electricity',
+          title: 'Lights off when you leave',
+          why: 'Turn off unused lights for three days running.',
+          reward: 20,
+          target: 3,
+          progress: 2,
+          state: ChallengeState.active),
+      Challenge(
+          id: 'c3',
+          cat: 'food',
+          title: 'Meat-free for a meal',
+          why: 'Pick one plant-forward meal today.',
+          reward: 25,
+          target: 1,
+          progress: 1,
+          state: ChallengeState.claimable),
+      Challenge(
+          id: 'c4',
+          cat: 'electricity',
+          title: 'Unplug overnight',
+          why: 'Kill the standby load before bed.',
+          reward: 20,
+          target: 1,
+          progress: 1,
+          state: ChallengeState.claimed),
+      Challenge(
+          id: 'c5',
+          cat: 'transport',
+          title: 'Ride the bus once',
+          why: 'Swap one regular drive for the bus this week.',
+          reward: 25,
+          target: 1,
+          progress: 0,
+          state: ChallengeState.active),
+    ];
 
 class Badge {
   Badge({
@@ -233,15 +491,71 @@ class Badge {
 }
 
 List<Badge> seedBadges() => <Badge>[
-  Badge(id: 'b1', icon: 'sprout', name: 'First step', desc: 'Log your very first activity', unlocked: true, progress: 1, target: 1),
-  Badge(id: 'b2', icon: 'flame', name: 'Week streak', desc: 'Open EcoTrack seven days in a row', unlocked: true, progress: 7, target: 7),
-  Badge(id: 'b3', icon: 'leaf', name: 'Green chef', desc: 'Log five plant-based meals', unlocked: true, progress: 5, target: 5),
-  Badge(id: 'b4', icon: 'bus', name: 'Transit regular', desc: 'Take the bus or train ten times', unlocked: true, progress: 10, target: 10),
-  Badge(id: 'b5', icon: 'bike', name: 'Cyclist', desc: 'Cycle 25 km in total', unlocked: false, progress: 14, target: 25),
-  Badge(id: 'b6', icon: 'bolt', name: 'Power saver', desc: 'Save 20 kWh against your baseline', unlocked: false, progress: 12, target: 20),
-  Badge(id: 'b7', icon: 'flag', name: 'Challenger', desc: 'Complete five daily challenges', unlocked: false, progress: 3, target: 5),
-  Badge(id: 'b8', icon: 'trophy', name: 'Tree planter', desc: 'Reach 2 000 Eco Points', unlocked: false, progress: 1520, target: 2000),
-];
+      Badge(
+          id: 'b1',
+          icon: 'sprout',
+          name: 'First step',
+          desc: 'Log your very first activity',
+          unlocked: true,
+          progress: 1,
+          target: 1),
+      Badge(
+          id: 'b2',
+          icon: 'flame',
+          name: 'Week streak',
+          desc: 'Open EcoTrack seven days in a row',
+          unlocked: true,
+          progress: 7,
+          target: 7),
+      Badge(
+          id: 'b3',
+          icon: 'leaf',
+          name: 'Green chef',
+          desc: 'Log five plant-based meals',
+          unlocked: true,
+          progress: 5,
+          target: 5),
+      Badge(
+          id: 'b4',
+          icon: 'bus',
+          name: 'Transit regular',
+          desc: 'Take the bus or train ten times',
+          unlocked: true,
+          progress: 10,
+          target: 10),
+      Badge(
+          id: 'b5',
+          icon: 'bike',
+          name: 'Cyclist',
+          desc: 'Cycle 25 km in total',
+          unlocked: false,
+          progress: 14,
+          target: 25),
+      Badge(
+          id: 'b6',
+          icon: 'bolt',
+          name: 'Power saver',
+          desc: 'Save 20 kWh against your baseline',
+          unlocked: false,
+          progress: 12,
+          target: 20),
+      Badge(
+          id: 'b7',
+          icon: 'flag',
+          name: 'Challenger',
+          desc: 'Complete five daily challenges',
+          unlocked: false,
+          progress: 3,
+          target: 5),
+      Badge(
+          id: 'b8',
+          icon: 'trophy',
+          name: 'Tree planter',
+          desc: 'Reach 2 000 Eco Points',
+          unlocked: false,
+          progress: 1520,
+          target: 2000),
+    ];
 
 class Level {
   const Level(this.min, this.name);
@@ -380,7 +694,8 @@ String fmt1(double n) => n.toStringAsFixed(1);
 String fmt2(double n) => n.toStringAsFixed(2);
 
 /// Amounts read as `4` or `2.5`, never `4.0`.
-String fmtAmount(double n) => n == n.roundToDouble() ? n.toInt().toString() : n.toString();
+String fmtAmount(double n) =>
+    n == n.roundToDouble() ? n.toInt().toString() : n.toString();
 
 String kgText(double n) => '${fmt1(n)} kg';
 

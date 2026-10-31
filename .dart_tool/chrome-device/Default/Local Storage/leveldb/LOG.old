@@ -1,9 +1,81 @@
-2026/10/20-22:14:45.967 5470 Reusing MANIFEST C:\Users\User\AppData\Local\Temp\flutter_tools.9fc38445\flutter_tools_chrome_device.bee90049\Default\Local Storage\leveldb/MANIFEST-000001
-2026/10/20-22:14:45.968 5470 Recovering log #11
-2026/10/20-22:14:45.970 5470 Reusing old log C:\Users\User\AppData\Local\Temp\flutter_tools.9fc38445\flutter_tools_chrome_device.bee90049\Default\Local Storage\leveldb/000011.log 
-2026/10/20-22:14:45.971 5470 Delete type=2 #3
-2026/10/20-22:14:45.971 5470 Delete type=0 #3
-2026/10/20-22:14:45.971 5470 Delete type=0 #4
-2026/10/20-22:14:45.971 5470 Delete type=2 #5
-2026/10/20-22:14:45.971 5470 Delete type=0 #6
-2026/10/20-22:14:45.971 5470 Delete type=2 #7
+2026/10/31-14:09:02.560 4398 Reusing MANIFEST C:\Users\User\AppData\Local\Temp\flutter_tools.2265f447\flutter_tools_chrome_device.95a3aeb7\Default\Local Storage\leveldb/MANIFEST-000001
+2026/10/31-14:09:02.561 4398 Recovering log #11
+2026/10/31-14:09:02.563 4398 Reusing old log C:\Users\User\AppData\Local\Temp\flutter_tools.2265f447\flutter_tools_chrome_device.95a3aeb7\Default\Local Storage\leveldb/000011.log 
+2026/10/31-14:09:02.564 4398 Delete type=2 #3
+2026/10/31-14:09:02.564 4398 Delete type=0 #3
+2026/10/31-14:09:02.564 4398 Delete type=0 #4
+2026/10/31-14:09:02.564 4398 Delete type=2 #5
+2026/10/31-14:09:02.564 4398 Delete type=0 #6
+2026/10/31-14:09:02.564 4398 Delete type=2 #7
+2026/10/31-16:25:19.631 44f8 Level-0 table #16: started
+2026/10/31-16:25:19.634 44f8 Level-0 table #16: 56295 bytes OK
+2026/10/31-16:25:19.635 44f8 Delete type=0 #11
+2026/10/31-16:26:52.052 44f8 Level-0 table #18: started
+2026/10/31-16:26:52.056 44f8 Level-0 table #18: 96403 bytes OK
+2026/10/31-16:26:52.057 44f8 Delete type=0 #15
+2026/10/31-16:27:35.049 44f8 Level-0 table #20: started
+2026/10/31-16:27:35.052 44f8 Level-0 table #20: 166390 bytes OK
+2026/10/31-16:27:35.053 44f8 Delete type=0 #17
+2026/10/31-16:28:19.155 44f8 Level-0 table #22: started
+2026/10/31-16:28:19.159 44f8 Level-0 table #22: 93768 bytes OK
+2026/10/31-16:28:19.160 44f8 Delete type=0 #19
+2026/10/31-16:28:19.160 44f8 Compacting 4@0 + 1@1 files
+2026/10/31-16:28:19.166 44f8 Generated table #23@0: 198 keys, 359702 bytes
+2026/10/31-16:28:19.166 44f8 Compacted 4@0 + 1@1 files => 359702 bytes
+2026/10/31-16:28:19.166 44f8 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/10/31-16:28:19.167 44f8 Delete type=2 #13
+2026/10/31-16:28:19.167 44f8 Delete type=2 #16
+2026/10/31-16:28:19.167 44f8 Delete type=2 #18
+2026/10/31-16:28:19.167 44f8 Delete type=2 #20
+2026/10/31-16:28:19.167 44f8 Delete type=2 #22
+2026/10/31-16:28:51.351 44f8 Level-0 table #25: started
+2026/10/31-16:28:51.354 44f8 Level-0 table #25: 56188 bytes OK
+2026/10/31-16:28:51.355 44f8 Delete type=0 #21
+2026/10/31-16:29:27.052 44f8 Level-0 table #27: started
+2026/10/31-16:29:27.054 44f8 Level-0 table #27: 36726 bytes OK
+2026/10/31-16:29:27.055 44f8 Delete type=0 #24
+2026/10/31-16:29:52.912 44f8 Level-0 table #29: started
+2026/10/31-16:29:52.915 44f8 Level-0 table #29: 51807 bytes OK
+2026/10/31-16:29:52.916 44f8 Delete type=0 #26
+2026/10/31-16:30:32.500 44f8 Level-0 table #31: started
+2026/10/31-16:30:32.503 44f8 Level-0 table #31: 40459 bytes OK
+2026/10/31-16:30:32.504 44f8 Delete type=0 #28
+2026/10/31-16:30:32.504 44f8 Compacting 4@0 + 1@1 files
+2026/10/31-16:30:32.510 44f8 Generated table #32@0: 210 keys, 377109 bytes
+2026/10/31-16:30:32.510 44f8 Compacted 4@0 + 1@1 files => 377109 bytes
+2026/10/31-16:30:32.511 44f8 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/10/31-16:30:32.511 44f8 Delete type=2 #23
+2026/10/31-16:30:32.511 44f8 Delete type=2 #25
+2026/10/31-16:30:32.511 44f8 Delete type=2 #27
+2026/10/31-16:30:32.511 44f8 Delete type=2 #29
+2026/10/31-16:30:32.511 44f8 Delete type=2 #31
+2026/10/31-16:31:22.771 44f8 Level-0 table #34: started
+2026/10/31-16:31:22.774 44f8 Level-0 table #34: 36805 bytes OK
+2026/10/31-16:31:22.775 44f8 Delete type=0 #30
+2026/10/31-16:31:32.494 44f8 Level-0 table #36: started
+2026/10/31-16:31:32.497 44f8 Level-0 table #36: 37076 bytes OK
+2026/10/31-16:31:32.498 44f8 Delete type=0 #33
+2026/10/31-16:31:40.867 44f8 Level-0 table #38: started
+2026/10/31-16:31:40.870 44f8 Level-0 table #38: 37442 bytes OK
+2026/10/31-16:31:40.871 44f8 Delete type=0 #35
+2026/10/31-16:32:14.452 44f8 Level-0 table #40: started
+2026/10/31-16:32:14.455 44f8 Level-0 table #40: 37471 bytes OK
+2026/10/31-16:32:14.455 44f8 Delete type=0 #37
+2026/10/31-16:32:14.456 44f8 Compacting 4@0 + 1@1 files
+2026/10/31-16:32:14.462 44f8 Generated table #41@0: 209 keys, 377737 bytes
+2026/10/31-16:32:14.462 44f8 Compacted 4@0 + 1@1 files => 377737 bytes
+2026/10/31-16:32:14.462 44f8 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/10/31-16:32:14.462 44f8 Delete type=2 #32
+2026/10/31-16:32:14.462 44f8 Delete type=2 #34
+2026/10/31-16:32:14.462 44f8 Delete type=2 #36
+2026/10/31-16:32:14.462 44f8 Delete type=2 #38
+2026/10/31-16:32:14.462 44f8 Delete type=2 #40
+2026/10/31-16:33:00.740 44f8 Level-0 table #43: started
+2026/10/31-16:33:00.742 44f8 Level-0 table #43: 41530 bytes OK
+2026/10/31-16:33:00.743 44f8 Delete type=0 #39
+2026/10/31-16:33:32.492 44f8 Level-0 table #45: started
+2026/10/31-16:33:32.495 44f8 Level-0 table #45: 37562 bytes OK
+2026/10/31-16:33:32.496 44f8 Delete type=0 #42
+2026/10/31-16:33:53.958 44f8 Level-0 table #47: started
+2026/10/31-16:33:53.961 44f8 Level-0 table #47: 37609 bytes OK
+2026/10/31-16:33:53.962 44f8 Delete type=0 #44

@@ -88,7 +88,8 @@ class HistoryScreen extends StatelessWidget {
                       children: <Widget>[
                         Text(kgText(weekTotal), style: F.statNum),
                         const SizedBox(height: 2),
-                        Text('logged in the last 7 days', style: F.b(12.5, wght: 700, color: cs.muted)),
+                        Text('logged in the last 7 days',
+                            style: F.b(12.5, wght: 700, color: cs.muted)),
                       ],
                     ),
                   ),
@@ -110,7 +111,7 @@ class HistoryScreen extends StatelessWidget {
               for (final String id in kCatOrder)
                 EcoChip(
                   label: catOf(id).name,
-                  dotColor: catOf(id).color,
+                  dotColor: store.categoryColor(id),
                   active: store.historyFilter == id,
                   onTap: () => store.setHistoryFilter(id),
                 ),
@@ -156,8 +157,8 @@ class _HistRow extends StatelessWidget {
           children: <Widget>[
             CatBadge(
               icon: def.icon,
-              background: c.resolve(cs).tint,
-              foreground: c.resolve(cs).ink,
+              background: c.resolve(cs, color: store.categoryColor(c.id)).tint,
+              foreground: c.resolve(cs, color: store.categoryColor(c.id)).ink,
             ),
             const SizedBox(width: 12),
             Expanded(

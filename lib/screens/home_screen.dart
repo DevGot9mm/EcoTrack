@@ -23,6 +23,7 @@ class HomeScreen extends StatelessWidget {
     final EcoStore store = EcoScope.of(context);
     final cs = Theme.of(context).colorScheme;
     final double screenW = MediaQuery.of(context).size.width;
+    final bool tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
 
     final double todayTotal = store.total(store.inRange(0, 0));
     final double tw = store.total(store.inRange(0, 6));
@@ -227,6 +228,7 @@ class HomeScreen extends StatelessWidget {
                         leading: 'plus',
                         tone: EcoButtonTone.onDark,
                         block: true,
+                        minHeight: tablet ? 56 : 52,
                         onPressed: store.openAdd,
                       ),
                     ],
@@ -282,6 +284,7 @@ class HomeScreen extends StatelessWidget {
                           for (final String id in kCatOrder)
                             _BreakdownRow(
                               cat: catOf(id),
+                              categoryColor: store.categoryColor(id),
                               value: t[id] ?? 0,
                               pct: ((t[id] ?? 0) / weekTotal * 100).round(),
                               onTap: () => store.browseCategory(id),
@@ -353,7 +356,9 @@ class HomeScreen extends StatelessWidget {
                                     style: F.d(16.5),
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(featured.why, style: F.b(13, height: 1.45, color: cs.muted)),
+                                  Text(featured.why,
+                                      style: F.b(13,
+                                          height: 1.45, color: cs.muted)),
                                 ],
                               ),
                             ),
@@ -426,14 +431,15 @@ class HomeScreen extends StatelessWidget {
                                         color: cs.amber,
                                       ),
                                       const SizedBox(width: 8),
-Expanded(
-                                    child: Text(
-                                      'Eco Points',
-                                      style: F.b(12.5, wght: 700, color: cs.muted),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
+                                      Expanded(
+                                        child: Text(
+                                          'Eco Points',
+                                          style: F.b(12.5,
+                                              wght: 700, color: cs.muted),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
@@ -446,7 +452,8 @@ Expanded(
                                     width: double.infinity,
                                     child: Text(
                                       'Level ${lvl.idx + 1} · ${lvl.name}',
-                                      style: F.b(13, height: 1.45, color: cs.muted),
+                                      style: F.b(13,
+                                          height: 1.45, color: cs.muted),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -472,7 +479,9 @@ Expanded(
                                         color: cs.forest,
                                       ),
                                       const SizedBox(width: 8),
-                                      Text('Streak', style: F.b(12.5, wght: 700, color: cs.muted)),
+                                      Text('Streak',
+                                          style: F.b(12.5,
+                                              wght: 700, color: cs.muted)),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
@@ -483,7 +492,8 @@ Expanded(
                                   ),
                                   Text(
                                     'Best run: 12 days',
-                                    style: F.b(13, height: 1.45, color: cs.muted),
+                                    style:
+                                        F.b(13, height: 1.45, color: cs.muted),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -515,8 +525,8 @@ Expanded(
                 children: <Widget>[
                   for (final Tip tp in kTips.take(4))
                     SizedBox(
-                      width: 214,
-                      height: 142,
+                      width: tablet ? 246 : 214,
+                      height: tablet ? 166 : 142,
                       child: EcoCard(
                         flat: true,
                         padding: const EdgeInsets.all(12),
@@ -526,23 +536,37 @@ Expanded(
                           children: <Widget>[
                             CatBadge(
                               icon: tp.icon,
-                              background: catOf(tp.cat).resolve(cs).tint,
-                              foreground: catOf(tp.cat).resolve(cs).ink,
-                              size: 32,
-                              iconSize: 17,
+                              background: catOf(tp.cat)
+                                  .resolve(
+                                    cs,
+                                    color: store.categoryColor(tp.cat),
+                                  )
+                                  .tint,
+                              foreground: catOf(tp.cat)
+                                  .resolve(
+                                    cs,
+                                    color: store.categoryColor(tp.cat),
+                                  )
+                                  .ink,
+                              size: tablet ? 36 : 32,
+                              iconSize: tablet ? 19 : 17,
                               radius: 11,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               tp.title,
-                              style: F.d(14.5, height: 1.2),
+                              style: F.d(tablet ? 16 : 14.5, height: 1.2),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               tp.action,
-                              style: F.b(12, height: 1.35, color: cs.muted),
+                              style: F.b(
+                                tablet ? 13 : 12,
+                                height: 1.35,
+                                color: cs.muted,
+                              ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -559,7 +583,11 @@ Expanded(
         Positioned(
           right: 18,
           bottom: 18,
-          child: EcoFab(label: 'Log activity', onTap: store.openAdd),
+          child: EcoFab(
+            label: 'Log activity',
+            onTap: store.openAdd,
+            tablet: tablet,
+          ),
         ),
       ],
     );
@@ -569,12 +597,14 @@ Expanded(
 class _BreakdownRow extends StatelessWidget {
   const _BreakdownRow({
     required this.cat,
+    required this.categoryColor,
     required this.value,
     required this.pct,
     required this.onTap,
   });
 
   final Cat cat;
+  final Color categoryColor;
   final double value;
   final int pct;
   final VoidCallback onTap;
@@ -591,8 +621,8 @@ class _BreakdownRow extends StatelessWidget {
           children: <Widget>[
             CatBadge(
               icon: cat.icon,
-              background: cat.resolve(cs).tint,
-              foreground: cat.resolve(cs).ink,
+              background: cat.resolve(cs, color: categoryColor).tint,
+              foreground: cat.resolve(cs, color: categoryColor).ink,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -601,12 +631,12 @@ class _BreakdownRow extends StatelessWidget {
                 children: <Widget>[
                   Text(cat.name, style: F.b(15, wght: 800)),
                   const SizedBox(height: 5),
-                  EcoBar(value: pct / 100, color: cat.color, height: 6),
+                  EcoBar(value: pct / 100, color: categoryColor, height: 6),
                   const SizedBox(height: 5),
-Text(
-                              '$pct% of your week',
-                              style: F.b(12.5, wght: 600, color: cs.muted),
-                            ),
+                  Text(
+                    '$pct% of your week',
+                    style: F.b(12.5, wght: 600, color: cs.muted),
+                  ),
                 ],
               ),
             ),

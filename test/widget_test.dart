@@ -120,13 +120,28 @@ void main() {
     expect(find.byTooltip('Profile picture: Portrait 2. Tap to change.'),
         findsOneWidget);
 
-    await tester.ensureVisible(find.text('Units'));
-    await tester.tap(find.text('Units'));
+    await tester.ensureVisible(find.text('Units & colors'));
+    await tester.tap(find.text('Units & colors'));
     await tester.pumpAndSettle();
-    expect(find.text('Distance units'), findsOneWidget);
+    expect(find.text('Carbon source colors'), findsOneWidget);
     await tester.tap(find.text('Miles'));
     await tester.pumpAndSettle();
     expect(find.text('mi'), findsOneWidget);
+    await tester.tap(find.text('Units & colors'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('#8E44AD').first);
+    await tester.pumpAndSettle();
+    expect(
+      find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is Semantics &&
+            widget.properties.label == 'Transport color #8E44AD' &&
+            widget.properties.selected == true,
+      ),
+      findsOneWidget,
+    );
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('Tips').last);
     await tester.tap(find.text('Tips').last);

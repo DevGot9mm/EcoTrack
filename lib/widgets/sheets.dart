@@ -10,47 +10,52 @@ import 'common.dart';
 Future<void> showEcoSheet(BuildContext context, Widget child) {
   return showModalBottomSheet<void>(
     context: context,
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
     barrierColor: const Color(0x6B0F2818),
     isScrollControlled: true,
+    constraints: const BoxConstraints(maxWidth: double.infinity),
     builder: (BuildContext ctx) {
       final cs = Theme.of(ctx).colorScheme;
-      return Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(ctx).size.height * 0.82,
-        ),
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(Eco.rSheet),
+      return SizedBox(
+        width: double.infinity,
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.82,
           ),
-          boxShadow: Eco.shadowSheet,
-        ),
-        child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(
-            20,
-            10,
-            20,
-            20 + MediaQuery.of(ctx).padding.bottom,
+          decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(Eco.rSheet),
+            ),
+            boxShadow: Eco.shadowSheet,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Center(
-                child: Container(
-                  width: 42,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: cs.lineStrong,
-                    borderRadius: BorderRadius.circular(Eco.rPill),
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              10,
+              20,
+              20 + MediaQuery.of(ctx).padding.bottom,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Center(
+                  child: Container(
+                    width: 42,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: cs.lineStrong,
+                      borderRadius: BorderRadius.circular(Eco.rPill),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              child,
-            ],
+                const SizedBox(height: 16),
+                child,
+              ],
+            ),
           ),
         ),
       );
@@ -61,7 +66,8 @@ Future<void> showEcoSheet(BuildContext context, Widget child) {
 Widget _sheetTitle(String text) =>
     Text(text, style: F.d(20), maxLines: 1, overflow: TextOverflow.ellipsis);
 
-Widget _statCell(String value, String caption, {double size = 20, required ColorScheme cs}) {
+Widget _statCell(String value, String caption,
+    {double size = 20, required ColorScheme cs}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: <Widget>[
@@ -195,7 +201,8 @@ Future<void> showBadgeSheet(BuildContext context, Badge b) {
                 children: <Widget>[
                   _sheetTitle(b.name),
                   const SizedBox(height: 2),
-                  Text(b.unlocked ? 'Unlocked' : 'Locked', style: F.b(13, height: 1.45, color: cs.muted)),
+                  Text(b.unlocked ? 'Unlocked' : 'Locked',
+                      style: F.b(13, height: 1.45, color: cs.muted)),
                 ],
               ),
             ),

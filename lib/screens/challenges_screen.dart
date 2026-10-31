@@ -43,16 +43,15 @@ class ChallengesScreen extends StatelessWidget {
               title: 'This week',
               action: Text(
                 '$completed of ${store.challenges.length} complete',
-                style: F.b(12, wght: 800, color: Theme.of(context).colorScheme.muted),
+                style: F.b(12,
+                    wght: 800, color: Theme.of(context).colorScheme.muted),
               ),
             ),
           ),
-          ...weekly.map(
-            (Challenge challenge) => _ChallengeCard(
-              challenge: challenge,
-              store: store,
-            ),
-          ),
+          for (int i = 0; i < weekly.length; i++) ...<Widget>[
+            if (i > 0) const SizedBox(height: 12),
+            _ChallengeCard(challenge: weekly[i], store: store),
+          ],
         ],
       ),
     );
@@ -141,7 +140,8 @@ class _FeaturedChallengeCard extends StatelessWidget {
             listenable: store,
             builder: (BuildContext context, Widget? child) {
               final bool isDone = challenge.state == ChallengeState.claimed;
-              final bool isClaimable = challenge.state == ChallengeState.claimable;
+              final bool isClaimable =
+                  challenge.state == ChallengeState.claimable;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
@@ -150,7 +150,8 @@ class _FeaturedChallengeCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           '${challenge.progress.round()} of ${challenge.target.round()} done',
-                          style: F.b(12, wght: 800, color: const Color(0xD9FFFFFF)),
+                          style: F.b(12,
+                              wght: 800, color: const Color(0xD9FFFFFF)),
                         ),
                       ),
                       Text(
@@ -310,11 +311,18 @@ class _ChallengeCard extends StatelessWidget {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: catOf(challenge.cat).resolve(cs).tint,
+                    color: catOf(challenge.cat)
+                        .resolve(cs, color: store.categoryColor(challenge.cat))
+                        .tint,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: EcoIcon(challenge.featured ? 'sparkles' : 'flag',
-                      size: 20, color: catOf(challenge.cat).resolve(cs).ink),
+                  child: EcoIcon(
+                    challenge.featured ? 'sparkles' : 'flag',
+                    size: 20,
+                    color: catOf(challenge.cat)
+                        .resolve(cs, color: store.categoryColor(challenge.cat))
+                        .ink,
+                  ),
                 ),
               ],
             ),

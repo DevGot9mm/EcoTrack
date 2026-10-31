@@ -66,6 +66,7 @@ class EcoStore extends ChangeNotifier {
   String distanceUnit = 'km';
   bool notifyOn = true;
   final Map<String, bool> savedTips = <String, bool>{};
+  final Map<String, Color> categoryColors = <String, Color>{};
   final List<Entry> activities = <Entry>[];
   final List<Challenge> challenges = seedChallenges();
   final List<Badge> badges = seedBadges();
@@ -148,6 +149,16 @@ class EcoStore extends ChangeNotifier {
 
   void toggleTheme() {
     isDark = !isDark;
+    _emit();
+  }
+
+  Color categoryColor(String id) => categoryColors[id] ?? catOf(id).color;
+
+  void setCategoryColor(String id, Color color) {
+    if (!kCats.containsKey(id)) {
+      throw ArgumentError.value(id, 'id', 'Unknown carbon category');
+    }
+    categoryColors[id] = color;
     _emit();
   }
 

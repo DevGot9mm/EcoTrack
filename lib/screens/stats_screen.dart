@@ -132,8 +132,17 @@ class StatsScreen extends StatelessWidget {
                         flat: true,
                         child: LayoutBuilder(
                           builder: (BuildContext ctx, BoxConstraints c) {
-                            final double donutSize =
-                                (c.maxWidth * 0.32).clamp(100.0, 160.0);
+                            final double donutSize = (c.maxWidth *
+                                    (MediaQuery.sizeOf(context).shortestSide >=
+                                            600
+                                        ? 0.4
+                                        : 0.32))
+                                .clamp(
+                              100.0,
+                              MediaQuery.sizeOf(context).shortestSide >= 600
+                                  ? 190.0
+                                  : 160.0,
+                            );
                             return Row(
                               children: <Widget>[
                                 SizedBox(
@@ -141,7 +150,14 @@ class StatsScreen extends StatelessWidget {
                                   height: donutSize,
                                   child: Stack(
                                     children: <Widget>[
-                                      DonutChart(totals: t, size: donutSize),
+                                      DonutChart(
+                                        totals: t,
+                                        categoryColors: <String, Color>{
+                                          for (final String id in kCatOrder)
+                                            id: store.categoryColor(id),
+                                        },
+                                        size: donutSize,
+                                      ),
                                       Positioned.fill(
                                         child: Center(
                                           child: Column(
@@ -182,6 +198,7 @@ class StatsScreen extends StatelessWidget {
                                             t[kCatOrder[i]] ?? 0,
                                             tot,
                                             cs,
+                                            store,
                                           ),
                                         ),
                                     ],
@@ -208,7 +225,7 @@ class StatsScreen extends StatelessWidget {
                             for (int i = 0; i < top.length; i++)
                               Padding(
                                 padding: EdgeInsets.only(top: i == 0 ? 0 : 12),
-                                child: _rankRow(top[i], rankMax, cs),
+                                child: _rankRow(top[i], rankMax, cs, store),
                               ),
                           ],
                         ),
@@ -286,7 +303,13 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _catLegend(Cat c, double value, double tot, ColorScheme cs) {
+  Widget _catLegend(
+    Cat c,
+    double value,
+    double tot,
+    ColorScheme cs,
+    EcoStore store,
+  ) {
     final int pc = ((value / tot) * 100).round();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,7 +320,7 @@ class StatsScreen extends StatelessWidget {
               width: 10,
               height: 10,
               decoration: BoxDecoration(
-                color: c.color,
+                color: store.categoryColor(c.id),
                 borderRadius: BorderRadius.circular(Eco.rPill),
               ),
             ),
@@ -319,7 +342,12 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _rankRow(MapEntry<String, double> e, double rankMax, ColorScheme cs) {
+  Widget _rankRow(
+    MapEntry<String, double> e,
+    double rankMax,
+    ColorScheme cs,
+    EcoStore store,
+  ) {
     final ActivityDef? def = activityDef(e.key);
     if (def == null) return const SizedBox.shrink();
     final Cat c = catOf(def.cat);
@@ -339,7 +367,11 @@ class StatsScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 7),
-        EcoBar(value: pc / 100, color: c.color, height: 6),
+        EcoBar(
+          value: pc / 100,
+          color: store.categoryColor(c.id),
+          height: 6,
+        ),
       ],
     );
   }

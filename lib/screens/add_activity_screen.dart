@@ -87,8 +87,8 @@ class AddActivityScreen extends StatelessWidget {
             children: <Widget>[
               CatBadge(
                 icon: c.icon,
-                background: c.resolve(cs).tint,
-                foreground: c.resolve(cs).ink,
+                background: c.resolve(cs, color: store.categoryColor(id)).tint,
+                foreground: c.resolve(cs, color: store.categoryColor(id)).ink,
                 size: 48,
                 iconSize: 24,
                 radius: 16,
@@ -137,8 +137,9 @@ class AddActivityScreen extends StatelessWidget {
             children: <Widget>[
               CatBadge(
                 icon: a.icon,
-                background: c.resolve(cs).tint,
-                foreground: c.resolve(cs).ink,
+                background:
+                    c.resolve(cs, color: store.categoryColor(c.id)).tint,
+                foreground: c.resolve(cs, color: store.categoryColor(c.id)).ink,
                 size: 44,
                 iconSize: 22,
                 radius: 15,
@@ -187,8 +188,9 @@ class AddActivityScreen extends StatelessWidget {
             children: <Widget>[
               CatBadge(
                 icon: a.icon,
-                background: c.resolve(cs).tint,
-                foreground: c.resolve(cs).ink,
+                background:
+                    c.resolve(cs, color: store.categoryColor(c.id)).tint,
+                foreground: c.resolve(cs, color: store.categoryColor(c.id)).ink,
                 size: 44,
                 iconSize: 22,
                 radius: 15,

@@ -19,14 +19,13 @@ class _TipsScreenState extends State<TipsScreen> {
     final EcoStore store = EcoScope.of(context);
     final List<Tip> filtered = switch (store.tipFilter) {
       'all' => kTips,
-      'saved' => kTips
-          .where((Tip tip) => store.savedTips[tip.id] ?? false)
-          .toList(),
+      'saved' =>
+        kTips.where((Tip tip) => store.savedTips[tip.id] ?? false).toList(),
       _ => kTips.where((Tip tip) => tip.cat == store.tipFilter).toList(),
     };
 
     return EcoScreen(
-      header: const EcoTopBar(title: 'Eco Tips'),
+      header: EcoTopBar(title: 'Eco Tips', noBack: false, onBack: store.back),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -41,7 +40,10 @@ class _TipsScreenState extends State<TipsScreen> {
               body: 'Bookmark a tip and it will appear here for later.',
             )
           else
-            ...filtered.map((Tip tip) => _TipCard(tip: tip, store: store)),
+            for (int i = 0; i < filtered.length; i++) ...<Widget>[
+              if (i > 0) const SizedBox(height: 12),
+              _TipCard(tip: filtered[i], store: store),
+            ],
         ],
       ),
     );
@@ -143,11 +145,16 @@ class _TipCard extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: c.resolve(cs).tint,
+                      color:
+                          c.resolve(cs, color: store.categoryColor(c.id)).tint,
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child:
-                        EcoIcon(tip.icon, size: 22, color: c.resolve(cs).ink),
+                    child: EcoIcon(
+                      tip.icon,
+                      size: 22,
+                      color:
+                          c.resolve(cs, color: store.categoryColor(c.id)).ink,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(

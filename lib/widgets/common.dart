@@ -1487,11 +1487,13 @@ class EcoFab extends StatelessWidget {
       {super.key,
       required this.label,
       required this.onTap,
-      this.icon = 'plus'});
+      this.icon = 'plus',
+      this.tablet = false});
 
   final String label;
   final VoidCallback onTap;
   final String icon;
+  final bool tablet;
 
   @override
   Widget build(BuildContext context) {
@@ -1500,8 +1502,9 @@ class EcoFab extends StatelessWidget {
       onTap: onTap,
       scale: 0.96,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 54),
-        padding: const EdgeInsets.only(left: 17, right: 20),
+        constraints: BoxConstraints(minHeight: tablet ? 58 : 54),
+        padding:
+            EdgeInsets.only(left: tablet ? 20 : 17, right: tablet ? 23 : 20),
         decoration: BoxDecoration(
           color: cs.amber,
           borderRadius: BorderRadius.circular(Eco.rPill),
@@ -1510,11 +1513,11 @@ class EcoFab extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            EcoIcon(icon, size: 20, color: cs.onSecondary),
+            EcoIcon(icon, size: tablet ? 21 : 20, color: cs.onSecondary),
             const SizedBox(width: 9),
             Text(
               label,
-              style: F.b(15, wght: 800, color: cs.onSecondary),
+              style: F.b(tablet ? 16 : 15, wght: 800, color: cs.onSecondary),
             ),
           ],
         ),
