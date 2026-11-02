@@ -10,19 +10,30 @@ import '../theme.dart';
    ========================================================================== */
 
 class DayBar {
-  const DayBar(
-      {required this.total, required this.isToday, required this.label});
+  const DayBar({
+    required this.total,
+    required this.isToday,
+    required this.label,
+    this.categories = const <String, double>{},
+  });
 
   final double total;
   final bool isToday;
   final String label;
+  final Map<String, double> categories;
 }
 
 class WeekBars extends StatelessWidget {
-  const WeekBars({super.key, required this.days, required this.maxDay});
+  const WeekBars({
+    super.key,
+    required this.days,
+    required this.maxDay,
+    required this.categoryColors,
+  });
 
   final List<DayBar> days;
   final double maxDay;
+  final Map<String, Color> categoryColors;
 
   @override
   Widget build(BuildContext context) {
@@ -35,19 +46,32 @@ class WeekBars extends StatelessWidget {
       final DayBar d = days[i];
       final double ratio = maxDay <= 0 ? 0 : d.total / maxDay;
       final double h = math.max(5, (ratio * barMaxHeight).roundToDouble());
+      final List<String> categories =
+          kCatOrder.where((String id) => (d.categories[id] ?? 0) > 0).toList();
       cols.add(
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-              AnimatedContainer(
-                duration: Eco.dur3,
-                curve: Eco.easeOut,
+              SizedBox(
                 height: h,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  color: d.isToday ? cs.leaf : cs.mint,
+                child: ClipRRect(
                   borderRadius: BorderRadius.circular(7),
+                  child: categories.isEmpty
+                      ? ColoredBox(color: d.isToday ? cs.leaf : cs.mint)
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            for (final String id in categories)
+                              Container(
+                                height: h *
+                                    (d.categories[id] ?? 0) /
+                                    (d.total > 0 ? d.total : 1),
+                                color: categoryColors[id] ?? cs.leaf,
+                              ),
+                          ],
+                        ),
                 ),
               ),
               const SizedBox(height: 6),
@@ -74,44 +98,86 @@ class WeekBars extends StatelessWidget {
    Trend chart (Statistics)
    ========================================================================== */
 
-class TrendChart extends StatelessWidget {
+class TrendChart extends StatefulWidget {
   const TrendChart({
     super.key,
     required this.series,
     required this.max,
     required this.targetPerDay,
-    required this.days,
+    required this.labels,
+    required this.categorySeries,
+    required this.categoryColors,
   });
 
   final List<double> series;
   final double max;
   final double targetPerDay;
-  final int days;
+  final List<String> labels;
+  final List<Map<String, double>> categorySeries;
+  final Map<String, Color> categoryColors;
+
+  @override
+  State<TrendChart> createState() => _TrendChartState();
+}
+
+class _TrendChartState extends State<TrendChart> {
+  int? _hoveredIndex;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints c) {
-        final double availableWidth = c.maxWidth;
-        // Reference height maintains ~2.43:1 aspect ratio (320:132)
-        final double aspectRatio =
-            MediaQuery.sizeOf(context).shortestSide >= 600
-                ? 320.0 / 110.0
-                : 320.0 / 132.0;
-        return SizedBox(
-          width: availableWidth,
-          height: availableWidth / aspectRatio,
-          child: CustomPaint(
-            painter: _TrendPainter(
-              series: series,
-              max: max <= 0 ? 1 : max,
-              target: targetPerDay,
-              label: days > 7 ? '30 days ago' : '7 days ago',
-              lineColor: cs.leaf,
-              targetColor: cs.forest,
-              mutedColor: cs.muted,
-              dotFillColor: cs.surface,
+        final bool tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+        final double height = (c.maxWidth * 0.38).clamp(
+          190.0,
+          tablet ? 310.0 : 250.0,
+        );
+        return MouseRegion(
+          onHover: (event) {
+            final int count = widget.series.length;
+            if (count < 2) return;
+            final double chartWidth = c.maxWidth - 54;
+            final double localX = event.localPosition.dx - 46;
+            final int index =
+                (localX / chartWidth * (count - 1)).round().clamp(0, count - 1);
+            if (_hoveredIndex != index) setState(() => _hoveredIndex = index);
+          },
+          onExit: (_) => setState(() => _hoveredIndex = null),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (TapDownDetails details) {
+              final int count = widget.series.length;
+              if (count < 2) return;
+              final double chartWidth = c.maxWidth - 54;
+              final double localX = details.localPosition.dx - 46;
+              final int index = (localX / chartWidth * (count - 1))
+                  .round()
+                  .clamp(0, count - 1);
+              setState(() => _hoveredIndex = index);
+            },
+            child: SizedBox(
+              width: c.maxWidth,
+              height: height,
+              child: CustomPaint(
+                painter: _TrendPainter(
+                  series: widget.series,
+                  max: math.max(
+                    1.0,
+                    math.max(widget.max, widget.targetPerDay) * 1.15,
+                  ),
+                  labels: widget.labels,
+                  categorySeries: widget.categorySeries,
+                  categoryColors: widget.categoryColors,
+                  hoveredIndex: _hoveredIndex,
+                  axisColor: cs.forest,
+                  mutedColor: cs.muted,
+                  gridColor: cs.lineStrong,
+                  dotFillColor: cs.surface,
+                  tooltipBackground: cs.surface,
+                  tooltipTextColor: cs.ink,
+                ),
+              ),
             ),
           ),
         );
@@ -124,110 +190,238 @@ class _TrendPainter extends CustomPainter {
   _TrendPainter({
     required this.series,
     required this.max,
-    required this.target,
-    required this.label,
-    required this.lineColor,
-    required this.targetColor,
+    required this.labels,
+    required this.categorySeries,
+    required this.categoryColors,
+    required this.hoveredIndex,
+    required this.axisColor,
     required this.mutedColor,
+    required this.gridColor,
     required this.dotFillColor,
+    required this.tooltipBackground,
+    required this.tooltipTextColor,
   });
 
   final List<double> series;
   final double max;
-  final double target;
-  final String label;
-  final Color lineColor;
-  final Color targetColor;
+  final List<String> labels;
+  final List<Map<String, double>> categorySeries;
+  final Map<String, Color> categoryColors;
+  final int? hoveredIndex;
+  final Color axisColor;
   final Color mutedColor;
+  final Color gridColor;
   final Color dotFillColor;
-
-  // Reference coordinate system (logical canvas)
-  static const double refW = 320.0;
-  static const double refH = 132.0;
-  static const double padT = 12.0;
-  static const double padB = 18.0;
+  final Color tooltipBackground;
+  final Color tooltipTextColor;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (series.isEmpty) return;
-    canvas.save();
-    // Scale reference coords (320x132) to actual canvas dimensions
-    canvas.scale(size.width / refW, size.height / (refH + 4));
-
-    final double usable = refH - padT - padB;
-    double y(double v) => padT + usable - (v / max) * usable;
-
+    const double left = 46;
+    const double right = 10;
+    const double top = 14;
+    const double bottom = 30;
+    final double plotWidth = math.max(1, size.width - left - right);
+    final double plotHeight = math.max(1, size.height - top - bottom);
+    final double baseline = top + plotHeight;
+    double y(double value) => baseline - (value / max) * plotHeight;
     final int n = series.length;
-    final double stepX = n > 1 ? refW / (n - 1) : refW;
+    final double stepX = n > 1 ? plotWidth / (n - 1) : plotWidth;
     final List<Offset> pts = <Offset>[
-      for (int i = 0; i < n; i++) Offset(i * stepX, y(series[i])),
+      for (int i = 0; i < n; i++) Offset(left + i * stepX, y(series[i])),
     ];
 
-    final Path line = Path()..moveTo(pts.first.dx, pts.first.dy);
-    for (int i = 0; i < pts.length - 1; i++) {
-      final double cx = (pts[i].dx + pts[i + 1].dx) / 2;
-      line.cubicTo(
-        cx,
-        pts[i].dy,
-        cx,
-        pts[i + 1].dy,
-        pts[i + 1].dx,
-        pts[i + 1].dy,
+    for (int tick = 0; tick <= 4; tick++) {
+      final double value = max * tick / 4;
+      final double tickY = y(value);
+      canvas.drawLine(
+        Offset(left, tickY),
+        Offset(size.width - right, tickY),
+        Paint()
+          ..color = gridColor
+          ..strokeWidth = 0.8,
+      );
+      _text(
+        canvas,
+        fmt1(value),
+        0,
+        tickY - 6,
+        TextAlign.left,
+        color: axisColor,
+        weight: 900,
       );
     }
-
-    final Path area = Path.from(line)
-      ..lineTo(pts.last.dx, refH - padB)
-      ..lineTo(pts.first.dx, refH - padB)
-      ..close();
-
-    final Rect bounds = area.getBounds();
-    if (bounds.height > 0.5) {
+    for (int i = 0; i < pts.length - 1; i++) {
+      final Offset first = pts[i];
+      final Offset second = pts[i + 1];
+      final double centerX = (first.dx + second.dx) / 2;
+      final Color color = _mixColors(_pointColor(i), _pointColor(i + 1));
+      final Path area = Path()
+        ..moveTo(first.dx, baseline)
+        ..lineTo(first.dx, first.dy)
+        ..cubicTo(centerX, first.dy, centerX, second.dy, second.dx, second.dy)
+        ..lineTo(second.dx, baseline)
+        ..close();
       canvas.drawPath(
         area,
-        Paint()..shader = Eco.chartArea.createShader(bounds),
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: <Color>[
+              color.withValues(alpha: 0.42),
+              color.withValues(alpha: 0.03),
+            ],
+          ).createShader(Rect.fromLTRB(first.dx, top, second.dx, baseline)),
+      );
+      final Path segment = Path()
+        ..moveTo(first.dx, first.dy)
+        ..cubicTo(centerX, first.dy, centerX, second.dy, second.dx, second.dy);
+      canvas.drawPath(
+        segment,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3
+          ..strokeCap = StrokeCap.round
+          ..color = color,
       );
     }
-
-    final double ty = y(target);
-    if (ty >= padT && ty <= refH - padB) {
-      _dashedLine(canvas, 0, refW, ty, targetColor, 1.4, 4, 5);
-    }
-
-    canvas.drawPath(
-      line,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.6
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..color = lineColor,
-    );
-
     final Paint dotFill = Paint()..color = dotFillColor;
-    final Paint dotStroke = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..color = lineColor;
     for (int i = 0; i < n; i++) {
       if (n > 10 && i % 3 != 0 && i != n - 1) continue;
-      canvas.drawCircle(pts[i], 2.6, dotFill);
-      canvas.drawCircle(pts[i], 2.6, dotStroke);
+      canvas.drawCircle(pts[i], 3.2, dotFill);
+      canvas.drawCircle(
+        pts[i],
+        3.2,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = _pointColor(i),
+      );
     }
+    _text(
+      canvas,
+      labels.isNotEmpty ? labels.first : 'start',
+      left,
+      baseline + 8,
+      TextAlign.left,
+    );
+    _text(
+      canvas,
+      labels.length > 1 ? labels.last : 'today',
+      size.width - right,
+      baseline + 8,
+      TextAlign.right,
+    );
+    if (hoveredIndex case final int index when index >= 0 && index < n) {
+      _drawHover(canvas, size, pts[index], index);
+    }
+  }
 
-    final double labelY = refH - padB + 4;
-    _text(canvas, label, 0.0, labelY, TextAlign.left);
-    _text(canvas, 'today', refW, labelY, TextAlign.right);
+  Color _pointColor(int index) {
+    if (index >= categorySeries.length) return Eco.leaf;
+    final Map<String, double> values = categorySeries[index];
+    final double total = values.values
+        .fold<double>(0, (double sum, double value) => sum + value);
+    if (total <= 0) return Eco.leaf;
+    int r = 0;
+    int g = 0;
+    int b = 0;
+    for (final String id in kCatOrder) {
+      final double weight = (values[id] ?? 0) / total;
+      final Color color = categoryColors[id] ?? catOf(id).color;
+      r += (color.r * 255 * weight).round();
+      g += (color.g * 255 * weight).round();
+      b += (color.b * 255 * weight).round();
+    }
+    return Color.fromARGB(
+        255, r.clamp(0, 255), g.clamp(0, 255), b.clamp(0, 255));
+  }
 
-    canvas.restore();
+  Color _mixColors(Color first, Color second) => Color.fromARGB(
+        255,
+        ((first.r + second.r) * 127.5).round(),
+        ((first.g + second.g) * 127.5).round(),
+        ((first.b + second.b) * 127.5).round(),
+      );
+
+  void _drawHover(Canvas canvas, Size size, Offset point, int index) {
+    const double width = 168;
+    const double height = 88;
+    final double left =
+        (point.dx + 10).clamp(4.0, math.max(4.0, size.width - width - 4));
+    final double top = (point.dy - height - 8).clamp(4.0, size.height - height);
+    final Rect rect = Rect.fromLTWH(left, top, width, height);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(10)),
+      Paint()..color = tooltipBackground,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(10)),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = gridColor,
+    );
+    final String label =
+        index < labels.length ? labels[index] : 'Day ${index + 1}';
+    _text(
+      canvas,
+      '$label · ${fmt1(series[index])} kg',
+      left + 8,
+      top + 8,
+      TextAlign.left,
+      color: tooltipTextColor,
+      weight: 900,
+    );
+    final double delta = index == 0 ? 0 : series[index] - series[index - 1];
+    final String change = index == 0
+        ? 'First day'
+        : '${delta > 0 ? '+' : ''}${fmt1(delta)} kg vs prior day';
+    _text(
+      canvas,
+      change,
+      left + 8,
+      top + 27,
+      TextAlign.left,
+      weight: 800,
+    );
+    final Map<String, double> values =
+        index < categorySeries.length ? categorySeries[index] : const {};
+    for (int row = 0; row < kCatOrder.length; row++) {
+      final String id = kCatOrder[row];
+      final double value = values[id] ?? 0;
+      final double yPos = top + 46 + row * 12;
+      canvas.drawCircle(
+        Offset(left + 12, yPos + 4),
+        3,
+        Paint()..color = categoryColors[id] ?? catOf(id).color,
+      );
+      _text(
+        canvas,
+        '${_categoryLabel(id)} ${fmt1(value)}',
+        left + 20,
+        yPos,
+        TextAlign.left,
+        weight: 700,
+      );
+    }
   }
 
   void _text(
-      Canvas canvas, String s, double dx, double labelY, TextAlign align) {
+    Canvas canvas,
+    String s,
+    double dx,
+    double labelY,
+    TextAlign align, {
+    Color? color,
+    double weight = 700,
+  }) {
     final TextPainter tp = TextPainter(
       text: TextSpan(
         text: s,
-        style: F.b(10, color: mutedColor),
+        style: F.b(10, wght: weight, color: color ?? mutedColor),
       ),
       textDirection: TextDirection.ltr,
       textAlign: align,
@@ -237,39 +431,28 @@ class _TrendPainter extends CustomPainter {
     tp.paint(canvas, Offset(adjustedDx, labelY));
   }
 
-  void _dashedLine(
-    Canvas canvas,
-    double startX,
-    double endX,
-    double y,
-    Color color,
-    double width,
-    double dash,
-    double gap,
-  ) {
-    final Paint p = Paint()
-      ..color = color
-      ..strokeWidth = width
-      ..strokeCap = StrokeCap.butt;
-    final double total = endX - startX;
-    if (total <= 0) return;
-    double t = 0;
-    while (t < total) {
-      final double nextDash = math.min(t + dash, total);
-      canvas.drawLine(Offset(t, y), Offset(nextDash, y), p);
-      t = nextDash + gap;
-    }
-  }
-
   @override
   bool shouldRepaint(covariant _TrendPainter old) =>
       old.series != series ||
       old.max != max ||
-      old.target != target ||
-      old.lineColor != lineColor ||
-      old.targetColor != targetColor ||
-      old.mutedColor != mutedColor;
+      old.labels != labels ||
+      old.categorySeries != categorySeries ||
+      old.categoryColors != categoryColors ||
+      old.hoveredIndex != hoveredIndex ||
+      old.axisColor != axisColor ||
+      old.mutedColor != mutedColor ||
+      old.gridColor != gridColor ||
+      old.dotFillColor != dotFillColor ||
+      old.tooltipBackground != tooltipBackground ||
+      old.tooltipTextColor != tooltipTextColor;
 }
+
+String _categoryLabel(String id) => switch (id) {
+      'transport' => 'Transport',
+      'electricity' => 'Energy',
+      'food' => 'Food',
+      _ => id,
+    };
 
 /* ==========================================================================
    Category donut (Statistics)

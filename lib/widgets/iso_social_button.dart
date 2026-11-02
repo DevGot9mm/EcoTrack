@@ -20,7 +20,7 @@ class IsoSocialButton extends StatefulWidget {
     this.depth = 20,
     this.rotationDeg = -30,
     this.skewDeg = 25,
-    this.hoverLift = const Offset(20, -15),
+    this.hoverLift = const Offset(5, -3),
     this.duration = const Duration(milliseconds: 500),
     this.onTap,
   });
@@ -89,7 +89,7 @@ class _IsoSocialButtonState extends State<IsoSocialButton> {
                 final Color content =
                     Color.lerp(widget.idleContent, widget.hoverContent, t)!;
                 return Transform.scale(
-                  scale: 1 + 0.05 * t,
+                  scale: 1 + 0.01 * t,
                   child: Transform.translate(
                     offset: widget.hoverLift * t,
                     child: Stack(

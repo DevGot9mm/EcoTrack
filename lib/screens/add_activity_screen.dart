@@ -15,25 +15,42 @@ class AddActivityScreen extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final int step = store.addStep;
 
+    final bool amountStep = step == store.amountStep;
     final String title = step == 0
         ? 'What did you do?'
         : step == 1
-            ? 'Pick the activity'
-            : 'How much?';
+            ? store.isFoodFlow
+                ? 'What was in the meal?'
+                : 'Pick the activity'
+            : amountStep
+                ? 'How much?'
+                : 'How was it cooked?';
     final String sub = step == 0
         ? 'Everything counts — pick the closest match.'
         : step == 1
-            ? 'Tap the activity that fits best.'
-            : 'Drag or use the buttons. You can fine-tune later.';
+            ? store.isFoodFlow
+                ? 'Choose the main food. You can refine the preparation next.'
+                : 'Pick what best matches. We show a simple estimate for each.'
+            : amountStep
+                ? 'Drag or use the buttons. You can fine-tune later.'
+                : 'Cooking changes the estimate a little; ingredients matter more.';
 
     final bool canContinue = step == 0
         ? store.addCat != null
         : step == 1
-            ? store.addKey != null
-            : true;
+            ? store.isFoodFlow
+                ? store.addFoodType != null
+                : store.addKey != null
+            : store.isFoodFlow && !amountStep
+                ? store.addKey != null
+                : true;
 
     return EcoScreen(
-      header: _StepHeader(step: step, onBack: store.addBack),
+      header: _StepHeader(
+        step: step,
+        stepCount: store.stepCount,
+        onBack: store.addBack,
+      ),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -46,13 +63,15 @@ class AddActivityScreen extends StatelessWidget {
             _catStep(context, store)
           else if (step == 1)
             _actStep(context, store)
+          else if (store.isFoodFlow && !amountStep)
+            _foodPreparationStep(context, store)
           else
             _amountStep(store, cs),
         ],
       ),
       footer: FlowFooter(
         children: <Widget>[
-          if (step == 2)
+          if (amountStep)
             EcoButton(
               label: 'Save activity',
               leading: 'check',
@@ -77,6 +96,7 @@ class AddActivityScreen extends StatelessWidget {
     for (final String id in kCatOrder) {
       final Cat c = catOf(id);
       final bool on = store.addCat == id;
+      final int choiceCount = actsOf(id).length;
       tiles.add(
         EcoCard(
           flat: true,
@@ -101,7 +121,9 @@ class AddActivityScreen extends StatelessWidget {
                     Text(c.name, style: F.d(18)),
                     const SizedBox(height: 2),
                     Text(
-                      '${c.blurb} · ${actsOf(id).length} activities',
+                      '${c.blurb} · '
+                      '$choiceCount '
+                      '${id == 'food' ? 'meal types' : 'activities'}',
                       style: F.b(13, wght: 600, color: cs.muted),
                     ),
                   ],
@@ -124,14 +146,15 @@ class AddActivityScreen extends StatelessWidget {
     final Cat c = catOf(store.addCat ?? kCatOrder.first);
     final List<Widget> tiles = <Widget>[];
     for (final ActivityDef a in actsOf(store.addCat ?? kCatOrder.first)) {
-      final bool on = store.addKey == a.key;
+      final bool food = store.isFoodFlow;
+      final bool on = food ? store.addFoodType == a.key : store.addKey == a.key;
       tiles.add(
         EcoCard(
           flat: true,
           highlighted: on,
           fillWidth: true,
           padding: const EdgeInsets.all(15),
-          onTap: () => store.pickAct(a.key),
+          onTap: () => food ? store.pickFoodType(a.key) : store.pickAct(a.key),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -153,15 +176,115 @@ class AddActivityScreen extends StatelessWidget {
               Text(
                 a.factor == 0
                     ? 'Zero emission'
-                    : '${fmt2(store.displayFactor(a))} kg / ${store.unitFor(a)}',
+                    : food
+                        ? 'From ${fmt2(a.factor)} kg CO₂e per serving'
+                        : '${fmt2(store.displayFactor(a))} kg / ${store.unitFor(a)}',
                 style: F.b(12, wght: 700, color: cs.muted),
               ),
+              if (a.detail != null) ...<Widget>[
+                const SizedBox(height: 5),
+                Text(
+                  a.detail!,
+                  style: F.b(11.5, height: 1.35, color: cs.muted),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ],
           ),
         ),
       );
     }
     return EcoGrid(items: tiles, columns: 2, gap: 12);
+  }
+
+  Widget _foodPreparationStep(BuildContext context, EcoStore store) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final String foodKey = store.addFoodType!;
+    final ActivityDef food = activityDef(foodKey)!;
+    final Cat category = catOf('food');
+    final List<Widget> tiles = <Widget>[];
+    for (final ActivityDef preparation in foodPreparationsOf(foodKey)) {
+      final bool on = store.addKey == preparation.key;
+      tiles.add(
+        EcoCard(
+          flat: true,
+          highlighted: on,
+          fillWidth: true,
+          padding: const EdgeInsets.all(15),
+          onTap: () => store.pickAct(preparation.key),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              CatBadge(
+                icon: food.icon,
+                background: category
+                    .resolve(cs, color: store.categoryColor(category.id))
+                    .tint,
+                foreground: category
+                    .resolve(cs, color: store.categoryColor(category.id))
+                    .ink,
+                size: 44,
+                iconSize: 22,
+                radius: 15,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                preparation.name,
+                style: F.b(14.5, wght: 800, height: 1.25),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                '${fmt2(preparation.factor)} kg CO₂e per serving',
+                style: F.b(12, wght: 700, color: cs.muted),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                preparation.detail ?? '',
+                style: F.b(11.5, height: 1.35, color: cs.muted),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        EcoCard(
+          tone: EcoCardTone.mint,
+          flat: true,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: <Widget>[
+              CatBadge(
+                icon: food.icon,
+                background: category
+                    .resolve(cs, color: store.categoryColor(category.id))
+                    .tint,
+                foreground: category
+                    .resolve(cs, color: store.categoryColor(category.id))
+                    .ink,
+                size: 38,
+                iconSize: 19,
+                radius: 13,
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Text(
+                  '${food.name}: cooking method adjusts the estimate modestly.',
+                  style: F.b(12.5, height: 1.4, color: cs.ink2),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        EcoGrid(items: tiles, columns: 2, gap: 12),
+      ],
+    );
   }
 
   Widget _amountStep(EcoStore store, ColorScheme cs) {
@@ -208,6 +331,13 @@ class AddActivityScreen extends StatelessWidget {
                           : '${c.name} · ${fmt2(displayFactor)} kg CO₂e per $displayUnit',
                       style: F.b(13, height: 1.45, color: cs.muted),
                     ),
+                    if (a.detail != null) ...<Widget>[
+                      const SizedBox(height: 3),
+                      Text(
+                        a.detail!,
+                        style: F.b(11.5, height: 1.35, color: cs.muted),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -319,7 +449,7 @@ class AddActivityScreen extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text(
-          'Estimate uses average emission factors — treat it as a good-enough guide, not a lab measurement.',
+          'This is a guide, not a meter reading. Actual impact varies with portion size, device efficiency, and your local electricity mix.',
           style: F.b(13, height: 1.45, color: cs.muted),
         ),
       ],
@@ -337,9 +467,14 @@ List<Widget> _stacked(List<Widget> items, double gap) {
 }
 
 class _StepHeader extends StatelessWidget {
-  const _StepHeader({required this.step, required this.onBack});
+  const _StepHeader({
+    required this.step,
+    required this.stepCount,
+    required this.onBack,
+  });
 
   final int step;
+  final int stepCount;
   final VoidCallback onBack;
 
   @override
@@ -358,7 +493,7 @@ class _StepHeader extends StatelessWidget {
               Expanded(
                 child: Center(
                   child: Text(
-                    'Step ${step + 1} of 3',
+                    'Step ${step + 1} of $stepCount',
                     style: F.b(13, wght: 800, color: cs.muted),
                   ),
                 ),
@@ -369,7 +504,7 @@ class _StepHeader extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: <Widget>[
-              for (int i = 0; i < 3; i++) ...<Widget>[
+              for (int i = 0; i < stepCount; i++) ...<Widget>[
                 if (i > 0) const SizedBox(width: 6),
                 Expanded(
                   child: AnimatedContainer(
@@ -403,6 +538,7 @@ class _StepperBtn extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       scale: 0.93,
+      borderRadius: BorderRadius.circular(99),
       child: Container(
         width: 50,
         height: 50,

@@ -101,6 +101,7 @@ class ActivityDef {
     required this.max,
     required this.chips,
     required this.icon,
+    this.detail,
   });
 
   final String key;
@@ -114,7 +115,49 @@ class ActivityDef {
   final double max;
   final List<double> chips;
   final String icon;
+  final String? detail;
 }
+
+class FoodPreparation {
+  const FoodPreparation({
+    required this.id,
+    required this.name,
+    required this.multiplier,
+    required this.detail,
+  });
+
+  final String id;
+  final String name;
+  final double multiplier;
+  final String detail;
+}
+
+const List<FoodPreparation> kFoodPreparations = <FoodPreparation>[
+  FoodPreparation(
+    id: 'grilled',
+    name: 'Grilled or roasted',
+    multiplier: 1,
+    detail: 'Dry-heat cooking; the ingredient remains the main source.',
+  ),
+  FoodPreparation(
+    id: 'fried',
+    name: 'Fried',
+    multiplier: 1.08,
+    detail: 'A small cooking estimate is added for oil and extra heat.',
+  ),
+  FoodPreparation(
+    id: 'steamed',
+    name: 'Boiled or steamed',
+    multiplier: 0.96,
+    detail: 'A lower-energy cooking estimate for a similar serving.',
+  ),
+  FoodPreparation(
+    id: 'stir_fried',
+    name: 'Stir-fried',
+    multiplier: 1.04,
+    detail: 'A small estimate is added for oil and cooking heat.',
+  ),
+];
 
 const List<ActivityDef> kActivities = <ActivityDef>[
   ActivityDef(
@@ -127,6 +170,40 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       max: 200,
       chips: <double>[5, 15, 40],
       icon: 'car'),
+  ActivityDef(
+      key: 'carpool',
+      cat: 'transport',
+      name: 'Shared car',
+      unit: 'km',
+      factor: 0.096,
+      step: 5,
+      max: 200,
+      chips: <double>[5, 15, 40],
+      icon: 'car',
+      detail: 'Per passenger; assumes two people share a petrol car.'),
+  ActivityDef(
+      key: 'taxi',
+      cat: 'transport',
+      name: 'Taxi or rideshare',
+      unit: 'km',
+      factor: 0.192,
+      step: 5,
+      max: 200,
+      chips: <double>[5, 15, 40],
+      icon: 'car',
+      detail: 'A typical occupied-car estimate per passenger kilometre.'),
+  ActivityDef(
+      key: 'electric_car',
+      cat: 'transport',
+      name: 'Electric car',
+      unit: 'km',
+      factor: 0.06,
+      step: 5,
+      max: 200,
+      chips: <double>[5, 15, 40],
+      icon: 'car',
+      detail:
+          'Use-phase estimate; actual emissions depend on your power grid.'),
   ActivityDef(
       key: 'motorcycle',
       cat: 'transport',
@@ -156,7 +233,19 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 5,
       max: 400,
       chips: <double>[5, 20, 60],
-      icon: 'train'),
+      icon: 'train',
+      detail: 'A shared-rail estimate; route and occupancy can change it.'),
+  ActivityDef(
+      key: 'metro',
+      cat: 'transport',
+      name: 'Metro or subway',
+      unit: 'km',
+      factor: 0.035,
+      step: 5,
+      max: 200,
+      chips: <double>[5, 15, 40],
+      icon: 'train',
+      detail: 'A typical shared-rail estimate per passenger kilometre.'),
   ActivityDef(
       key: 'bicycle',
       cat: 'transport',
@@ -166,7 +255,8 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 60,
       chips: <double>[1, 5, 10],
-      icon: 'bike'),
+      icon: 'bike',
+      detail: 'Counts direct travel emissions, not equipment manufacturing.'),
   ActivityDef(
       key: 'walking',
       cat: 'transport',
@@ -176,67 +266,153 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 30,
       chips: <double>[1, 3, 5],
-      icon: 'walk'),
+      icon: 'walk',
+      detail: 'No direct travel emissions.'),
   ActivityDef(
       key: 'home',
       cat: 'electricity',
-      name: 'Home electricity',
+      name: 'Electricity from bill',
       unit: 'kWh',
       factor: 0.72,
       step: 1,
       max: 40,
       chips: <double>[2, 5, 10],
-      icon: 'bolt'),
+      icon: 'bolt',
+      detail: 'Enter kWh from your bill or meter; no conversion is needed.'),
   ActivityDef(
       key: 'ac',
       cat: 'electricity',
-      name: 'Air conditioner',
+      name: 'Air conditioner (AC)',
       unit: 'hours',
       factor: 0.62,
       step: 1,
       max: 18,
       chips: <double>[1, 3, 8],
-      icon: 'snow'),
+      icon: 'snow',
+      detail: 'Uses a typical 0.86 kW AC estimate; real units vary widely.'),
   ActivityDef(
       key: 'appliance',
       cat: 'electricity',
-      name: 'Other appliances',
+      name: 'Other appliance',
       unit: 'hours',
       factor: 0.45,
       step: 1,
       max: 18,
       chips: <double>[1, 4, 8],
-      icon: 'plug'),
+      icon: 'plug',
+      detail: 'Fallback for a device not listed; based on typical power use.'),
+  ActivityDef(
+      key: 'fan',
+      cat: 'electricity',
+      name: 'Electric fan',
+      unit: 'hours',
+      factor: 0.036,
+      step: 1,
+      max: 24,
+      chips: <double>[1, 4, 8],
+      icon: 'plug',
+      detail: 'Typical 50 W fan estimate, not a meter reading.'),
+  ActivityDef(
+      key: 'lighting',
+      cat: 'electricity',
+      name: 'LED light',
+      unit: 'hours',
+      factor: 0.007,
+      step: 1,
+      max: 24,
+      chips: <double>[1, 4, 8],
+      icon: 'sun',
+      detail: 'Assumes one 10 W LED bulb.'),
+  ActivityDef(
+      key: 'laptop',
+      cat: 'electricity',
+      name: 'Laptop',
+      unit: 'hours',
+      factor: 0.04,
+      step: 1,
+      max: 24,
+      chips: <double>[1, 4, 8],
+      icon: 'plug',
+      detail: 'Typical 55 W laptop estimate while in use.'),
+  ActivityDef(
+      key: 'desktop',
+      cat: 'electricity',
+      name: 'Desktop computer',
+      unit: 'hours',
+      factor: 0.18,
+      step: 1,
+      max: 24,
+      chips: <double>[1, 4, 8],
+      icon: 'plug',
+      detail: 'Typical 250 W desktop estimate; gaming systems can use more.'),
+  ActivityDef(
+      key: 'television',
+      cat: 'electricity',
+      name: 'Television',
+      unit: 'hours',
+      factor: 0.07,
+      step: 1,
+      max: 24,
+      chips: <double>[1, 3, 6],
+      icon: 'plug',
+      detail: 'Typical 100 W television estimate.'),
+  ActivityDef(
+      key: 'laundry',
+      cat: 'electricity',
+      name: 'Washing machine',
+      unit: 'loads',
+      factor: 0.36,
+      step: 1,
+      max: 8,
+      chips: <double>[1, 2, 4],
+      icon: 'refresh',
+      detail: 'Typical wash-cycle estimate; hot-water cycles use more.'),
+  ActivityDef(
+      key: 'refrigerator',
+      cat: 'electricity',
+      name: 'Refrigerator',
+      unit: 'days',
+      factor: 0.72,
+      step: 1,
+      max: 30,
+      chips: <double>[1, 3, 7],
+      icon: 'plug',
+      detail:
+          'Typical daily estimate for an efficient fridge; older models vary.'),
   ActivityDef(
       key: 'beef',
       cat: 'food',
-      name: 'Beef dish',
+      name: 'Beef',
       unit: 'servings',
       factor: 4.0,
       step: 1,
       max: 6,
       chips: <double>[1, 2, 3],
-      icon: 'steak'),
+      icon: 'steak',
+      detail: 'Estimate for a 150 g cooked serving; sides are not included.'),
   ActivityDef(
       key: 'chicken',
       cat: 'food',
-      name: 'Chicken dish',
+      name: 'Chicken',
       unit: 'servings',
       factor: 1.6,
       step: 1,
       max: 6,
       chips: <double>[1, 2, 3],
-      icon: 'chicken'),
+      icon: 'chicken',
+      detail: 'Estimate for a 150 g cooked serving; sides are not included.'),
   ActivityDef(
       key: 'fish',
       cat: 'food',
-      name: 'Fish dish',
+      name: 'Fish or seafood',
       unit: 'servings',
       factor: 1.1,
       step: 1,
       max: 6,
       chips: <double>[1, 2, 3],
-      icon: 'fish'),
+      icon: 'fish',
+      detail:
+          'Estimate for a 150 g cooked serving; species can change the total.'),
   ActivityDef(
       key: 'dairy',
       cat: 'food',
@@ -246,7 +422,8 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 6,
       chips: <double>[1, 2, 3],
-      icon: 'egg'),
+      icon: 'egg',
+      detail: 'One typical eggs or dairy serving; mixed recipes vary.'),
   ActivityDef(
       key: 'vegetarian',
       cat: 'food',
@@ -256,7 +433,8 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 6,
       chips: <double>[1, 2, 3],
-      icon: 'leaf'),
+      icon: 'leaf',
+      detail: 'One typical main-meal serving; ingredients and portions vary.'),
   ActivityDef(
       key: 'vegan',
       cat: 'food',
@@ -266,11 +444,36 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 6,
       chips: <double>[1, 2, 3],
-      icon: 'sprout'),
+      icon: 'sprout',
+      detail: 'One typical main-meal serving; ingredients and portions vary.'),
 ];
+
+final List<ActivityDef> kFoodVariants = List<ActivityDef>.unmodifiable(
+  <ActivityDef>[
+    for (final ActivityDef food in kActivities.where(
+      (ActivityDef activity) => activity.cat == 'food',
+    ))
+      for (final FoodPreparation preparation in kFoodPreparations)
+        ActivityDef(
+          key: '${food.key}_${preparation.id}',
+          cat: 'food',
+          name: '${food.name} · ${preparation.name.toLowerCase()}',
+          unit: food.unit,
+          factor: food.factor * preparation.multiplier,
+          step: food.step,
+          max: food.max,
+          chips: food.chips,
+          icon: food.icon,
+          detail: preparation.detail,
+        ),
+  ],
+);
 
 ActivityDef? activityDef(String key) {
   for (final ActivityDef a in kActivities) {
+    if (a.key == key) return a;
+  }
+  for (final ActivityDef a in kFoodVariants) {
     if (a.key == key) return a;
   }
   return null;
@@ -278,6 +481,10 @@ ActivityDef? activityDef(String key) {
 
 List<ActivityDef> actsOf(String cat) =>
     kActivities.where((ActivityDef a) => a.cat == cat).toList();
+
+List<ActivityDef> foodPreparationsOf(String foodKey) => kFoodVariants
+    .where((ActivityDef activity) => activity.key.startsWith('${foodKey}_'))
+    .toList();
 
 class Tip {
   const Tip({

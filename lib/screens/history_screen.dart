@@ -146,6 +146,7 @@ class _HistRow extends StatelessWidget {
     return Pressable(
       onTap: () => showActivitySheet(context, store, entry.id),
       scale: 0.99,
+      borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         decoration: BoxDecoration(

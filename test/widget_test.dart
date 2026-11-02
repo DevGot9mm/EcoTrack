@@ -3,11 +3,100 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ecotrack/main.dart';
+import 'package:ecotrack/models.dart';
+import 'package:ecotrack/screens/add_activity_screen.dart';
+import 'package:ecotrack/store.dart';
 import 'package:ecotrack/theme.dart';
 import 'package:ecotrack/widgets/celebrations.dart';
 import 'package:ecotrack/widgets/common.dart';
 
 void main() {
+  test('activity options include clear electricity and food variants', () {
+    expect(activityDef('home')?.name, 'Electricity from bill');
+    expect(actsOf('electricity').map((ActivityDef activity) => activity.key),
+        containsAll(<String>['fan', 'lighting', 'laptop', 'laundry']));
+    expect(activityDef('chicken'), isNotNull);
+    expect(activityDef('chicken_grilled')?.factor, 1.6);
+    expect(
+      activityDef('chicken_fried')!.factor,
+      greaterThan(activityDef('chicken_grilled')!.factor),
+    );
+    expect(foodPreparationsOf('chicken'), hasLength(4));
+  });
+
+  test('food logging has a distinct preparation step', () {
+    final EcoStore store = EcoStore();
+    addTearDown(store.dispose);
+
+    store.openAdd();
+    store.pickCat('food');
+    store.addNext();
+    expect(store.addStep, 1);
+    expect(store.stepCount, 4);
+    expect(store.amountStep, 3);
+
+    store.pickFoodType('chicken');
+    store.addNext();
+    expect(store.addStep, 2);
+    store.pickAct('chicken_fried');
+    store.addNext();
+    expect(store.addStep, 3);
+
+    store.saveActivity();
+    expect(store.lastActivity?.key, 'chicken_fried');
+    expect(store.lastActivity?.co2, 1.7);
+
+    store.openAdd();
+    store.pickCat('electricity');
+    store.addNext();
+    store.pickAct('fan');
+    store.addNext();
+    expect(store.addStep, 2);
+    expect(store.stepCount, 3);
+    expect(store.amountStep, 2);
+  });
+
+  testWidgets('food logger lets people choose a cooking method',
+      (WidgetTester tester) async {
+    final EcoStore store = EcoStore();
+    addTearDown(store.dispose);
+    store.openAdd();
+
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ecoTheme(),
+        home: EcoScope(
+          notifier: store,
+          child: const AddActivityScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Food'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(find.text('Step 2 of 4'), findsOneWidget);
+
+    await tester.tap(find.text('Chicken'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(find.text('Step 3 of 4'), findsOneWidget);
+    expect(find.text('How was it cooked?'), findsOneWidget);
+
+    final Finder fried = find.text('Chicken · fried');
+    await tester.ensureVisible(fried);
+    await tester.tap(fried);
+    await tester.pumpAndSettle();
+    expect(store.addKey, 'chicken_fried');
+  });
+
   testWidgets('shows the EcoTrack onboarding screen',
       (WidgetTester tester) async {
     // Disable infinite animations for testing
@@ -22,7 +111,7 @@ void main() {
     await tester.pumpWidget(const EcoTrackApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Meet Sprout'), findsOneWidget);
+    expect(find.text('Meet Eco'), findsOneWidget);
     expect(find.text('Skip'), findsOneWidget);
 
     await tester.tap(find.text('Skip'));
@@ -267,7 +356,7 @@ void main() {
     expect(find.text('Log out?'), findsOneWidget);
     await tester.tap(find.text('Log out').last);
     await tester.pumpAndSettle();
-    expect(find.text('Meet Sprout'), findsOneWidget);
+    expect(find.text('Meet Eco'), findsOneWidget);
   });
 
   testWidgets('dark mode switches app surfaces and keeps readable text',

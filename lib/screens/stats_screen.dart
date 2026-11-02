@@ -19,8 +19,12 @@ class StatsScreen extends StatelessWidget {
     final int days = store.statsPeriod == 'week' ? 7 : 30;
 
     final List<double> series = <double>[];
+    final List<Map<String, double>> categorySeries = <Map<String, double>>[];
+    final List<String> chartLabels = <String>[];
     for (int d = days - 1; d >= 0; d--) {
       series.add(store.total(store.inRange(d, d)));
+      categorySeries.add(store.catTotals(store.inRange(d, d)));
+      chartLabels.add(dayLabel(d));
     }
     final double max = series.fold<double>(
       0,
@@ -113,7 +117,12 @@ class StatsScreen extends StatelessWidget {
                               series: series,
                               max: max,
                               targetPerDay: targetPerDay,
-                              days: days,
+                              labels: chartLabels,
+                              categorySeries: categorySeries,
+                              categoryColors: <String, Color>{
+                                for (final String id in kCatOrder)
+                                  id: store.categoryColor(id),
+                              },
                             ),
                             const SizedBox(height: 12),
                             trendLegend,
@@ -160,22 +169,11 @@ class StatsScreen extends StatelessWidget {
                                       ),
                                       Positioned.fill(
                                         child: Center(
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: <Widget>[
-                                              Text(
-                                                fmt1(sum),
-                                                style: F.d(22, height: 1.05),
-                                              ),
-                                              Text(
-                                                'kg total',
-                                                style: F.b(
-                                                  11,
-                                                  wght: 800,
-                                                  color: cs.muted,
-                                                ),
-                                              ),
-                                            ],
+                                          child: _ImpactCenter(
+                                            total: sum,
+                                            average: avg,
+                                            target: targetPerDay,
+                                            size: donutSize * 0.76,
                                           ),
                                         ),
                                       ),
@@ -373,6 +371,124 @@ class StatsScreen extends StatelessWidget {
           height: 6,
         ),
       ],
+    );
+  }
+}
+
+class _ImpactCenter extends StatefulWidget {
+  const _ImpactCenter({
+    required this.total,
+    required this.average,
+    required this.target,
+    required this.size,
+  });
+
+  final double total;
+  final double average;
+  final double target;
+  final double size;
+
+  @override
+  State<_ImpactCenter> createState() => _ImpactCenterState();
+}
+
+class _ImpactCenterState extends State<_ImpactCenter> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final Color statusColor;
+    final String status;
+    if (widget.average <= widget.target) {
+      statusColor = cs.leaf;
+      status = 'On track';
+    } else if (widget.average <= widget.target * 1.25) {
+      statusColor = cs.amber;
+      status = 'Near goal';
+    } else {
+      statusColor = const Color(0xFFB64F3E);
+      status = 'Above goal';
+    }
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() => _hovering = !_hovering),
+        child: AnimatedScale(
+          scale: _hovering ? 1.12 : 1,
+          duration: const Duration(milliseconds: 600),
+          curve: Eco.easeOut,
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: cs.surface,
+              border: Border.all(color: statusColor, width: 1),
+            ),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 450),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              child: _hovering
+                  ? Column(
+                      key: const ValueKey<String>('period-status'),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            status,
+                            textAlign: TextAlign.center,
+                            style: F.b(14, wght: 900, color: statusColor),
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '${fmt1(widget.average)} kg/day',
+                            textAlign: TextAlign.center,
+                            style: F.b(11.5, wght: 800, color: cs.ink),
+                          ),
+                        ),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'Goal ${fmt1(widget.target)} kg/day',
+                            textAlign: TextAlign.center,
+                            style: F.b(10, wght: 700, color: cs.muted),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      key: const ValueKey<String>('period-total'),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            fmt1(widget.total),
+                            style: F.d(20, height: 1.05),
+                          ),
+                        ),
+                        Text(
+                          'kg total',
+                          style: F.b(10, wght: 800, color: cs.muted),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

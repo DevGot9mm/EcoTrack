@@ -79,6 +79,7 @@ class EcoStore extends ChangeNotifier {
   int addStep = 0;
   String? addCat;
   String? addKey;
+  String? addFoodType;
   double addAmount = 4;
   String historyFilter = 'all';
   String statsPeriod = 'week';
@@ -323,6 +324,7 @@ class EcoStore extends ChangeNotifier {
     addStep = 0;
     addCat = null;
     addKey = null;
+    addFoodType = null;
     _emit();
     go('add');
   }
@@ -330,6 +332,7 @@ class EcoStore extends ChangeNotifier {
   void pickCat(String cat) {
     addCat = cat;
     addKey = null;
+    addFoodType = null;
     _emit();
   }
 
@@ -340,11 +343,24 @@ class EcoStore extends ChangeNotifier {
     _emit();
   }
 
+  void pickFoodType(String key) {
+    addFoodType = key;
+    addKey = null;
+    _emit();
+  }
+
+  bool get isFoodFlow => addCat == 'food';
+  int get amountStep => isFoodFlow ? 3 : 2;
+  int get stepCount => isFoodFlow ? 4 : 3;
+
   void addNext() {
     if (addStep == 0) {
       if (addCat == null) return;
       addStep = 1;
-      if (addKey == null) {
+      if (isFoodFlow) {
+        addFoodType = null;
+        addKey = null;
+      } else if (addKey == null) {
         final List<ActivityDef> list = actsOf(addCat!);
         if (list.isNotEmpty) {
           addKey = list.first.key;
@@ -352,8 +368,18 @@ class EcoStore extends ChangeNotifier {
         }
       }
     } else if (addStep == 1) {
+      if (isFoodFlow) {
+        if (addFoodType == null) return;
+        addStep = 2;
+      } else {
+        if (addKey == null) return;
+        addStep = 2;
+        final ActivityDef? d = activityDef(addKey!);
+        if (d != null) addAmount = defaultAmount(d);
+      }
+    } else if (addStep == 2 && isFoodFlow) {
       if (addKey == null) return;
-      addStep = 2;
+      addStep = 3;
       final ActivityDef? d = activityDef(addKey!);
       if (d != null) addAmount = defaultAmount(d);
     }
@@ -415,6 +441,7 @@ class EcoStore extends ChangeNotifier {
     addStep = 0;
     addCat = null;
     addKey = null;
+    addFoodType = null;
     go('add');
   }
 
@@ -506,8 +533,8 @@ class EcoStore extends ChangeNotifier {
     if (c == null || c.state != ChallengeState.claimable) return;
     c.state = ChallengeState.claimed;
     points += c.reward;
-    showChallengeComplete(c.title, c.reward);
     checkBadges();
+    showChallengeComplete(c.title, c.reward);
     _emit();
   }
 
@@ -557,6 +584,7 @@ class EcoStore extends ChangeNotifier {
     addStep = 0;
     addCat = null;
     addKey = null;
+    addFoodType = null;
     addAmount = 4;
     historyFilter = 'all';
     statsPeriod = 'week';

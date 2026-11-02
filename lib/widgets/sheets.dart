@@ -4,24 +4,30 @@ import '../icons.dart';
 import '../models.dart';
 import '../store.dart';
 import '../theme.dart';
+import 'charts.dart';
 import 'common.dart';
 
 /// Sheet chrome: grab handle, sheet radius, capped height, safe bottom inset.
-Future<void> showEcoSheet(BuildContext context, Widget child) {
+Future<void> showEcoSheet(
+  BuildContext context,
+  Widget child, {
+  double maxHeightFactor = 0.82,
+  double maxWidth = double.infinity,
+}) {
   return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     barrierColor: const Color(0x6B0F2818),
     isScrollControlled: true,
-    constraints: const BoxConstraints(maxWidth: double.infinity),
+    constraints: BoxConstraints(maxWidth: maxWidth),
     builder: (BuildContext ctx) {
       final cs = Theme.of(ctx).colorScheme;
       return SizedBox(
         width: double.infinity,
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(ctx).size.height * 0.82,
+            maxHeight: MediaQuery.of(ctx).size.height * maxHeightFactor,
           ),
           decoration: BoxDecoration(
             color: cs.surface,
@@ -60,6 +66,137 @@ Future<void> showEcoSheet(BuildContext context, Widget child) {
         ),
       );
     },
+  );
+}
+
+Future<void> showLevelInfoSheet(BuildContext context, EcoStore store) {
+  final LevelInfo level = levelOf(store.points);
+  return showEcoSheet(
+    context,
+    Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        _sheetTitle('Eco Points & levels'),
+        const SizedBox(height: 8),
+        Text(
+          'Levels are milestones that show your Eco Points progress. '
+          'They are profile ranks and do not unlock app features.',
+          style:
+              F.b(13, height: 1.45, color: Theme.of(context).colorScheme.muted),
+        ),
+        const SizedBox(height: 16),
+        EcoCard(
+          flat: true,
+          tone: EcoCardTone.mint,
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: <Widget>[
+              LevelRing(pct: level.pct, size: 64, thickness: 7),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Level ${level.idx + 1} · ${level.name}',
+                      style: F.d(17),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${groupThousands(store.points)} Eco Points',
+                      style: F.b(
+                        13,
+                        wght: 800,
+                        color: Theme.of(context).colorScheme.muted,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (level.nextName != null)
+                      Text(
+                        '${groupThousands(level.toNext)} points to '
+                        'Level ${level.idx + 2} · ${level.nextName}',
+                        style: F.b(
+                          12,
+                          wght: 700,
+                          color: Theme.of(context).colorScheme.ink2,
+                        ),
+                      )
+                    else
+                      Text(
+                        'Highest current level reached',
+                        style: F.b(
+                          12,
+                          wght: 700,
+                          color: Theme.of(context).colorScheme.ink2,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'Earn points',
+          style: F.d(16),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          'Log an activity to earn 15 Eco Points. Complete and claim '
+          'challenges to earn their displayed reward.',
+          style:
+              F.b(13, height: 1.45, color: Theme.of(context).colorScheme.muted),
+        ),
+        const SizedBox(height: 16),
+        Text('Level milestones', style: F.d(16)),
+        const SizedBox(height: 8),
+        for (int i = 0; i < kLevels.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 28,
+                  height: 28,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: i == level.idx
+                        ? Theme.of(context).colorScheme.leaf
+                        : Theme.of(context).colorScheme.surface2,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    '${i + 1}',
+                    style: F.b(
+                      12,
+                      wght: 900,
+                      color: i == level.idx
+                          ? Theme.of(context).colorScheme.onPrimary
+                          : Theme.of(context).colorScheme.muted,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    kLevels[i].name,
+                    style: F.b(13, wght: 800),
+                  ),
+                ),
+                Text(
+                  '${groupThousands(kLevels[i].min)} pts',
+                  style: F.b(
+                    12,
+                    wght: 700,
+                    color: Theme.of(context).colorScheme.muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    ),
   );
 }
 

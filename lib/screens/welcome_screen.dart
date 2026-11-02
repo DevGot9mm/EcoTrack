@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../models.dart';
@@ -18,7 +20,7 @@ class WelcomeScreen extends StatelessWidget {
   static const List<_Slide> slides = <_Slide>[
     _Slide(
       'body-front',
-      'Meet Sprout',
+      'Meet Eco',
       'Your companion on the way to a lighter footprint. Small steps, every day.',
     ),
     _Slide(
@@ -39,147 +41,281 @@ class WelcomeScreen extends StatelessWidget {
     final int i = clampInt(store.onboardSlide, 0, slides.length - 1);
     final _Slide s = slides[i];
     final bool last = i == slides.length - 1;
-
-    return Container(
+    return DecoratedBox(
       decoration: const BoxDecoration(gradient: Eco.welcomeBg),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 28),
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final Size screen = MediaQuery.sizeOf(context);
+            final bool landscape = screen.width > screen.height;
+            final bool tablet = screen.shortestSide >= 600;
+            if (landscape && screen.width >= 600) {
+              return _landscapeLayout(
+                context,
+                store,
+                s,
+                i,
+                last,
+                constraints,
+                tablet,
+              );
+            }
+            return _portraitLayout(
+              context,
+              store,
+              s,
+              i,
+              last,
+              constraints,
+              tablet,
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _landscapeLayout(
+    BuildContext context,
+    EcoStore store,
+    _Slide slide,
+    int index,
+    bool last,
+    BoxConstraints constraints,
+    bool tablet,
+  ) {
+    final double mascotSize = math
+        .min(constraints.maxHeight * 0.76, constraints.maxWidth * 0.36)
+        .clamp(150.0, tablet ? 390.0 : 290.0);
+    return Stack(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 36, 24, 12),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                flex: 4,
+                child: Center(child: _mascot(slide.img, mascotSize)),
+              ),
+              const SizedBox(width: 24),
+              Expanded(
+                flex: 6,
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: _welcomeContent(
+                    context,
+                    store,
+                    slide,
+                    index,
+                    last,
+                    tablet,
+                    includeSkip: false,
+                    compact: true,
+                    alignCenter: false,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 2,
+          right: 28,
+          child: _skipButton(store, alignRight: true),
+        ),
+      ],
+    );
+  }
+
+  Widget _portraitLayout(
+    BuildContext context,
+    EcoStore store,
+    _Slide slide,
+    int index,
+    bool last,
+    BoxConstraints constraints,
+    bool tablet,
+  ) {
+    final double mascotSize = (constraints.maxWidth * (tablet ? 0.46 : 0.56))
+        .clamp(190.0, tablet ? 380.0 : 300.0);
+    final double heroHeight = (constraints.maxHeight * (tablet ? 0.38 : 0.32))
+        .clamp(tablet ? 300.0 : 210.0, tablet ? 430.0 : 290.0);
+    final Widget content = Padding(
+      padding: const EdgeInsets.fromLTRB(24, 4, 24, 20),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: constraints.maxHeight - 24),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Align(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: store.finishOnboard,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 8,
-                  ),
-                  child: Text(
-                    'Skip',
-                    style: F.b(14, wght: 700, color: const Color(0xC7FFFFFF)),
-                  ),
-                ),
-              ),
+            _skipButton(store, alignRight: true),
+            SizedBox(
+              height: heroHeight,
+              child: Center(child: _mascot(slide.img, mascotSize)),
             ),
-            Expanded(
-              child: Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: SizedBox(
-                    width: 250,
-                    height: 250,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: <Widget>[
-                        Container(
-                          width: 224,
-                          height: 224,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: Eco.halo,
-                          ),
-                        ),
-                        MascotArt(s.img, width: 168),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Text.rich(
-              TextSpan(
-                children: <InlineSpan>[
-                  TextSpan(
-                    text: 'Eco',
-                    style: F.d(38, color: Colors.white, ls: -0.02),
-                  ),
-                  TextSpan(
-                    text: 'Track',
-                    style: F.d(38, color: Eco.sage, ls: -0.02),
-                  ),
-                ],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Track your impact, change your future.',
-              textAlign: TextAlign.center,
-              style: F.b(16, color: const Color(0xCCFFFFFF)),
-            ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 96),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 18),
-                child: Column(
-                  children: <Widget>[
-                    Text(
-                      s.title,
-                      textAlign: TextAlign.center,
-                      style: F.d(22, color: Colors.white),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      s.body,
-                      textAlign: TextAlign.center,
-                      style: F.b(
-                        15,
-                        height: 1.5,
-                        color: const Color(0xC2FFFFFF),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 20, bottom: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  for (int d = 0; d < slides.length; d++)
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => store.setOnboardSlide(d),
-                      child: AnimatedContainer(
-                        duration: Eco.dur2,
-                        curve: Eco.easeOut,
-                        margin: const EdgeInsets.symmetric(horizontal: 3.5),
-                        width: d == i ? 24 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: d == i
-                              ? Eco.sage
-                              : const Color(0x52FFFFFF),
-                          borderRadius: BorderRadius.circular(Eco.rPill),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            EcoButton(
-              label: last ? 'Get started' : 'Next',
-              trailing: 'arrowRight',
-              tone: EcoButtonTone.amber,
-              block: true,
-              onPressed: last
-                  ? store.finishOnboard
-                  : () => store.setOnboardSlide(i + 1),
-            ),
-            const SizedBox(height: 10),
-            EcoButton(
-              label: 'I already have an account',
-              tone: EcoButtonTone.onDark,
-              block: true,
-              onPressed: () => store.go('auth'),
+            _welcomeContent(
+              context,
+              store,
+              slide,
+              index,
+              last,
+              tablet,
+              includeSkip: false,
+              compact: constraints.maxHeight < 700,
             ),
           ],
         ),
       ),
+    );
+
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      child: content,
+    );
+  }
+
+  Widget _mascot(String image, double size) => SizedBox(
+        width: size,
+        height: size,
+        child: Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            Container(
+              width: size * 0.9,
+              height: size * 0.9,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: Eco.halo,
+              ),
+            ),
+            MascotArt(image, width: size * 0.78),
+          ],
+        ),
+      );
+
+  Widget _skipButton(EcoStore store, {required bool alignRight}) => Align(
+        alignment: alignRight ? Alignment.centerRight : Alignment.centerLeft,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: store.finishOnboard,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Text(
+              'Skip',
+              style: F.b(14, wght: 700, color: const Color(0xC7FFFFFF)),
+            ),
+          ),
+        ),
+      );
+
+  Widget _welcomeContent(
+    BuildContext context,
+    EcoStore store,
+    _Slide slide,
+    int index,
+    bool last,
+    bool tablet, {
+    bool includeSkip = true,
+    bool compact = false,
+    bool alignCenter = true,
+  }) {
+    final TextAlign align = alignCenter ? TextAlign.center : TextAlign.left;
+    final double scale = tablet ? 1.15 : 1;
+    final CrossAxisAlignment crossAxisAlignment =
+        alignCenter ? CrossAxisAlignment.stretch : CrossAxisAlignment.start;
+    return Column(
+      crossAxisAlignment: crossAxisAlignment,
+      children: <Widget>[
+        if (includeSkip) _skipButton(store, alignRight: true),
+        Text.rich(
+          TextSpan(
+            children: <InlineSpan>[
+              TextSpan(
+                text: 'Eco',
+                style: F.d(38 * scale, color: Colors.white, ls: -0.02),
+              ),
+              TextSpan(
+                text: 'Track',
+                style: F.d(38 * scale, color: Eco.sage, ls: -0.02),
+              ),
+            ],
+          ),
+          textAlign: align,
+        ),
+        SizedBox(height: compact ? 3 : 8),
+        Text(
+          'Track your impact, change your future.',
+          textAlign: align,
+          style: F.b(16 * scale, color: const Color(0xCCFFFFFF)),
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: compact ? 8 : 18),
+          child: Column(
+            crossAxisAlignment: crossAxisAlignment,
+            children: <Widget>[
+              Text(
+                slide.title,
+                textAlign: align,
+                style: F.d(22 * scale, color: Colors.white),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                slide.body,
+                textAlign: align,
+                style: F.b(
+                  15 * scale,
+                  height: 1.4,
+                  color: const Color(0xC2FFFFFF),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: compact ? 8 : 16, bottom: 12),
+          child: Row(
+            mainAxisAlignment: alignCenter
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start,
+            children: <Widget>[
+              for (int d = 0; d < slides.length; d++)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => store.setOnboardSlide(d),
+                  child: AnimatedContainer(
+                    duration: Eco.dur2,
+                    curve: Eco.easeOut,
+                    margin: const EdgeInsets.symmetric(horizontal: 3.5),
+                    width: d == index ? 24 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: d == index ? Eco.sage : const Color(0x52FFFFFF),
+                      borderRadius: BorderRadius.circular(Eco.rPill),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        EcoButton(
+          label: last ? 'Get started' : 'Next',
+          trailing: 'arrowRight',
+          tone: EcoButtonTone.amber,
+          block: true,
+          minHeight: compact ? 46 : 52,
+          onPressed: last
+              ? store.finishOnboard
+              : () => store.setOnboardSlide(index + 1),
+        ),
+        const SizedBox(height: 8),
+        EcoButton(
+          label: 'I already have an account',
+          tone: EcoButtonTone.onDark,
+          block: true,
+          minHeight: compact ? 46 : 52,
+          onPressed: () => store.go('auth'),
+        ),
+      ],
     );
   }
 }

@@ -60,15 +60,25 @@ class ProfileScreen extends StatelessWidget {
                 caption: 'kg total CO₂e',
                 valueSize: 17,
               ),
-              StatTile(
-                value: groupThousands(store.points),
-                caption: 'Eco Points',
-                valueSize: 17,
+              Pressable(
+                onTap: () => showLevelInfoSheet(context, store),
+                fillWidth: true,
+                borderRadius: BorderRadius.circular(Eco.rCard),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: StatTile(
+                    value: groupThousands(store.points),
+                    caption: 'Eco Points',
+                    valueSize: 17,
+                  ),
+                ),
               ),
               Pressable(
                 onTap: () => showEcoSheet(
                   context,
                   _BadgesSection(store: store),
+                  maxHeightFactor: 0.72,
+                  maxWidth: 760,
                 ),
                 fillWidth: true,
                 borderRadius: BorderRadius.circular(Eco.rCard),
@@ -386,6 +396,7 @@ class _BadgesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final bool wide = MediaQuery.sizeOf(context).shortestSide >= 600;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -394,11 +405,11 @@ class _BadgesSection extends StatelessWidget {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 0.82,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: wide ? 5 : 3,
+            crossAxisSpacing: wide ? 12 : 10,
+            mainAxisSpacing: wide ? 12 : 10,
+            childAspectRatio: wide ? 1.1 : 0.82,
           ),
           itemCount: store.badges.length,
           itemBuilder: (BuildContext context, int i) {
@@ -471,6 +482,8 @@ class _BadgesSection extends StatelessWidget {
           ),
         ],
       ),
+      maxHeightFactor: 0.72,
+      maxWidth: 760,
     );
   }
 }
@@ -511,7 +524,7 @@ class _BadgeItemState extends State<_BadgeItem> {
               child: HolographicCard(
                 borderRadius: Eco.rCard,
                 backgroundColor: Colors.transparent,
-                hoverScale: 1.05,
+                hoverScale: 1.01,
                 child: Container(
                   decoration: BoxDecoration(
                     color: widget.b.unlocked
@@ -817,6 +830,7 @@ class _SettingsRow extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       scale: 0.99,
+      borderRadius: BorderRadius.circular(Eco.rSm),
       child: Container(
         constraints: BoxConstraints(minHeight: roomy ? 72 : 0),
         padding: EdgeInsets.symmetric(

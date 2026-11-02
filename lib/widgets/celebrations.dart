@@ -322,52 +322,92 @@ class _ChallengeCelebration extends StatelessWidget {
     return Center(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 24),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(22, 18, 22, 20),
         constraints: const BoxConstraints(maxWidth: 320),
         decoration: BoxDecoration(
-          color: cs.amberTint,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: <Color>[
+              cs.leaf.withValues(alpha: 0.78),
+              cs.forest.withValues(alpha: 0.82),
+            ],
+          ),
           borderRadius: BorderRadius.circular(Eco.rSheet),
           boxShadow: Eco.shadowToast,
-          border: Border.all(color: cs.lineAmber, width: 1.5),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.36),
+            width: 1.5,
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                EcoIcon('check-circle', size: 24, color: cs.leaf),
-                const SizedBox(width: 8),
-                Flexible(
+              children: <Widget>[
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: EcoIcon(
+                      'trophy',
+                      size: 23,
+                      color: Color(0xFFFFD978),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 11),
+                Expanded(
                   child: Text(
                     'Challenge complete!',
-                    style: F.d(18, color: cs.ink),
+                    style: F.d(18, color: Colors.white),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: F.b(14, color: cs.muted),
-              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                EcoIcon('sparkles', size: 18, color: cs.amber),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    '+$points Eco Points',
-                    style: F.b(18, wght: 800, color: cs.amberInk),
-                    overflow: TextOverflow.ellipsis,
+            Text(
+              title,
+              style: F.b(14, wght: 700, color: const Color(0xE6FFFFFF)),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(Eco.rPill),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const EcoIcon(
+                    'sparkles',
+                    size: 17,
+                    color: Color(0xFFFFD978),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      '+$points Eco Points',
+                      style: F.b(
+                        15,
+                        wght: 900,
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

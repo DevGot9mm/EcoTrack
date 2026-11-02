@@ -19,7 +19,7 @@ class Pressable extends StatefulWidget {
     this.onTap,
     this.scale = 0.975,
     this.fillWidth = false,
-    this.borderRadius = BorderRadius.zero,
+    this.borderRadius = const BorderRadius.all(Radius.circular(Eco.rCard)),
   });
 
   final Widget child;
@@ -47,7 +47,7 @@ class _PressableState extends State<Pressable> {
       backgroundColor: Colors.transparent,
       sweepColor: const Color(0xFF7BC96F),
       glowColor: const Color(0xFF4CAF50),
-      hoverScale: 1.05,
+      hoverScale: 1.01,
       width: widget.fillWidth ? double.infinity : null,
       height: null,
       child: child,
@@ -79,7 +79,7 @@ class HolographicCard extends StatefulWidget {
     this.backgroundColor = const Color(0xFF0F3D24),
     this.sweepColor = const Color(0xFF7BC96F),
     this.glowColor = const Color(0xFF4CAF50),
-    this.hoverScale = 1.05,
+    this.hoverScale = 1.015,
     this.duration = const Duration(milliseconds: 500),
   });
 
@@ -766,6 +766,7 @@ class EcoButton extends StatelessWidget {
     // whole control translucent matches that better than tinting the fill.
     final Widget button = Pressable(
       onTap: enabled ? onPressed : null,
+      borderRadius: BorderRadius.circular(radius),
       child: Container(
         constraints: BoxConstraints(minHeight: minHeight),
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -815,6 +816,7 @@ class EcoIconButton extends StatelessWidget {
     return Pressable(
       onTap: onPressed,
       scale: 0.94,
+      borderRadius: BorderRadius.circular(13),
       child: Container(
         width: size,
         height: size,
@@ -886,6 +888,7 @@ class MiniBtn extends StatelessWidget {
     ];
     return Pressable(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(Eco.rPill),
       child: Container(
         constraints: const BoxConstraints(minHeight: 38),
         padding: const EdgeInsets.symmetric(horizontal: 13),
@@ -926,6 +929,7 @@ class EcoChip extends StatelessWidget {
     final Color fg = active ? cs.onPrimary : cs.ink2;
     return Pressable(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(Eco.rPill),
       child: Container(
         constraints: const BoxConstraints(minHeight: 38),
         padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -979,6 +983,7 @@ class EcoSegmented extends StatelessWidget {
         Expanded(
           child: Pressable(
             onTap: () => onChanged(i),
+            borderRadius: BorderRadius.circular(Eco.rPill),
             child: AnimatedContainer(
               duration: Eco.dur1,
               curve: Eco.easeOut,
@@ -1142,8 +1147,7 @@ class StatePill extends StatelessWidget {
    Structure
    ========================================================================== */
 
-/// Title bar. `noBack` reserves the trailing space so the title stays centred
-/// on the same axis as screens that do show a back control.
+/// Title bar with screen titles aligned to the content gutter.
 class EcoTopBar extends StatelessWidget {
   const EcoTopBar({
     super.key,
@@ -1164,11 +1168,8 @@ class EcoTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
     final Widget left = noBack
-        ? const SizedBox(width: 40)
-        : EcoIconButton(
-            'chevronL',
-            onPressed: onBack ?? store.back,
-          );
+        ? const SizedBox.shrink()
+        : EcoIconButton('chevronL', onPressed: onBack ?? store.back);
 
     final Widget titleWidget = Text(
       title,
@@ -1182,8 +1183,7 @@ class EcoTopBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
       child: Row(
         children: <Widget>[
-          left,
-          const SizedBox(width: 10),
+          if (!noBack) ...<Widget>[left, const SizedBox(width: 10)],
           Expanded(child: titleWidget),
           const SizedBox(width: 10),
           right ?? const SizedBox(width: 40),
@@ -1501,6 +1501,7 @@ class EcoFab extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       scale: 0.96,
+      borderRadius: BorderRadius.circular(Eco.rPill),
       child: Container(
         constraints: BoxConstraints(minHeight: tablet ? 58 : 54),
         padding:

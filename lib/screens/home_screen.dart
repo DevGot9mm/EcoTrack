@@ -8,6 +8,7 @@ import '../store.dart';
 import '../theme.dart';
 import '../widgets/charts.dart';
 import '../widgets/common.dart';
+import '../widgets/sheets.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -45,6 +46,7 @@ class HomeScreen extends StatelessWidget {
           total: store.total(store.inRange(d, d)),
           isToday: d == 0,
           label: weekdayShort(dayAgo(d)).substring(0, 1),
+          categories: store.catTotals(store.inRange(d, d)),
         ),
       );
     }
@@ -73,7 +75,22 @@ class HomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(0, 4, 0, 18),
                   child: Row(
                     children: <Widget>[
-                      MascotCrop(store.playerAvatar, size: 46, radius: 16),
+                      Semantics(
+                        button: true,
+                        label: 'Open profile',
+                        child: Tooltip(
+                          message: 'Profile',
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => store.go('profile'),
+                            child: MascotCrop(
+                              store.playerAvatar,
+                              size: 46,
+                              radius: 16,
+                            ),
+                          ),
+                        ),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -251,11 +268,18 @@ class HomeScreen extends StatelessWidget {
                       ),
                       EcoCard(
                         flat: true,
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
-                            WeekBars(days: days, maxDay: maxDay),
+                            WeekBars(
+                              days: days,
+                              maxDay: maxDay,
+                              categoryColors: <String, Color>{
+                                for (final String id in kCatOrder)
+                                  id: store.categoryColor(id),
+                              },
+                            ),
                             const SizedBox(height: 12),
                             Text(
                               improved
@@ -419,7 +443,7 @@ class HomeScreen extends StatelessWidget {
                             child: EcoCard(
                               flat: true,
                               padding: const EdgeInsets.all(14),
-                              onTap: () => store.go('points'),
+                              onTap: () => showLevelInfoSheet(context, store),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
