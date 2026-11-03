@@ -20,7 +20,7 @@ class ResultScreen extends StatelessWidget {
     if (entry == null) return const HomeScreen();
 
     final Entry a = entry;
-    final ActivityDef? def = activityDef(a.key);
+    final ActivityDef? def = store.activityOf(a.key);
     if (def == null) return const HomeScreen();
     final Cat c = catOf(a.cat);
 

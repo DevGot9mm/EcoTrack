@@ -32,28 +32,34 @@ class ChallengesScreen extends StatelessWidget {
         right: _StreakPill(days: store.streak),
       ),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          const SizedBox(height: 8),
-          _FeaturedChallengeCard(challenge: featured, store: store),
-          Padding(
-            padding: const EdgeInsets.only(top: 24, bottom: 12),
-            child: SectionHead(
-              title: 'This week',
-              action: Text(
-                '$completed of ${store.challenges.length} complete',
-                style: F.b(12,
-                    wght: 800, color: Theme.of(context).colorScheme.muted),
-              ),
+      children: <Widget>[
+        const SizedBox(height: 8),
+        _FeaturedChallengeCard(challenge: featured, store: store),
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Text(
+            'Five challenges rotate each week. Multi-day goals need one '
+            'check-in per day; missing a day restarts that challenge streak.',
+            style: F.b(12,
+                height: 1.4, color: Theme.of(context).colorScheme.muted),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 24, bottom: 12),
+          child: SectionHead(
+            title: 'This week',
+            action: Text(
+              '$completed of ${store.challenges.length} complete',
+              style: F.b(12,
+                  wght: 800, color: Theme.of(context).colorScheme.muted),
             ),
           ),
-          for (int i = 0; i < weekly.length; i++) ...<Widget>[
-            if (i > 0) const SizedBox(height: 12),
-            _ChallengeCard(challenge: weekly[i], store: store),
-          ],
+        ),
+        for (int i = 0; i < weekly.length; i++) ...<Widget>[
+          if (i > 0) const SizedBox(height: 12),
+          _ChallengeCard(challenge: weekly[i], store: store),
         ],
-      ),
+      ],
     );
   }
 }
@@ -142,6 +148,8 @@ class _FeaturedChallengeCard extends StatelessWidget {
               final bool isDone = challenge.state == ChallengeState.claimed;
               final bool isClaimable =
                   challenge.state == ChallengeState.claimable;
+              final bool checkedInToday =
+                  store.challengeCheckedInToday(challenge.id);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
@@ -149,7 +157,8 @@ class _FeaturedChallengeCard extends StatelessWidget {
                     children: <Widget>[
                       Expanded(
                         child: Text(
-                          '${challenge.progress.round()} of ${challenge.target.round()} done',
+                          '${challenge.progress.round()} of '
+                          '${challenge.target.round()} daily check-ins',
                           style: F.b(12,
                               wght: 800, color: const Color(0xD9FFFFFF)),
                         ),
@@ -173,7 +182,9 @@ class _FeaturedChallengeCard extends StatelessWidget {
                         ? 'Challenge complete'
                         : isClaimable
                             ? 'Claim ${challenge.reward} pts'
-                            : 'Mark as done',
+                            : checkedInToday
+                                ? 'Checked in today'
+                                : 'Check in today',
                     leading: isDone
                         ? 'check'
                         : isClaimable
@@ -181,7 +192,7 @@ class _FeaturedChallengeCard extends StatelessWidget {
                             : 'check',
                     tone: isDone ? EcoButtonTone.onDark : EcoButtonTone.amber,
                     block: true,
-                    onPressed: isDone
+                    onPressed: isDone || checkedInToday
                         ? null
                         : () {
                             if (isClaimable) {
@@ -347,8 +358,11 @@ class _ChallengeCard extends StatelessWidget {
             ListenableBuilder(
               listenable: store,
               builder: (BuildContext context, Widget? child) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                return Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 12,
+                  runSpacing: 8,
                   children: <Widget>[
                     _StatePill(
                       label: '+${challenge.reward} pts',
@@ -371,12 +385,14 @@ class _ChallengeCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
     if (challenge.state == ChallengeState.active) {
+      final bool checkedInToday = store.challengeCheckedInToday(challenge.id);
       return EcoButton(
-        label: 'Done',
-        tone: EcoButtonTone.primary,
+        label: checkedInToday ? 'Checked in today' : 'Check in today',
+        tone: checkedInToday ? EcoButtonTone.ghost : EcoButtonTone.primary,
         radius: Eco.rPill,
         minHeight: 38,
-        onPressed: () => store.challengeDone(challenge.id),
+        onPressed:
+            checkedInToday ? null : () => store.challengeDone(challenge.id),
       );
     }
     return EcoButton(
@@ -423,7 +439,9 @@ class _ChallengeCard extends StatelessWidget {
             label: challenge.state == ChallengeState.claimed
                 ? 'Close'
                 : challenge.state == ChallengeState.active
-                    ? 'Mark as done'
+                    ? store.challengeCheckedInToday(challenge.id)
+                        ? 'Checked in today'
+                        : 'Check in today'
                     : 'Claim reward',
             tone: challenge.state == ChallengeState.claimed
                 ? EcoButtonTone.ghost
@@ -431,14 +449,17 @@ class _ChallengeCard extends StatelessWidget {
                     ? EcoButtonTone.primary
                     : EcoButtonTone.amber,
             block: true,
-            onPressed: () {
-              Navigator.pop(context);
-              if (challenge.state == ChallengeState.active) {
-                store.challengeDone(challenge.id);
-              } else if (challenge.state == ChallengeState.claimable) {
-                store.claim(challenge.id);
-              }
-            },
+            onPressed: challenge.state == ChallengeState.active &&
+                    store.challengeCheckedInToday(challenge.id)
+                ? null
+                : () {
+                    Navigator.pop(context);
+                    if (challenge.state == ChallengeState.active) {
+                      store.challengeDone(challenge.id);
+                    } else if (challenge.state == ChallengeState.claimable) {
+                      store.claim(challenge.id);
+                    }
+                  },
           ),
         ],
       ),

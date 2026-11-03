@@ -133,6 +133,13 @@ Future<void> showLevelInfoSheet(BuildContext context, EcoStore store) {
                   ],
                 ),
               ),
+              const SizedBox(width: 10),
+              MascotArt(
+                'level-${level.idx + 1}',
+                width: 82,
+                height: 104,
+                alignment: Alignment.bottomRight,
+              ),
             ],
           ),
         ),
@@ -203,6 +210,19 @@ Future<void> showLevelInfoSheet(BuildContext context, EcoStore store) {
 Widget _sheetTitle(String text) =>
     Text(text, style: F.d(20), maxLines: 1, overflow: TextOverflow.ellipsis);
 
+class SheetTitle extends StatelessWidget {
+  const SheetTitle({required this.title, super.key});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Text(
+        title,
+        style: F.d(20),
+        textAlign: TextAlign.center,
+      );
+}
+
 Widget _statCell(String value, String caption,
     {double size = 20, required ColorScheme cs}) {
   return Column(
@@ -254,7 +274,7 @@ Future<void> showActivitySheet(
   }
   if (entry == null) return Future<void>.value();
   final Entry a = entry;
-  final ActivityDef? def = activityDef(a.key);
+  final ActivityDef? def = store.activityOf(a.key);
   if (def == null) return Future<void>.value();
   final Cat c = catOf(a.cat);
 

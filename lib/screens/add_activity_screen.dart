@@ -5,6 +5,7 @@ import '../models.dart';
 import '../store.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/sheets.dart';
 
 class AddActivityScreen extends StatelessWidget {
   const AddActivityScreen({super.key});
@@ -195,13 +196,24 @@ class AddActivityScreen extends StatelessWidget {
         ),
       );
     }
-    return EcoGrid(items: tiles, columns: 2, gap: 12);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        EcoGrid(items: tiles, columns: 2, gap: 12),
+        const SizedBox(height: 12),
+        _customActivityOption(
+          context,
+          store,
+          title: store.isFoodFlow ? 'Other meal or food' : 'Other activity',
+        ),
+      ],
+    );
   }
 
   Widget _foodPreparationStep(BuildContext context, EcoStore store) {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final String foodKey = store.addFoodType!;
-    final ActivityDef food = activityDef(foodKey)!;
+    final ActivityDef food = store.activityOf(foodKey)!;
     final Cat category = catOf('food');
     final List<Widget> tiles = <Widget>[];
     for (final ActivityDef preparation in foodPreparationsOf(foodKey)) {
@@ -217,7 +229,7 @@ class AddActivityScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               CatBadge(
-                icon: food.icon,
+                icon: preparation.icon,
                 background: category
                     .resolve(cs, color: store.categoryColor(category.id))
                     .tint,
@@ -283,14 +295,76 @@ class AddActivityScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         EcoGrid(items: tiles, columns: 2, gap: 12),
+        const SizedBox(height: 12),
+        _customActivityOption(
+          context,
+          store,
+          title: 'Other preparation',
+          suggestedName: '${food.name} — other preparation',
+        ),
       ],
     );
   }
 
+  Widget _customActivityOption(
+    BuildContext context,
+    EcoStore store, {
+    required String title,
+    String? suggestedName,
+  }) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final Cat category = catOf(store.addCat!);
+    return EcoCard(
+      flat: true,
+      radius: Eco.rCard,
+      padding: const EdgeInsets.all(14),
+      onTap: () => showEcoSheet(
+        context,
+        _CustomActivityForm(
+          store: store,
+          suggestedName: suggestedName,
+        ),
+      ),
+      child: Row(
+        children: <Widget>[
+          CatBadge(
+            icon: 'plus',
+            background: category
+                .resolve(cs, color: store.categoryColor(category.id))
+                .tint,
+            foreground: category
+                .resolve(cs, color: store.categoryColor(category.id))
+                .ink,
+            size: 40,
+            iconSize: 20,
+            radius: 14,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(title, style: F.b(14, wght: 800)),
+                const SizedBox(height: 2),
+                Text(
+                  'Enter the activity and its total CO₂e estimate',
+                  style: F.b(12, height: 1.35, color: cs.muted),
+                ),
+              ],
+            ),
+          ),
+          EcoIcon('chevronR', size: 20, color: cs.muted),
+        ],
+      ),
+    );
+  }
+
   Widget _amountStep(EcoStore store, ColorScheme cs) {
-    final ActivityDef a = activityDef(store.addKey!)!;
+    final ActivityDef a = store.activityOf(store.addKey!)!;
+    final bool custom = store.isCustomActivity(a.key);
     final Cat c = catOf(a.cat);
-    final double co2 = round1(a.factor * store.addAmount);
+    final double co2 =
+        custom ? a.factor : round1(a.factor * store.addAmount);
     final double displayFactor = store.displayFactor(a);
     final String displayUnit = store.unitFor(a);
     final double displayAmount = store.displayAmount(a, store.addAmount);
@@ -326,9 +400,11 @@ class AddActivityScreen extends StatelessWidget {
                     Text(a.name, style: F.b(15, wght: 800)),
                     const SizedBox(height: 1),
                     Text(
-                      a.factor == 0
-                          ? '${c.name} · zero emission'
-                          : '${c.name} · ${fmt2(displayFactor)} kg CO₂e per $displayUnit',
+                      custom
+                          ? '${c.name} · manual total estimate'
+                          : a.factor == 0
+                              ? '${c.name} · zero emission'
+                              : '${c.name} · ${fmt2(displayFactor)} kg CO₂e per $displayUnit',
                       style: F.b(13, height: 1.45, color: cs.muted),
                     ),
                     if (a.detail != null) ...<Widget>[
@@ -379,39 +455,52 @@ class AddActivityScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 18),
-        Row(
-          children: <Widget>[
-            _StepperBtn(icon: 'minus', onTap: () => store.amtStep(-1)),
-            const SizedBox(width: 14),
-            Expanded(
-              child: _AmountSlider(
-                value: displayAmount,
-                min: (a.unit == 'servings' || (a.unit == 'km' && a.factor == 0))
-                    ? 1.0
-                    : 0.0,
-                max: store.displayMax(a),
-                step: store.displayStep(a),
-                onChanged: store.amtSet,
-              ),
+        if (custom)
+          EcoCard(
+            flat: true,
+            background: cs.surface2,
+            child: Text(
+              'Your estimate is for one logged activity. EcoTrack will use '
+              'the total you entered without applying a preset factor.',
+              style: F.b(13, height: 1.45, color: cs.muted),
             ),
-            const SizedBox(width: 14),
-            _StepperBtn(icon: 'plus', onTap: () => store.amtStep(1)),
-          ],
-        ),
-        const SizedBox(height: 18),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: <Widget>[
-            for (final double v in store.displayChips(a))
-              EcoChip(
-                label: '${fmtAmount(v)} $displayUnit',
-                active: v == displayAmount,
-                onTap: () => store.amtSet(v),
+          )
+        else ...<Widget>[
+          Row(
+            children: <Widget>[
+              _StepperBtn(icon: 'minus', onTap: () => store.amtStep(-1)),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _AmountSlider(
+                  value: displayAmount,
+                  min: (a.unit == 'servings' ||
+                          (a.unit == 'km' && a.factor == 0))
+                      ? 1.0
+                      : 0.0,
+                  max: store.displayMax(a),
+                  step: store.displayStep(a),
+                  onChanged: store.amtSet,
+                ),
               ),
-          ],
-        ),
+              const SizedBox(width: 14),
+              _StepperBtn(icon: 'plus', onTap: () => store.amtStep(1)),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              for (final double v in store.displayChips(a))
+                EcoChip(
+                  label: '${fmtAmount(v)} $displayUnit',
+                  active: v == displayAmount,
+                  onTap: () => store.amtSet(v),
+                ),
+            ],
+          ),
+        ],
         const SizedBox(height: 18),
         EcoCard(
           tone: EcoCardTone.mint,
@@ -449,8 +538,127 @@ class AddActivityScreen extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text(
-          'This is a guide, not a meter reading. Actual impact varies with portion size, device efficiency, and your local electricity mix.',
+          custom
+              ? 'You entered this total directly; EcoTrack applies no factor or quantity adjustment.'
+              : 'This is a guide, not a meter reading. Actual impact varies with portion size, device efficiency, and your local electricity mix.',
           style: F.b(13, height: 1.45, color: cs.muted),
+        ),
+      ],
+    );
+  }
+}
+
+class _CustomActivityForm extends StatefulWidget {
+  const _CustomActivityForm({
+    required this.store,
+    this.suggestedName,
+  });
+
+  final EcoStore store;
+  final String? suggestedName;
+
+  @override
+  State<_CustomActivityForm> createState() => _CustomActivityFormState();
+}
+
+class _CustomActivityFormState extends State<_CustomActivityForm> {
+  late final TextEditingController _name =
+      TextEditingController(text: widget.suggestedName ?? '');
+  final TextEditingController _co2e = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _co2e.dispose();
+    super.dispose();
+  }
+
+  void _save(BuildContext context) {
+    final double? total =
+        double.tryParse(_co2e.text.trim().replaceAll(',', '.'));
+    if (_name.text.trim().length < 2) {
+      setState(() => _error = 'Enter a name with at least two characters.');
+      return;
+    }
+    if (total == null || !total.isFinite || total < 0) {
+      setState(() => _error = 'Enter a valid total of 0 or more kg CO₂e.');
+      return;
+    }
+    widget.store.pickCustomActivity(_name.text, total);
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final Cat category = catOf(widget.store.addCat!);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const SheetTitle(title: 'Add a custom activity'),
+        const SizedBox(height: 6),
+        Text(
+          'We will not guess an emission factor. Enter the total CO₂e '
+          'estimate for one occurrence.',
+          style: F.b(13, height: 1.45, color: cs.muted),
+        ),
+        const SizedBox(height: 14),
+        TextField(
+          controller: _name,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(labelText: 'Activity name'),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _co2e,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            labelText: 'Total emissions',
+            suffixText: 'kg CO₂e',
+          ),
+        ),
+        if (_error != null) ...<Widget>[
+          const SizedBox(height: 8),
+          Text(_error!, style: F.b(12.5, color: cs.danger)),
+        ],
+        const SizedBox(height: 14),
+        EcoCard(
+          flat: true,
+          tone: EcoCardTone.mint,
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: <Widget>[
+              CatBadge(
+                icon: category.icon,
+                background: category
+                    .resolve(cs, color: widget.store.categoryColor(category.id))
+                    .tint,
+                foreground: category
+                    .resolve(cs, color: widget.store.categoryColor(category.id))
+                    .ink,
+                size: 36,
+                iconSize: 18,
+                radius: 12,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Category: ${category.name} · one activity',
+                  style: F.b(12.5, wght: 700, color: cs.ink2),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        EcoButton(
+          label: 'Use this estimate',
+          leading: 'check',
+          block: true,
+          onPressed: () => _save(context),
         ),
       ],
     );

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart' hide Badge;
 
 import 'theme.dart';
@@ -122,12 +124,14 @@ class FoodPreparation {
   const FoodPreparation({
     required this.id,
     required this.name,
+    required this.icon,
     required this.multiplier,
     required this.detail,
   });
 
   final String id;
   final String name;
+  final String icon;
   final double multiplier;
   final String detail;
 }
@@ -136,28 +140,48 @@ const List<FoodPreparation> kFoodPreparations = <FoodPreparation>[
   FoodPreparation(
     id: 'grilled',
     name: 'Grilled or roasted',
+    icon: 'grill',
     multiplier: 1,
     detail: 'Dry-heat cooking; the ingredient remains the main source.',
   ),
   FoodPreparation(
     id: 'fried',
     name: 'Fried',
+    icon: 'fry',
     multiplier: 1.08,
     detail: 'A small cooking estimate is added for oil and extra heat.',
   ),
   FoodPreparation(
     id: 'steamed',
     name: 'Boiled or steamed',
+    icon: 'steam',
     multiplier: 0.96,
     detail: 'A lower-energy cooking estimate for a similar serving.',
   ),
   FoodPreparation(
     id: 'stir_fried',
     name: 'Stir-fried',
+    icon: 'stirFry',
     multiplier: 1.04,
     detail: 'A small estimate is added for oil and cooking heat.',
   ),
+  FoodPreparation(
+    id: 'raw',
+    name: 'Raw (sushi or sashimi)',
+    icon: 'sushi',
+    multiplier: 0.94,
+    detail:
+        'For raw fish dishes; fish sourcing and portion remain the main factors.',
+  ),
 ];
+
+List<FoodPreparation> foodPreparationOptions(String foodKey) =>
+    <FoodPreparation>[
+      ...kFoodPreparations.where(
+        (FoodPreparation preparation) =>
+            preparation.id != 'raw' || foodKey == 'fish',
+      ),
+    ];
 
 const List<ActivityDef> kActivities = <ActivityDef>[
   ActivityDef(
@@ -288,19 +312,19 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 18,
       chips: <double>[1, 3, 8],
-      icon: 'snow',
+      icon: 'air',
       detail: 'Uses a typical 0.86 kW AC estimate; real units vary widely.'),
   ActivityDef(
-      key: 'appliance',
+      key: 'charging',
       cat: 'electricity',
-      name: 'Other appliance',
+      name: 'Phone or tablet charging',
       unit: 'hours',
-      factor: 0.45,
+      factor: 0.012,
       step: 1,
-      max: 18,
-      chips: <double>[1, 4, 8],
+      max: 24,
+      chips: <double>[1, 3, 6],
       icon: 'plug',
-      detail: 'Fallback for a device not listed; based on typical power use.'),
+      detail: 'Typical 15 W charger estimate; actual devices vary.'),
   ActivityDef(
       key: 'fan',
       cat: 'electricity',
@@ -332,7 +356,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 24,
       chips: <double>[1, 4, 8],
-      icon: 'plug',
+      icon: 'laptop',
       detail: 'Typical 55 W laptop estimate while in use.'),
   ActivityDef(
       key: 'desktop',
@@ -343,7 +367,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 24,
       chips: <double>[1, 4, 8],
-      icon: 'plug',
+      icon: 'desktop',
       detail: 'Typical 250 W desktop estimate; gaming systems can use more.'),
   ActivityDef(
       key: 'television',
@@ -354,7 +378,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 24,
       chips: <double>[1, 3, 6],
-      icon: 'plug',
+      icon: 'television',
       detail: 'Typical 100 W television estimate.'),
   ActivityDef(
       key: 'laundry',
@@ -365,7 +389,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 8,
       chips: <double>[1, 2, 4],
-      icon: 'refresh',
+      icon: 'washingMachine',
       detail: 'Typical wash-cycle estimate; hot-water cycles use more.'),
   ActivityDef(
       key: 'refrigerator',
@@ -376,13 +400,13 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 30,
       chips: <double>[1, 3, 7],
-      icon: 'plug',
+      icon: 'refrigerator',
       detail:
           'Typical daily estimate for an efficient fridge; older models vary.'),
   ActivityDef(
       key: 'beef',
       cat: 'food',
-      name: 'Beef',
+      name: 'Beef & steak',
       unit: 'servings',
       factor: 4.0,
       step: 1,
@@ -393,18 +417,30 @@ const List<ActivityDef> kActivities = <ActivityDef>[
   ActivityDef(
       key: 'chicken',
       cat: 'food',
-      name: 'Chicken',
+      name: 'Chicken & poultry',
       unit: 'servings',
       factor: 1.6,
       step: 1,
       max: 6,
       chips: <double>[1, 2, 3],
       icon: 'chicken',
-      detail: 'Estimate for a 150 g cooked serving; sides are not included.'),
+      detail:
+          'Includes chicken or duck; estimate for one 150 g cooked serving.'),
+  ActivityDef(
+      key: 'pork_lamb',
+      cat: 'food',
+      name: 'Pork & lamb',
+      unit: 'servings',
+      factor: 2.8,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'bacon',
+      detail: 'Includes pork or lamb; estimate for one 150 g cooked serving.'),
   ActivityDef(
       key: 'fish',
       cat: 'food',
-      name: 'Fish or seafood',
+      name: 'Fish & seafood',
       unit: 'servings',
       factor: 1.1,
       step: 1,
@@ -423,7 +459,44 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       max: 6,
       chips: <double>[1, 2, 3],
       icon: 'egg',
-      detail: 'One typical eggs or dairy serving; mixed recipes vary.'),
+      detail:
+          'Includes milk, cheese or eggs; estimate for one typical serving.'),
+  ActivityDef(
+      key: 'rice_grains',
+      cat: 'food',
+      name: 'Rice & grains',
+      unit: 'servings',
+      factor: 0.8,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'grains',
+      detail:
+          'Includes rice, noodles or bread; estimate for one prepared serving.'),
+  ActivityDef(
+      key: 'plant_protein',
+      cat: 'food',
+      name: 'Plant-based protein',
+      unit: 'servings',
+      factor: 0.6,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'tofu',
+      detail:
+          'Includes tofu, tempeh or beans; estimate for one typical serving.'),
+  ActivityDef(
+      key: 'fruits_vegetables',
+      cat: 'food',
+      name: 'Fruits & vegetables',
+      unit: 'servings',
+      factor: 0.5,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'produce',
+      detail:
+          'A typical fresh-produce serving; growing methods and season vary.'),
   ActivityDef(
       key: 'vegetarian',
       cat: 'food',
@@ -434,7 +507,8 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       max: 6,
       chips: <double>[1, 2, 3],
       icon: 'leaf',
-      detail: 'One typical main-meal serving; ingredients and portions vary.'),
+      detail:
+          'A mixed vegetarian dish; ingredients and portion sizes can vary.'),
   ActivityDef(
       key: 'vegan',
       cat: 'food',
@@ -445,7 +519,19 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       max: 6,
       chips: <double>[1, 2, 3],
       icon: 'sprout',
-      detail: 'One typical main-meal serving; ingredients and portions vary.'),
+      detail:
+          'A fully plant-based meal; ingredients and portion sizes can vary.'),
+  ActivityDef(
+      key: 'snacks_processed',
+      cat: 'food',
+      name: 'Snacks & processed food',
+      unit: 'servings',
+      factor: 1.0,
+      step: 1,
+      max: 6,
+      chips: <double>[1, 2, 3],
+      icon: 'snack',
+      detail: 'Packaged snacks or an instant meal; packaging and brands vary.'),
 ];
 
 final List<ActivityDef> kFoodVariants = List<ActivityDef>.unmodifiable(
@@ -453,7 +539,8 @@ final List<ActivityDef> kFoodVariants = List<ActivityDef>.unmodifiable(
     for (final ActivityDef food in kActivities.where(
       (ActivityDef activity) => activity.cat == 'food',
     ))
-      for (final FoodPreparation preparation in kFoodPreparations)
+      for (final FoodPreparation preparation
+          in foodPreparationOptions(food.key))
         ActivityDef(
           key: '${food.key}_${preparation.id}',
           cat: 'food',
@@ -463,7 +550,7 @@ final List<ActivityDef> kFoodVariants = List<ActivityDef>.unmodifiable(
           step: food.step,
           max: food.max,
           chips: food.chips,
-          icon: food.icon,
+          icon: preparation.icon,
           detail: preparation.detail,
         ),
   ],
@@ -522,7 +609,7 @@ const List<Tip> kTips = <Tip>[
   Tip(
       id: 't2',
       cat: 'electricity',
-      icon: 'snow',
+      icon: 'air',
       title: 'Set the AC to 25°C',
       action: 'Each degree warmer cuts roughly 6% of its power draw.',
       why:
@@ -544,10 +631,10 @@ const List<Tip> kTips = <Tip>[
       cat: 'electricity',
       icon: 'plug',
       title: 'Unplug chargers when idle',
-      action: 'Switch off the strip before you leave the room.',
+      action: 'Unplug your phone charger once the device is full.',
       why:
-          'Standby load is small per device, but it runs every hour you are asleep or away — and it adds up across a house.',
-      ctaKey: 'appliance',
+          'A charger draws little power, but unplugging it is a simple way to avoid unnecessary standby use.',
+      ctaKey: 'charging',
       ctaAmount: 1),
   Tip(
       id: 't5',
@@ -589,6 +676,46 @@ const List<Tip> kTips = <Tip>[
           'Cycling is genuinely zero-emission in use, and it replaces the trips where a car is least efficient.',
       ctaKey: 'bicycle',
       ctaAmount: 5),
+  Tip(
+      id: 't9',
+      cat: 'food',
+      icon: 'grains',
+      title: 'Try rice or noodles as the main',
+      action: 'Build one meal around grains with vegetables or beans.',
+      why:
+          'Grains are usually a lower-emission base than a large serving of beef, especially when paired with plant proteins.',
+      ctaKey: 'rice_grains',
+      ctaAmount: 1),
+  Tip(
+      id: 't10',
+      cat: 'food',
+      icon: 'tofu',
+      title: 'Add beans or tofu',
+      action: 'Replace one meat portion with beans, tofu or tempeh.',
+      why:
+          'Plant proteins provide satisfying alternatives with generally lower food-related emissions than meat.',
+      ctaKey: 'plant_protein',
+      ctaAmount: 1),
+  Tip(
+      id: 't11',
+      cat: 'food',
+      icon: 'produce',
+      title: 'Choose seasonal produce',
+      action: 'Add a serving of fresh fruit or vegetables to a meal.',
+      why:
+          'Seasonal produce can avoid some of the energy and transport associated with out-of-season options.',
+      ctaKey: 'fruits_vegetables',
+      ctaAmount: 1),
+  Tip(
+      id: 't12',
+      cat: 'food',
+      icon: 'snack',
+      title: 'Plan a less-packaged snack',
+      action: 'Try fruit, nuts or another minimally packaged option.',
+      why:
+          'Choosing less-packaged snacks can reduce packaging waste and make it easier to plan portions.',
+      ctaKey: 'snacks_processed',
+      ctaAmount: 1),
 ];
 
 Tip? tipOf(String id) {
@@ -627,55 +754,214 @@ class Challenge {
   final String mascot;
 }
 
-List<Challenge> seedChallenges() => <Challenge>[
+String challengeWeekKey(DateTime date) {
+  final DateTime monday =
+      DateTime(date.year, date.month, date.day - date.weekday + 1);
+  return '${monday.year}-${monday.month}-${monday.day}';
+}
+
+List<Challenge> seedChallenges({DateTime? now}) {
+  final List<Challenge> pool = <Challenge>[
+    Challenge(
+      id: 'c1',
+      cat: 'transport',
+      title: 'Legs before engine',
+      why: 'Choose walking or cycling for one short trip today.',
+      reward: 30,
+      target: 1,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-excited',
+    ),
+    Challenge(
+      id: 'c2',
+      cat: 'electricity',
+      title: 'Lights off when you leave',
+      why: 'Switch off unused lights once a day for three days in a row.',
+      reward: 20,
+      target: 3,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-annoyed',
+    ),
+    Challenge(
+      id: 'c3',
+      cat: 'food',
+      title: 'Meat-free for a meal',
+      why: 'Choose one plant-forward meal today.',
+      reward: 25,
+      target: 1,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-happy',
+    ),
+    Challenge(
+      id: 'c4',
+      cat: 'electricity',
+      title: 'Unplug before bed',
+      why: 'Switch off one idle device each night for three nights in a row.',
+      reward: 20,
+      target: 3,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-curious',
+    ),
+    Challenge(
+      id: 'c5',
+      cat: 'transport',
+      title: 'Ride the bus once',
+      why: 'Replace one car trip with public transport this week.',
+      reward: 25,
+      target: 1,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-excited',
+    ),
+    Challenge(
+      id: 'c6',
+      cat: 'electricity',
+      title: 'Cooler by one degree',
+      why: 'Set your AC a little warmer for three days in a row.',
+      reward: 25,
+      target: 3,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-happy',
+    ),
+    Challenge(
+      id: 'c7',
+      cat: 'food',
+      title: 'Plan a leftovers meal',
+      why: 'Use food you already have for one meal this week.',
+      reward: 20,
+      target: 1,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-curious',
+    ),
+    Challenge(
+      id: 'c8',
+      cat: 'transport',
+      title: 'Cycle a short trip',
+      why: 'Use a bicycle instead of a motor vehicle once this week.',
+      reward: 25,
+      target: 1,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-excited',
+    ),
+    Challenge(
+      id: 'c9',
+      cat: 'electricity',
+      title: 'Air-dry a load',
+      why: 'Skip the tumble dryer for one laundry load this week.',
+      reward: 20,
+      target: 1,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-calm',
+    ),
+    Challenge(
+      id: 'c10',
+      cat: 'food',
+      title: 'Try a plant-based lunch',
+      why: 'Choose a vegan lunch once this week.',
+      reward: 25,
+      target: 1,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-happy',
+    ),
+    Challenge(
+      id: 'c11',
+      cat: 'transport',
+      title: 'Share the ride',
+      why: 'Carpool or share a rideshare for one trip this week.',
+      reward: 20,
+      target: 1,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-curious',
+    ),
+    Challenge(
+      id: 'c12',
+      cat: 'electricity',
+      title: 'Use daylight',
+      why: 'Leave a light off while daylight is enough, three days in a row.',
+      reward: 20,
+      target: 3,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-happy',
+    ),
+    Challenge(
+      id: 'c13',
+      cat: 'food',
+      title: 'Make two meat-free meals',
+      why: 'Choose two plant-forward meals on separate days this week.',
+      reward: 30,
+      target: 2,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-annoyed',
+    ),
+    Challenge(
+      id: 'c14',
+      cat: 'transport',
+      title: 'Choose the train',
+      why: 'Take a train or metro for one journey this week.',
+      reward: 25,
+      target: 1,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-happy',
+    ),
+    Challenge(
+      id: 'c15',
+      cat: 'electricity',
+      title: 'A lower-energy wash',
+      why: 'Choose a cool wash cycle twice this week.',
+      reward: 25,
+      target: 2,
+      progress: 0,
+      state: ChallengeState.active,
+      mascot: 'face-curious',
+    ),
+  ];
+  final String key = challengeWeekKey(now ?? DateTime.now());
+  final int seed = key.codeUnits.fold<int>(
+    0,
+    (int value, int unit) => value * 31 + unit,
+  );
+  pool.shuffle(math.Random(seed));
+  final List<Challenge> selected = pool.take(5).toList();
+  final int multiDayIndex = selected.indexWhere(
+    (Challenge challenge) => challenge.target >= 3,
+  );
+  if (multiDayIndex < 0) {
+    selected[4] =
+        pool.skip(5).firstWhere((Challenge challenge) => challenge.target >= 3);
+  } else if (multiDayIndex == 0) {
+    final Challenge featured = selected[0];
+    selected[0] = selected[4];
+    selected[4] = featured;
+  }
+  return <Challenge>[
+    for (int i = 0; i < selected.length; i++)
       Challenge(
-          id: 'c1',
-          cat: 'transport',
-          title: 'Legs before engine',
-          why: 'Choose walking or cycling for one short trip today.',
-          reward: 30,
-          target: 1,
-          progress: 0,
-          state: ChallengeState.active,
-          featured: true,
-          mascot: 'face-excited'),
-      Challenge(
-          id: 'c2',
-          cat: 'electricity',
-          title: 'Lights off when you leave',
-          why: 'Turn off unused lights for three days running.',
-          reward: 20,
-          target: 3,
-          progress: 2,
-          state: ChallengeState.active),
-      Challenge(
-          id: 'c3',
-          cat: 'food',
-          title: 'Meat-free for a meal',
-          why: 'Pick one plant-forward meal today.',
-          reward: 25,
-          target: 1,
-          progress: 1,
-          state: ChallengeState.claimable),
-      Challenge(
-          id: 'c4',
-          cat: 'electricity',
-          title: 'Unplug overnight',
-          why: 'Kill the standby load before bed.',
-          reward: 20,
-          target: 1,
-          progress: 1,
-          state: ChallengeState.claimed),
-      Challenge(
-          id: 'c5',
-          cat: 'transport',
-          title: 'Ride the bus once',
-          why: 'Swap one regular drive for the bus this week.',
-          reward: 25,
-          target: 1,
-          progress: 0,
-          state: ChallengeState.active),
-    ];
+        id: selected[i].id,
+        cat: selected[i].cat,
+        title: selected[i].title,
+        why: selected[i].why,
+        reward: selected[i].reward,
+        target: selected[i].target,
+        progress: 0,
+        state: ChallengeState.active,
+        featured: i == 0,
+        mascot: selected[i].mascot,
+      ),
+  ];
+}
 
 class Badge {
   Badge({
@@ -699,69 +985,122 @@ class Badge {
 
 List<Badge> seedBadges() => <Badge>[
       Badge(
-          id: 'b1',
-          icon: 'sprout',
-          name: 'First step',
-          desc: 'Log your very first activity',
-          unlocked: true,
-          progress: 1,
-          target: 1),
+        id: 'b1',
+        icon: 'sprout',
+        name: 'First step',
+        desc: 'Log your very first activity',
+        unlocked: false,
+        progress: 0,
+        target: 1,
+      ),
       Badge(
-          id: 'b2',
-          icon: 'flame',
-          name: 'Week streak',
-          desc: 'Open EcoTrack seven days in a row',
-          unlocked: true,
-          progress: 7,
-          target: 7),
+        id: 'b2',
+        icon: 'flame',
+        name: 'Week streak',
+        desc: 'Open EcoTrack seven days in a row',
+        unlocked: false,
+        progress: 0,
+        target: 7,
+      ),
       Badge(
-          id: 'b3',
-          icon: 'leaf',
-          name: 'Green chef',
-          desc: 'Log five plant-based meals',
-          unlocked: true,
-          progress: 5,
-          target: 5),
+        id: 'b3',
+        icon: 'leaf',
+        name: 'Green chef',
+        desc: 'Log five plant-based meals',
+        unlocked: false,
+        progress: 0,
+        target: 5,
+      ),
       Badge(
-          id: 'b4',
-          icon: 'bus',
-          name: 'Transit regular',
-          desc: 'Take the bus or train ten times',
-          unlocked: true,
-          progress: 10,
-          target: 10),
+        id: 'b4',
+        icon: 'bus',
+        name: 'Transit regular',
+        desc: 'Take the bus or train ten times',
+        unlocked: false,
+        progress: 0,
+        target: 10,
+      ),
       Badge(
-          id: 'b5',
-          icon: 'bike',
-          name: 'Cyclist',
-          desc: 'Cycle 25 km in total',
-          unlocked: false,
-          progress: 14,
-          target: 25),
+        id: 'b5',
+        icon: 'bike',
+        name: 'Cyclist',
+        desc: 'Cycle 25 km in total',
+        unlocked: false,
+        progress: 0,
+        target: 25,
+      ),
       Badge(
-          id: 'b6',
-          icon: 'bolt',
-          name: 'Power saver',
-          desc: 'Save 20 kWh against your baseline',
-          unlocked: false,
-          progress: 12,
-          target: 20),
+        id: 'b6',
+        icon: 'bolt',
+        name: 'Energy mindful',
+        desc: 'Log ten electricity activities',
+        unlocked: false,
+        progress: 0,
+        target: 10,
+      ),
       Badge(
-          id: 'b7',
-          icon: 'flag',
-          name: 'Challenger',
-          desc: 'Complete five daily challenges',
-          unlocked: false,
-          progress: 3,
-          target: 5),
+        id: 'b7',
+        icon: 'flag',
+        name: 'Challenger',
+        desc: 'Complete five weekly challenges',
+        unlocked: false,
+        progress: 0,
+        target: 5,
+      ),
       Badge(
-          id: 'b8',
-          icon: 'trophy',
-          name: 'Tree planter',
-          desc: 'Reach 2 000 Eco Points',
-          unlocked: false,
-          progress: 1520,
-          target: 2000),
+        id: 'b8',
+        icon: 'trophy',
+        name: 'Tree planter',
+        desc: 'Reach 2,000 Eco Points',
+        unlocked: false,
+        progress: 0,
+        target: 2000,
+      ),
+      Badge(
+        id: 'b9',
+        icon: 'walk',
+        name: 'Low-carbon commute',
+        desc: 'Log five walking or cycling trips',
+        unlocked: false,
+        progress: 0,
+        target: 5,
+      ),
+      Badge(
+        id: 'b10',
+        icon: 'food',
+        name: 'Mindful meals',
+        desc: 'Log ten meals',
+        unlocked: false,
+        progress: 0,
+        target: 10,
+      ),
+      Badge(
+        id: 'b11',
+        icon: 'plus',
+        name: 'Your own footprint',
+        desc: 'Log three custom activities',
+        unlocked: false,
+        progress: 0,
+        target: 3,
+      ),
+      Badge(
+        id: 'b12',
+        icon: 'chart',
+        name: 'Well-rounded',
+        desc: 'Log an activity from every carbon category',
+        unlocked: false,
+        progress: 0,
+        target: 3,
+      ),
+      Badge(
+        id: 'b13',
+        icon: 'bookmark',
+        name: 'Tip collector',
+        desc: 'Save five Eco Tips',
+        unlocked: false,
+        progress: 0,
+        target: 5,
+      ),
     ];
 
 class Level {

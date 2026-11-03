@@ -8,7 +8,9 @@ import 'common.dart';
 /// Primary bottom navigation. Hidden on the onboarding, auth, add and result
 /// routes, exactly like the prototype's tab bar.
 class EcoTabBar extends StatelessWidget {
-  const EcoTabBar({super.key});
+  const EcoTabBar({super.key, this.vertical = false});
+
+  final bool vertical;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +47,7 @@ class EcoTabBar extends StatelessWidget {
                       Text(
                         t.label,
                         style: F.b(
-                          11,
+                          vertical ? 10 : 11,
                           wght: 700,
                           color: on ? cs.leaf : cs.muted,
                         ),
@@ -54,21 +56,38 @@ class EcoTabBar extends StatelessWidget {
                   ),
                 ),
                 if (on)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 3,
-                    child: Center(
-                      child: Container(
-                        width: 18,
-                        height: 3,
-                        decoration: BoxDecoration(
-                          color: cs.forest,
-                          borderRadius: BorderRadius.circular(Eco.rPill),
+                  if (vertical)
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: Container(
+                          width: 3,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: cs.forest,
+                            borderRadius: BorderRadius.circular(Eco.rPill),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 3,
+                      child: Center(
+                        child: Container(
+                          width: 18,
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: cs.forest,
+                            borderRadius: BorderRadius.circular(Eco.rPill),
+                          ),
                         ),
                       ),
                     ),
-                  ),
               ],
             ),
           ),
@@ -77,14 +96,20 @@ class EcoTabBar extends StatelessWidget {
     }
 
     return Container(
+      width: vertical ? 76 : null,
       decoration: BoxDecoration(
         color: cs.surface,
-        border: Border(top: BorderSide(color: cs.outline)),
+        border: vertical
+            ? Border(right: BorderSide(color: cs.outline))
+            : Border(top: BorderSide(color: cs.outline)),
         boxShadow: Eco.shadowTabBar,
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(height: Eco.tabbarH, child: Row(children: tabs)),
+        bottom: !vertical,
+        child: vertical
+            ? Column(children: tabs)
+            : SizedBox(height: Eco.tabbarH, child: Row(children: tabs)),
       ),
     );
   }

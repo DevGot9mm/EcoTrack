@@ -59,52 +59,75 @@ class AppGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
 
-    if (store.route == 'welcome') return const WelcomeScreen();
+    if (store.route == 'welcome') {
+      return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.ground,
+        body: const WelcomeScreen(),
+      );
+    }
     if (store.route == 'auth') return const AuthScreen();
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, Object? result) {
-        if (didPop) return;
-        store.back();
-      },
-      child: Stack(
-        children: <Widget>[
-          Positioned.fill(
-            child: ColoredBox(
-              color: Theme.of(context).colorScheme.ground,
-            ),
-          ),
-          SafeArea(
-            bottom: false,
-            child: Column(
+    return OrientationBuilder(
+      builder: (BuildContext context, Orientation orientation) {
+        final bool useSideNavigation = orientation == Orientation.landscape &&
+            MediaQuery.sizeOf(context).width >= 700 &&
+            store.showTabBar;
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (bool didPop, Object? result) {
+            if (didPop) return;
+            store.back();
+          },
+          child: Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.ground,
+            body: Stack(
               children: <Widget>[
-                Expanded(
-                  child: Stack(
+                Positioned.fill(
+                  child: ColoredBox(
+                    color: Theme.of(context).colorScheme.ground,
+                  ),
+                ),
+                SafeArea(
+                  bottom: false,
+                  child: Row(
                     children: <Widget>[
-                      _buildBody(store),
-                      if (store.toastVisible)
-                        Positioned(
-                          top: 12,
-                          left: 20,
-                          right: 20,
-                          child: IgnorePointer(
-                            child: EcoToast(
-                              text: store.toastText,
-                              icon: store.toastIcon,
+                      if (useSideNavigation) const EcoTabBar(vertical: true),
+                      Expanded(
+                        child: Column(
+                          children: <Widget>[
+                            Expanded(
+                              child: Stack(
+                                children: <Widget>[
+                                  _buildBody(store),
+                                  if (store.toastVisible)
+                                    Positioned(
+                                      top: 12,
+                                      left: 20,
+                                      right: 20,
+                                      child: IgnorePointer(
+                                        child: EcoToast(
+                                          text: store.toastText,
+                                          icon: store.toastIcon,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
-                          ),
+                            if (store.showTabBar && !useSideNavigation)
+                              const EcoTabBar(),
+                          ],
                         ),
+                      ),
                     ],
                   ),
                 ),
-                if (store.showTabBar) const EcoTabBar(),
+                const CelebrationHost(),
               ],
             ),
           ),
-          const CelebrationHost(),
-        ],
-      ),
+        );
+      },
     );
   }
 

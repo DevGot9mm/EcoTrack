@@ -24,7 +24,7 @@ class WelcomeScreen extends StatelessWidget {
       'Your companion on the way to a lighter footprint. Small steps, every day.',
     ),
     _Slide(
-      'body-jump',
+      'body-jump-no-leaves',
       'See your impact',
       'Log a trip, a meal or an hour of power — EcoTrack turns it into a number you can actually act on.',
     ),

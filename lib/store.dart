@@ -52,6 +52,7 @@ class EcoStore extends ChangeNotifier {
 
   EcoStore() {
     activities.addAll(_seedActivities());
+    checkBadges(award: false);
   }
 
   // ---- Domain ------------------------------------------------------------
@@ -67,8 +68,11 @@ class EcoStore extends ChangeNotifier {
   bool notifyOn = true;
   final Map<String, bool> savedTips = <String, bool>{};
   final Map<String, Color> categoryColors = <String, Color>{};
+  final Map<String, ActivityDef> customActivityDefs = <String, ActivityDef>{};
   final List<Entry> activities = <Entry>[];
-  final List<Challenge> challenges = seedChallenges();
+  final List<Challenge> _challenges = seedChallenges();
+  String _challengeWeek = challengeWeekKey(DateTime.now());
+  final Map<String, DateTime> _challengeCheckins = <String, DateTime>{};
   final List<Badge> badges = seedBadges();
 
   // ---- UI state ----------------------------------------------------------
@@ -91,6 +95,8 @@ class EcoStore extends ChangeNotifier {
   String toastText = '';
   IconData toastIcon = Icons.check;
   bool toastVisible = false;
+  bool profileFocusSocial = false;
+  bool _returnToTipsOnAddBack = false;
   Timer? _toastTimer;
   bool _disposed = false;
 
@@ -133,6 +139,31 @@ class EcoStore extends ChangeNotifier {
 
   int get unlockedBadgeCount => badges.where((Badge b) => b.unlocked).length;
 
+  List<Challenge> get challenges {
+    refreshChallengeWeek();
+    return _challenges;
+  }
+
+  void refreshChallengeWeek({DateTime? now}) {
+    final DateTime current = now ?? DateTime.now();
+    final String key = challengeWeekKey(current);
+    if (key == _challengeWeek) return;
+    _challenges
+      ..clear()
+      ..addAll(seedChallenges(now: current));
+    _challengeCheckins.clear();
+    _challengeWeek = key;
+  }
+
+  void openSocialProfile() {
+    profileFocusSocial = true;
+    go('profile');
+  }
+
+  void clearSocialProfileFocus() {
+    profileFocusSocial = false;
+  }
+
   double get allTimeTotal => total(activities);
 
   String get greeting {
@@ -154,6 +185,9 @@ class EcoStore extends ChangeNotifier {
   }
 
   Color categoryColor(String id) => categoryColors[id] ?? catOf(id).color;
+
+  ActivityDef? activityOf(String key) =>
+      customActivityDefs[key] ?? activityDef(key);
 
   void setCategoryColor(String id, Color color) {
     if (!kCats.containsKey(id)) {
@@ -247,43 +281,66 @@ class EcoStore extends ChangeNotifier {
     }
   }
 
-  List<Badge> checkBadges() {
-    final double bike = total(
-      activities.where((Entry x) => x.key == 'bicycle').toList(),
+  List<Badge> checkBadges({bool award = true}) {
+    final List<Entry> plants = activities
+        .where(
+            (Entry entry) => entry.key == 'vegan' || entry.key == 'vegetarian')
+        .toList();
+    final List<Entry> transit = activities
+        .where((Entry entry) => entry.key == 'bus' || entry.key == 'train')
+        .toList();
+    final double bikeDistance = total(
+      activities.where((Entry entry) => entry.key == 'bicycle').toList(),
     );
-    final int plants = activities
-        .where((Entry x) => x.key == 'vegan' || x.key == 'vegetarian')
-        .length;
-    final int transit = activities
-        .where((Entry x) => x.key == 'bus' || x.key == 'train')
-        .length;
-
+    final double lowCarbonTrips = activities
+        .where(
+            (Entry entry) => entry.key == 'bicycle' || entry.key == 'walking')
+        .length
+        .toDouble();
+    final double electricityCount = activities
+        .where((Entry entry) => entry.cat == 'electricity')
+        .length
+        .toDouble();
+    final double foodCount = activities
+        .where((Entry entry) => entry.cat == 'food')
+        .length
+        .toDouble();
+    final double categoryCount =
+        activities.map((Entry entry) => entry.cat).toSet().length.toDouble();
+    final double customCount = activities
+        .where((Entry entry) => entry.key.startsWith('custom_'))
+        .length
+        .toDouble();
+    final double claimedChallenges = challenges
+        .where(
+            (Challenge challenge) => challenge.state == ChallengeState.claimed)
+        .length
+        .toDouble();
     final List<Badge> newly = <Badge>[];
     for (final Badge b in badges) {
-      if (b.unlocked) continue;
-      bool ok = false;
-      if (b.id == 'b5') {
-        b.progress = bike.roundToDouble();
-        ok = b.progress >= b.target;
-      }
-      if (b.id == 'b3') {
-        b.progress = plants.toDouble();
-        ok = b.progress >= b.target;
-      }
-      if (b.id == 'b4') {
-        b.progress = transit.toDouble();
-        ok = b.progress >= b.target;
-      }
-      if (b.id == 'b8') {
-        b.progress = points.toDouble();
-        ok = points >= b.target;
-      }
-      if (ok) {
+      final double progress = switch (b.id) {
+        'b1' => activities.isEmpty ? 0 : 1,
+        'b2' => streak.toDouble(),
+        'b3' => plants.length.toDouble(),
+        'b4' => transit.length.toDouble(),
+        'b5' => bikeDistance,
+        'b6' => electricityCount,
+        'b7' => claimedChallenges,
+        'b8' => points.toDouble(),
+        'b9' => lowCarbonTrips,
+        'b10' => foodCount,
+        'b11' => customCount,
+        'b12' => categoryCount,
+        'b13' => savedTips.length.toDouble(),
+        _ => b.progress,
+      };
+      b.progress = progress.clamp(0, b.target).toDouble();
+      if (progress >= b.target && !b.unlocked) {
         b.unlocked = true;
-        newly.add(b);
+        if (award) newly.add(b);
       }
     }
-    if (newly.isNotEmpty) {
+    if (award && newly.isNotEmpty) {
       points += 50 * newly.length;
       showBadgeUnlock(newly.first);
     }
@@ -321,6 +378,7 @@ class EcoStore extends ChangeNotifier {
   /* ---- Add-activity flow ------------------------------------------------ */
 
   void openAdd() {
+    _returnToTipsOnAddBack = false;
     addStep = 0;
     addCat = null;
     addKey = null;
@@ -338,7 +396,7 @@ class EcoStore extends ChangeNotifier {
 
   void pickAct(String key) {
     addKey = key;
-    final ActivityDef? d = activityDef(key);
+    final ActivityDef? d = activityOf(key);
     if (d != null) addAmount = defaultAmount(d);
     _emit();
   }
@@ -348,6 +406,37 @@ class EcoStore extends ChangeNotifier {
     addKey = null;
     _emit();
   }
+
+  void pickCustomActivity(String name, double totalCo2e) {
+    final String trimmedName = name.trim();
+    if (addCat == null ||
+        trimmedName.length < 2 ||
+        !totalCo2e.isFinite ||
+        totalCo2e < 0) {
+      throw ArgumentError('Custom activity needs a name, category, and total.');
+    }
+    final String key = 'custom_${DateTime.now().microsecondsSinceEpoch}';
+    final Cat category = catOf(addCat!);
+    customActivityDefs[key] = ActivityDef(
+      key: key,
+      cat: category.id,
+      name: trimmedName,
+      unit: 'activity',
+      factor: totalCo2e,
+      step: 1,
+      max: 1,
+      chips: const <double>[1],
+      icon: category.icon,
+      detail: 'User-entered total CO₂e; no catalog factor was assumed.',
+    );
+    addKey = key;
+    addAmount = 1;
+    addStep = amountStep;
+    _emit();
+  }
+
+  bool isCustomActivity(String? key) =>
+      key != null && customActivityDefs.containsKey(key);
 
   bool get isFoodFlow => addCat == 'food';
   int get amountStep => isFoodFlow ? 3 : 2;
@@ -374,19 +463,25 @@ class EcoStore extends ChangeNotifier {
       } else {
         if (addKey == null) return;
         addStep = 2;
-        final ActivityDef? d = activityDef(addKey!);
+        final ActivityDef? d = activityOf(addKey!);
         if (d != null) addAmount = defaultAmount(d);
       }
     } else if (addStep == 2 && isFoodFlow) {
       if (addKey == null) return;
       addStep = 3;
-      final ActivityDef? d = activityDef(addKey!);
+      final ActivityDef? d = activityOf(addKey!);
       if (d != null) addAmount = defaultAmount(d);
     }
     _emit();
   }
 
   void addBack() {
+    if (_returnToTipsOnAddBack) {
+      _returnToTipsOnAddBack = false;
+      route = _stack.isNotEmpty ? _stack.removeLast() : 'tips';
+      _emit();
+      return;
+    }
     if (addStep == 0) {
       go('home');
       return;
@@ -396,14 +491,14 @@ class EcoStore extends ChangeNotifier {
   }
 
   void amtStep(double delta) {
-    final ActivityDef? a = addKey == null ? null : activityDef(addKey!);
+    final ActivityDef? a = addKey == null ? null : activityOf(addKey!);
     if (a == null) return;
     addAmount = clampAmount(a, addAmount + delta * a.step);
     _emit();
   }
 
   void amtSet(double v) {
-    final ActivityDef? a = addKey == null ? null : activityDef(addKey!);
+    final ActivityDef? a = addKey == null ? null : activityOf(addKey!);
     if (a == null) return;
     final double canonicalAmount =
         a.unit == 'km' && distanceUnit == 'mi' ? v * _kmPerMile : v;
@@ -413,17 +508,18 @@ class EcoStore extends ChangeNotifier {
 
   void saveActivity() {
     if (addKey == null) return;
-    final ActivityDef a = activityDef(addKey!)!;
+    final ActivityDef a = activityOf(addKey!)!;
     final Entry entry = Entry(
       id: 'a${DateTime.now().microsecondsSinceEpoch}',
       key: a.key,
       cat: a.cat,
       amount: addAmount,
-      co2: round1(a.factor * addAmount),
+      co2: isCustomActivity(a.key) ? a.factor : round1(a.factor * addAmount),
       at: DateTime.now(),
     );
     activities.add(entry);
     lastActivity = entry;
+    _returnToTipsOnAddBack = false;
     final int oldLevel = levelOf(points).idx;
     points += 15;
     final int newLevel = levelOf(points).idx;
@@ -484,6 +580,7 @@ class EcoStore extends ChangeNotifier {
       savedTips[id] = true;
       toast('Tip saved', kIcons['bookmark']);
     }
+    checkBadges();
   }
 
   void openTipFromRail(String id) {
@@ -495,12 +592,14 @@ class EcoStore extends ChangeNotifier {
   void tryTip(String id) {
     final Tip? t = tipOf(id);
     if (t == null) return;
-    final ActivityDef? a = activityDef(t.ctaKey);
+    final ActivityDef? a = activityOf(t.ctaKey);
     if (a == null) return;
     addCat = a.cat;
-    addKey = a.key;
+    addKey = a.cat == 'food' ? foodPreparationsOf(a.key).first.key : a.key;
+    addFoodType = a.cat == 'food' ? a.key : null;
     addAmount = t.ctaAmount;
-    addStep = 2;
+    addStep = amountStep;
+    _returnToTipsOnAddBack = true;
     go('add');
   }
 
@@ -519,13 +618,38 @@ class EcoStore extends ChangeNotifier {
     return null;
   }
 
-  void challengeDone(String id) {
+  bool challengeCheckedInToday(String id, {DateTime? now}) {
+    final DateTime current = now ?? DateTime.now();
+    final DateTime day = DateTime(current.year, current.month, current.day);
+    return _challengeCheckins[id] == day;
+  }
+
+  void challengeDone(String id, {DateTime? now}) {
     final Challenge? c = challengeOf(id);
-    if (c == null || c.state == ChallengeState.claimed) return;
-    c.progress = c.target;
-    c.state = ChallengeState.claimable;
+    if (c == null || c.state != ChallengeState.active) return;
+    final DateTime today = now ?? DateTime.now();
+    final DateTime day = DateTime(today.year, today.month, today.day);
+    final DateTime? lastCheckin = _challengeCheckins[id];
+    if (challengeCheckedInToday(id, now: today)) {
+      toast('You already checked in for this challenge today', kIcons['info']);
+      return;
+    }
+    if (c.target > 1) {
+      final bool continuesStreak =
+          lastCheckin != null && day.difference(lastCheckin).inDays == 1;
+      c.progress = continuesStreak ? c.progress + 1 : 1;
+    } else {
+      c.progress = 1;
+    }
+    _challengeCheckins[id] = day;
+    if (c.progress >= c.target) c.state = ChallengeState.claimable;
     _emit();
-    toast('Nice — claim your reward', kIcons['check']);
+    toast(
+      c.state == ChallengeState.claimable
+          ? 'Nice — claim your reward'
+          : 'Daily check-in saved',
+      kIcons['check'],
+    );
   }
 
   void claim(String id) {
@@ -567,16 +691,22 @@ class EcoStore extends ChangeNotifier {
     distanceUnit = 'km';
     notifyOn = true;
     savedTips.clear();
+    _returnToTipsOnAddBack = false;
+    profileFocusSocial = false;
     openTips.clear();
+    customActivityDefs.clear();
     activities
       ..clear()
       ..addAll(_seedActivities());
-    challenges
+    _challenges
       ..clear()
       ..addAll(seedChallenges());
+    _challengeWeek = challengeWeekKey(DateTime.now());
+    _challengeCheckins.clear();
     badges
       ..clear()
       ..addAll(seedBadges());
+    checkBadges(award: false);
     route = 'welcome';
     _stack.clear();
     onboardSlide = 0;
@@ -664,7 +794,7 @@ class EcoStore extends ChangeNotifier {
       <Object>[3, 8, 10, 'motorcycle', 8],
       <Object>[3, 12, 45, 'fish', 1],
       <Object>[3, 18, 30, 'ac', 2],
-      <Object>[3, 22, 0, 'appliance', 3],
+      <Object>[3, 22, 0, 'charging', 3],
       <Object>[4, 9, 0, 'walking', 3],
       <Object>[4, 12, 20, 'vegetarian', 2],
       <Object>[4, 19, 40, 'home', 5],
@@ -681,7 +811,7 @@ class EcoStore extends ChangeNotifier {
       <Object>[8, 21, 0, 'ac', 3],
       <Object>[9, 8, 0, 'motorcycle', 14],
       <Object>[9, 12, 30, 'chicken', 1],
-      <Object>[9, 18, 0, 'appliance', 4],
+      <Object>[9, 18, 0, 'charging', 4],
       <Object>[10, 7, 50, 'car', 30],
       <Object>[10, 13, 0, 'fish', 2],
       <Object>[10, 20, 0, 'home', 5],
@@ -691,7 +821,7 @@ class EcoStore extends ChangeNotifier {
       <Object>[12, 8, 40, 'car', 24],
       <Object>[12, 12, 0, 'dairy', 2],
       <Object>[12, 19, 30, 'home', 4],
-      <Object>[12, 22, 0, 'appliance', 2],
+      <Object>[12, 22, 0, 'charging', 2],
       <Object>[13, 10, 20, 'train', 22],
       <Object>[13, 13, 0, 'chicken', 2],
       <Object>[13, 18, 30, 'ac', 4],

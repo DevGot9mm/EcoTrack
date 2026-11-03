@@ -139,7 +139,7 @@ class _HistRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final ActivityDef? def = activityDef(entry.key);
+    final ActivityDef? def = store.activityOf(entry.key);
     if (def == null) return const SizedBox.shrink();
     final Cat c = catOf(entry.cat);
 

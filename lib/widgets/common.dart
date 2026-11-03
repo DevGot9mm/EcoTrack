@@ -481,10 +481,15 @@ const Map<String, String> _avatarAssetPaths = <String, String>{
   'image.png': 'assets/images/portraits/image.png',
   'image-2.png': 'assets/images/portraits/image-2.png',
   'image-5.png': 'assets/images/portraits/image-5.png',
+  'level-1': 'assets/level-mascots/level-1.png',
+  'level-2': 'assets/level-mascots/level-2.png',
+  'level-3': 'assets/level-mascots/level-3.png',
+  'level-4': 'assets/level-mascots/level-4.png',
+  'level-5': 'assets/level-mascots/level-5.png',
 };
 
 String mascotPath(String name) =>
-    _avatarAssetPaths[name] ?? 'assets/mascot/$name.png';
+    _avatarAssetPaths[name] ?? 'assets/mascot-clean/$name.png';
 
 class MascotArt extends StatelessWidget {
   const MascotArt(
@@ -1220,28 +1225,39 @@ class EcoScreen extends StatelessWidget {
   const EcoScreen({
     super.key,
     this.header,
-    required this.child,
+    this.child,
+    this.children,
     this.footer,
     this.padding = const EdgeInsets.fromLTRB(20, 0, 20, 28),
-  });
+    this.scrollController,
+  }) : assert(child != null || children != null);
 
   final Widget? header;
-  final Widget child;
+  final Widget? child;
+  final List<Widget>? children;
   final Widget? footer;
   final EdgeInsetsGeometry padding;
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        if (header != null) header!,
-        Expanded(
-          child: SingleChildScrollView(
+    final Widget scrollable = children == null
+        ? SingleChildScrollView(
+            controller: scrollController,
             physics: const ClampingScrollPhysics(),
             padding: padding,
             child: child,
-          ),
-        ),
+          )
+        : ListView(
+            controller: scrollController,
+            physics: const ClampingScrollPhysics(),
+            padding: padding,
+            children: children!,
+          );
+    return Column(
+      children: <Widget>[
+        if (header != null) header!,
+        Expanded(child: scrollable),
         if (footer != null) footer!,
       ],
     );

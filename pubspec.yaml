@@ -13,6 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   font_awesome_flutter: ^11.0.0
+  share_plus: 7.2.2
   url_launcher: ^6.3.2
 
 dev_dependencies:
@@ -25,6 +26,8 @@ flutter:
   assets:
     - assets/images/portraits/
     - assets/mascot/
+    - assets/mascot-clean/
+    - assets/level-mascots/
 
   fonts:
     - family: Fredoka

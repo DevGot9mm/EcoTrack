@@ -1,8 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart' hide Badge;
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../icons.dart';
 import '../models.dart';
@@ -12,16 +13,40 @@ import '../widgets/common.dart';
 import '../widgets/iso_social_button.dart';
 import '../widgets/sheets.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _socialScrollScheduled = false;
 
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
     final LevelInfo lvl = levelOf(store.points);
     final cs = Theme.of(context).colorScheme;
+    if (store.profileFocusSocial && !_socialScrollScheduled) {
+      _socialScrollScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+        if (!mounted) return;
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 450),
+            curve: Curves.easeOutCubic,
+          );
+        }
+        store.clearSocialProfileFocus();
+        _socialScrollScheduled = false;
+      });
+    }
 
     return EcoScreen(
+      scrollController: _scrollController,
       header: EcoTopBar(
         title: 'Profile',
         right: FlipIconButton(
@@ -102,6 +127,12 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 }
 
@@ -397,6 +428,14 @@ class _BadgesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final bool wide = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final Map<String, int> originalOrder = <String, int>{
+      for (int i = 0; i < store.badges.length; i++) store.badges[i].id: i,
+    };
+    final List<Badge> orderedBadges = List<Badge>.of(store.badges)
+      ..sort((Badge a, Badge b) {
+        if (a.unlocked != b.unlocked) return a.unlocked ? 1 : -1;
+        return originalOrder[a.id]!.compareTo(originalOrder[b.id]!);
+      });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -411,9 +450,9 @@ class _BadgesSection extends StatelessWidget {
             mainAxisSpacing: wide ? 12 : 10,
             childAspectRatio: wide ? 1.1 : 0.82,
           ),
-          itemCount: store.badges.length,
+          itemCount: orderedBadges.length,
           itemBuilder: (BuildContext context, int i) {
-            final Badge b = store.badges[i];
+            final Badge b = orderedBadges[i];
             return _BadgeItem(
               b: b,
               cs: cs,
@@ -527,9 +566,8 @@ class _BadgeItemState extends State<_BadgeItem> {
                 hoverScale: 1.01,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: widget.b.unlocked
-                        ? widget.cs.surface
-                        : widget.cs.surface2,
+                    color:
+                        widget.b.unlocked ? widget.cs.mint : widget.cs.surface,
                     border: Border.all(
                       color: widget.b.unlocked
                           ? widget.cs.outline
@@ -751,11 +789,7 @@ class _SocialSection extends StatelessWidget {
               width: 145,
               height: 60,
               depth: 14,
-              onTap: () => _openSocialLink(
-                store,
-                'Instagram',
-                'https://www.instagram.com/',
-              ),
+              onTap: () => _openSocialLink(store, 'Instagram'),
             ),
             IsoSocialButton(
               icon: FontAwesomeIcons.tiktok,
@@ -769,8 +803,7 @@ class _SocialSection extends StatelessWidget {
               width: 145,
               height: 60,
               depth: 14,
-              onTap: () =>
-                  _openSocialLink(store, 'TikTok', 'https://www.tiktok.com/'),
+              onTap: () => _openSocialLink(store, 'TikTok'),
             ),
             IsoSocialButton(
               icon: FontAwesomeIcons.xTwitter,
@@ -784,7 +817,7 @@ class _SocialSection extends StatelessWidget {
               width: 145,
               height: 60,
               depth: 14,
-              onTap: () => _openSocialLink(store, 'X', 'https://x.com/'),
+              onTap: () => _openSocialLink(store, 'X'),
             ),
           ],
         ),
@@ -792,18 +825,8 @@ class _SocialSection extends StatelessWidget {
     );
   }
 
-  Future<void> _openSocialLink(
-    EcoStore store,
-    String platform,
-    String url,
-  ) async {
-    final bool opened = await launchUrl(
-      Uri.parse(url),
-      mode: LaunchMode.externalApplication,
-    );
-    if (!opened) {
-      store.toast('Could not open $platform.', Icons.error);
-    }
+  void _openSocialLink(EcoStore store, String platform) {
+    store.toast('The official EcoTrack $platform link is not configured yet');
   }
 }
 
@@ -970,7 +993,9 @@ Future<void> _showAccountSettings(
             const SheetTitle(title: 'Account & security'),
             const SizedBox(height: 6),
             Text(
-              'This demo keeps profile data on this device for the current session.',
+              'Profile changes stay in this demo session. Email verification, '
+              'password changes, and account recovery need a backend and are '
+              'not available yet.',
               style: F.b(13, height: 1.45, color: cs.muted),
               textAlign: TextAlign.center,
             ),
@@ -1249,7 +1274,33 @@ void _showHelp(BuildContext context, EcoStore store) {
           body:
               'This demo keeps data in memory on this device session. It is not synced to an account or server.',
         ),
+        _HelpItem(
+          title: 'Are the CO₂e values exact?',
+          body:
+              'No. The activity factors are educational estimates and can vary by location, provider, product, and individual habits.',
+        ),
+        _HelpItem(
+          title: 'How do daily challenge check-ins work?',
+          body:
+              'You can check in once per local calendar day. Challenges that ask for several days require consecutive daily check-ins; a missed day restarts that streak.',
+        ),
+        _HelpItem(
+          title: 'Can I add an activity that is not listed?',
+          body:
+              'Yes. Choose the final “Other” option and enter your own total CO₂e estimate. EcoTrack will not infer a factor for it.',
+        ),
         const SizedBox(height: 12),
+        EcoButton(
+          label: 'Report an issue',
+          leading: 'mail',
+          tone: EcoButtonTone.ghost,
+          block: true,
+          onPressed: () {
+            Navigator.pop(context);
+            _showReportIssue(context, store);
+          },
+        ),
+        const SizedBox(height: 8),
         EcoButton(
           label: 'Browse Eco Tips',
           leading: 'tips',
@@ -1300,13 +1351,61 @@ void _showAbout(BuildContext context) {
         final cs = Theme.of(ctx).colorScheme;
         return Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             const SheetTitle(title: 'About EcoTrack'),
             const SizedBox(height: 8),
             Text(
-              'EcoTrack helps make everyday climate choices visible. Carbon figures are estimates for guidance, not audited measurements.',
-              style: F.b(14.5, height: 1.5, color: cs.ink2),
-              textAlign: TextAlign.center,
+              'EcoTrack makes the climate impact of everyday choices easier '
+              'to see. It helps people record transport, household energy, '
+              'and food activities, then build lower-impact habits through '
+              'tips and weekly challenges.',
+              style: F.b(14, height: 1.5, color: cs.ink2),
+            ),
+            const SizedBox(height: 14),
+            EcoCard(
+              flat: true,
+              tone: EcoCardTone.mint,
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('SDG 13 · Climate Action', style: F.d(16)),
+                  const SizedBox(height: 5),
+                  Text(
+                    'The United Nations Sustainable Development Goal 13 calls '
+                    'for urgent action to combat climate change and its '
+                    'impacts. EcoTrack supports climate awareness and '
+                    'individual habit changes; it is an educational project, '
+                    'not an official UN product or emissions certification.',
+                    style: F.b(13, height: 1.45, color: cs.ink2),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text('Project team', style: F.d(16)),
+            const SizedBox(height: 6),
+            for (final String member in <String>[
+              'Devin Owen Sanusi',
+              'Anggara Adelee',
+              'Kelvin Kurniawan',
+            ])
+              Padding(
+                padding: const EdgeInsets.only(bottom: 5),
+                child: Row(
+                  children: <Widget>[
+                    EcoIcon('user', size: 17, color: cs.leaf),
+                    const SizedBox(width: 8),
+                    Text(member, style: F.b(13.5, wght: 700)),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 8),
+            Text(
+              'All footprint values are illustrative estimates for learning '
+              'and comparison, not audited measurements.',
+              style: F.b(12.5, height: 1.4, color: cs.muted),
             ),
             const SizedBox(height: 16),
             EcoButton(
@@ -1320,6 +1419,112 @@ void _showAbout(BuildContext context) {
       },
     ),
   );
+}
+
+void _showReportIssue(BuildContext context, EcoStore store) {
+  showEcoSheet(
+    context,
+    _ReportIssueForm(store: store),
+  );
+}
+
+class _ReportIssueForm extends StatefulWidget {
+  const _ReportIssueForm({required this.store});
+
+  final EcoStore store;
+
+  @override
+  State<_ReportIssueForm> createState() => _ReportIssueFormState();
+}
+
+class _ReportIssueFormState extends State<_ReportIssueForm> {
+  final TextEditingController _title = TextEditingController();
+  final TextEditingController _details = TextEditingController();
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _details.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const SheetTitle(title: 'Report an issue'),
+        const SizedBox(height: 6),
+        Text(
+          'Choose an app from your device’s share sheet to send or save your '
+          'report. EcoTrack will not upload it directly.',
+          style: F.b(13, height: 1.45, color: cs.muted),
+        ),
+        const SizedBox(height: 14),
+        TextField(
+          controller: _title,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(labelText: 'Short title'),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _details,
+          minLines: 3,
+          maxLines: 6,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(labelText: 'What happened?'),
+        ),
+        const SizedBox(height: 14),
+        Builder(
+          builder: (BuildContext context) => EcoButton(
+            label: 'Share report',
+            leading: 'share',
+            block: true,
+            onPressed: () => _shareReport(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _shareReport(BuildContext shareContext) async {
+    final String title = _title.text.trim();
+    final String details = _details.text.trim();
+    if (title.length < 3 || details.length < 10) {
+      widget.store
+          .toast('Add a short title and at least 10 characters of detail');
+      return;
+    }
+
+    try {
+      final RenderObject? renderObject = shareContext.findRenderObject();
+      final Rect? sharePositionOrigin = renderObject is RenderBox &&
+              renderObject.hasSize
+          ? renderObject.localToGlobal(Offset.zero) & renderObject.size
+          : null;
+      final ShareResult result = await Share.shareWithResult(
+        'EcoTrack issue report\n\n$title\n\n$details',
+        subject: 'EcoTrack issue report: $title',
+        sharePositionOrigin: sharePositionOrigin,
+      );
+      if (!mounted) return;
+      if (result.status == ShareResultStatus.success) {
+        Navigator.pop(context);
+        widget.store.toast('Report shared');
+      }
+    } on PlatformException catch (error) {
+      if (!mounted) return;
+      widget.store.toast(
+        'Could not open the share sheet: ${error.message ?? error.code}',
+        kIcons['info'],
+      );
+    } on MissingPluginException {
+      if (!mounted) return;
+      widget.store
+          .toast('Sharing is unavailable on this device', kIcons['info']);
+    }
+  }
 }
 
 Future<void> _confirmSignOut(BuildContext context, EcoStore store) async {
@@ -1344,18 +1549,4 @@ Future<void> _confirmSignOut(BuildContext context, EcoStore store) async {
       ) ??
       false;
   if (shouldSignOut) store.signOut();
-}
-
-class SheetTitle extends StatelessWidget {
-  const SheetTitle({required this.title, super.key});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: F.d(20),
-      textAlign: TextAlign.center,
-    );
-  }
 }

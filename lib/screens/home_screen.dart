@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../icons.dart';
@@ -13,7 +14,6 @@ import '../widgets/sheets.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  static const Color _white66 = Color(0xA8FFFFFF);
   static const Color _white72 = Color(0xB8FFFFFF);
 
   Widget _section({required Widget child}) =>
@@ -23,7 +23,6 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
     final cs = Theme.of(context).colorScheme;
-    final double screenW = MediaQuery.of(context).size.width;
     final bool tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
 
     final double todayTotal = store.total(store.inRange(0, 0));
@@ -59,8 +58,6 @@ class HomeScreen extends StatelessWidget {
       orElse: () => store.challenges.first,
     );
     final LevelInfo lvl = levelOf(store.points);
-
-    final double heroNumSize = (screenW * 0.135).clamp(44.0, 56.0);
 
     return Stack(
       children: <Widget>[
@@ -123,133 +120,85 @@ class HomeScreen extends StatelessWidget {
 
               // ---- Hero -----------------------------------------------------
               HPad(
-                child: EcoCard(
-                  tone: EcoCardTone.dark,
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                child: _HomeBannerCarousel(
+                  height: 268,
+                  cards: <Widget>[
+                    _HomeBannerCard(
+                      key: const ValueKey<String>('home-banner-today-card'),
+                      mascot: 'face-curious',
+                      eyebrow: 'TODAY SO FAR',
+                      title: '${fmt1(todayTotal)} kg CO₂e',
+                      subtitle:
+                          '${improved ? 'Down' : 'Up'} ${delta.abs()}% vs last '
+                          'week. Small steps still add up.',
+                      detail: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                const Eyebrow(
-                                  'Today so far',
-                                  color: _white66,
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Text(
+                                  'Daily goal ${fmt1(store.dailyTarget)} kg',
+                                  style: F.b(12, wght: 700, color: _white72),
                                 ),
-                                const SizedBox(height: 8),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.baseline,
-                                    textBaseline: TextBaseline.alphabetic,
-                                    children: <Widget>[
-                                      Text(
-                                        fmt1(todayTotal),
-                                        style: F.d(
-                                          heroNumSize,
-                                          color: Colors.white,
-                                          height: 0.96,
-                                          ls: -0.03,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 7),
-                                      Text(
-                                        'kg CO₂e',
-                                        style: F.b(
-                                          15,
-                                          wght: 800,
-                                          color: _white72,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    alignment: Alignment.centerLeft,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 11,
-                                        vertical: 5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0x38A9C79A),
-                                        borderRadius: BorderRadius.circular(
-                                          Eco.rPill,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: <Widget>[
-                                          EcoIcon(
-                                            improved ? 'arrowDown' : 'arrowUp',
-                                            size: 15,
-                                            color: const Color(0xFFDFF0D3),
-                                          ),
-                                          const SizedBox(width: 5),
-                                          Text(
-                                            '${improved ? 'Down ' : 'Up '}'
-                                            '${delta.abs()}% vs last week',
-                                            style: F.b(
-                                              13,
-                                              wght: 800,
-                                              color: const Color(0xFFDFF0D3),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                              Text(
+                                '$targetPct%',
+                                style: F.b(12, wght: 800, color: Colors.white),
+                              ),
+                            ],
                           ),
-                          const MascotArt('face-curious', width: 96),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: <Widget>[
-                          Expanded(
-                            child: Text(
-                              'Daily goal ${fmt1(store.dailyTarget)} kg',
-                              style: F.b(12.5, wght: 700, color: _white72),
-                            ),
-                          ),
-                          Text(
-                            '$targetPct%',
-                            style: F.d(15, color: Colors.white),
+                          const SizedBox(height: 7),
+                          EcoBar(
+                            value: targetPct / 100,
+                            color: cs.leaf,
+                            track: const Color(0x2EFFFFFF),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      EcoBar(
-                        value: targetPct / 100,
-                        color: cs.leaf,
-                        track: const Color(0x2EFFFFFF),
+                      buttonLabel: 'Log activity',
+                      buttonIcon: 'plus',
+                      buttonKey: const ValueKey<String>(
+                        'home-banner-log-button',
                       ),
-                      const SizedBox(height: 16),
-                      EcoButton(
-                        label: 'Log activity',
-                        leading: 'plus',
-                        tone: EcoButtonTone.onDark,
-                        block: true,
-                        minHeight: tablet ? 56 : 52,
-                        onPressed: store.openAdd,
+                      onPressed: store.openAdd,
+                    ),
+                    _HomeBannerCard(
+                      mascot: 'face-excited',
+                      eyebrow: 'A QUICK WIN',
+                      title: 'Make your next choice count',
+                      subtitle: 'Find easy ideas for lighter trips, meals, and '
+                          'home energy.',
+                      detail: _BannerNote(
+                        icon: 'tips',
+                        text: 'One practical idea at a time',
                       ),
-                    ],
-                  ),
+                      buttonLabel: 'Explore Eco Tips',
+                      buttonIcon: 'arrowRight',
+                      buttonKey: const ValueKey<String>(
+                        'home-banner-tips-button',
+                      ),
+                      onPressed: () => store.openTipFromRail('t1'),
+                    ),
+                    _HomeBannerCard(
+                      mascot: 'face-happy',
+                      eyebrow: 'KEEP YOUR MOMENTUM',
+                      title: '${store.streak}-day streak',
+                      subtitle:
+                          'Your small daily actions are building a greener '
+                          'routine.',
+                      detail: _BannerNote(
+                        icon: 'trophy',
+                        text: 'Check in on this week’s challenges',
+                      ),
+                      buttonLabel: 'View challenges',
+                      buttonIcon: 'flag',
+                      buttonKey: const ValueKey<String>(
+                        'home-banner-challenges-button',
+                      ),
+                      onPressed: () => store.go('challenges'),
+                    ),
+                  ],
                 ),
               ),
 
@@ -397,12 +346,16 @@ class HomeScreen extends StatelessWidget {
                               featured.state == ChallengeState.claimable;
                           final bool completed =
                               featured.state == ChallengeState.claimed;
+                          final bool checkedInToday =
+                              store.challengeCheckedInToday(featured.id);
                           return EcoButton(
                             label: completed
                                 ? 'Challenge complete'
                                 : claimable
                                     ? 'Claim ${featured.reward} pts'
-                                    : 'I did this today',
+                                    : checkedInToday
+                                        ? 'Checked in today'
+                                        : 'I did this today',
                             leading: completed
                                 ? 'check'
                                 : claimable
@@ -410,9 +363,11 @@ class HomeScreen extends StatelessWidget {
                                     : 'check',
                             tone: completed
                                 ? EcoButtonTone.ghost
-                                : EcoButtonTone.primary,
+                                : checkedInToday
+                                    ? EcoButtonTone.ghost
+                                    : EcoButtonTone.primary,
                             block: true,
-                            onPressed: completed
+                            onPressed: completed || checkedInToday
                                 ? null
                                 : () {
                                     if (claimable) {
@@ -614,6 +569,279 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _HomeBannerCarousel extends StatefulWidget {
+  const _HomeBannerCarousel({
+    required this.height,
+    required this.cards,
+  });
+
+  final double height;
+  final List<Widget> cards;
+
+  @override
+  State<_HomeBannerCarousel> createState() => _HomeBannerCarouselState();
+}
+
+class _HomeBannerCarouselState extends State<_HomeBannerCarousel> {
+  late final PageController _controller = PageController();
+  int _index = 0;
+  double _wheelDelta = 0;
+  bool _wheelAnimating = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handlePointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent ||
+        !_controller.hasClients ||
+        _wheelAnimating) {
+      return;
+    }
+
+    final double delta = event.scrollDelta.dy;
+    if (delta == 0) return;
+
+    final int nextIndex =
+        (_index + (delta > 0 ? 1 : -1)).clamp(0, widget.cards.length - 1);
+    if (nextIndex == _index) {
+      _wheelDelta = 0;
+      return;
+    }
+
+    GestureBinding.instance.pointerSignalResolver.register(
+      event,
+      (PointerSignalEvent _) {
+        _wheelDelta += delta;
+        if (_wheelDelta.abs() < 36) return;
+
+        final int targetIndex = (_index + (_wheelDelta > 0 ? 1 : -1))
+            .clamp(0, widget.cards.length - 1);
+        _wheelDelta = 0;
+        if (targetIndex == _index) return;
+
+        _wheelAnimating = true;
+        _controller
+            .animateToPage(
+              targetIndex,
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+            )
+            .whenComplete(() => _wheelAnimating = false);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Column(
+      children: <Widget>[
+        SizedBox(
+          height: widget.height - 22,
+          child: Listener(
+            onPointerSignal: _handlePointerSignal,
+            child: ScrollConfiguration(
+              behavior: const MaterialScrollBehavior().copyWith(
+                dragDevices: <PointerDeviceKind>{
+                  PointerDeviceKind.touch,
+                  PointerDeviceKind.mouse,
+                  PointerDeviceKind.trackpad,
+                  PointerDeviceKind.stylus,
+                },
+              ),
+              child: PageView(
+                controller: _controller,
+                physics: const PageScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                onPageChanged: (int value) => setState(() => _index = value),
+                children: <Widget>[
+                  for (final Widget card in widget.cards)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: card,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 22,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              for (int i = 0; i < widget.cards.length; i++)
+                Semantics(
+                  button: true,
+                  label: 'Show banner ${i + 1} of ${widget.cards.length}',
+                  selected: i == _index,
+                  child: GestureDetector(
+                    onTap: () => _controller.animateToPage(
+                      i,
+                      duration: const Duration(milliseconds: 280),
+                      curve: Curves.easeOutCubic,
+                    ),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: i == _index ? 18 : 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: i == _index ? cs.leaf : cs.lineStrong,
+                        borderRadius: BorderRadius.circular(Eco.rPill),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeBannerCard extends StatelessWidget {
+  const _HomeBannerCard({
+    super.key,
+    required this.mascot,
+    required this.eyebrow,
+    required this.title,
+    required this.subtitle,
+    required this.detail,
+    required this.buttonLabel,
+    required this.buttonIcon,
+    required this.buttonKey,
+    required this.onPressed,
+  });
+
+  final String mascot;
+  final String eyebrow;
+  final String title;
+  final String subtitle;
+  final Widget detail;
+  final String buttonLabel;
+  final String buttonIcon;
+  final Key buttonKey;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return EcoCard(
+      tone: EcoCardTone.dark,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          SizedBox(
+            height: 98,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                SizedBox(
+                  width: 78,
+                  height: 82,
+                  child: MascotArt(mascot, width: 78, height: 82),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        eyebrow.toUpperCase(),
+                        style: F
+                            .eyebrow(context)
+                            .copyWith(color: const Color(0xA8FFFFFF)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        title,
+                        style: F.d(19, height: 1.08, color: Colors.white),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: F.b(
+                          11.5,
+                          height: 1.3,
+                          color: const Color(0xB8FFFFFF),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 32,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: detail,
+            ),
+          ),
+          const SizedBox(height: 8),
+          EcoButton(
+            key: buttonKey,
+            label: buttonLabel,
+            leading: buttonIcon,
+            tone: EcoButtonTone.onDark,
+            block: true,
+            minHeight: 44,
+            onPressed: onPressed,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BannerNote extends StatelessWidget {
+  const _BannerNote({required this.icon, required this.text});
+
+  final String icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0x24FFFFFF),
+        borderRadius: BorderRadius.circular(Eco.rPill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          EcoIcon(icon, size: 15, color: const Color(0xFFDFF0D3)),
+          const SizedBox(width: 7),
+          Flexible(
+            child: Text(
+              text,
+              style: F.b(11.5, wght: 700, color: const Color(0xFFDFF0D3)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

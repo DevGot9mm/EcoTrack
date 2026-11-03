@@ -346,7 +346,7 @@ class StatsScreen extends StatelessWidget {
     ColorScheme cs,
     EcoStore store,
   ) {
-    final ActivityDef? def = activityDef(e.key);
+    final ActivityDef? def = store.activityOf(e.key);
     if (def == null) return const SizedBox.shrink();
     final Cat c = catOf(def.cat);
     final int pc = ((e.value / rankMax) * 100).round();
