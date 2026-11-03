@@ -412,7 +412,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 6,
       chips: <double>[1, 2, 3],
-      icon: 'steak',
+      icon: 'cow',
       detail: 'Estimate for a 150 g cooked serving; sides are not included.'),
   ActivityDef(
       key: 'chicken',
@@ -435,7 +435,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       step: 1,
       max: 6,
       chips: <double>[1, 2, 3],
-      icon: 'bacon',
+      icon: 'pig',
       detail: 'Includes pork or lamb; estimate for one 150 g cooked serving.'),
   ActivityDef(
       key: 'fish',
@@ -521,17 +521,6 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       icon: 'sprout',
       detail:
           'A fully plant-based meal; ingredients and portion sizes can vary.'),
-  ActivityDef(
-      key: 'snacks_processed',
-      cat: 'food',
-      name: 'Snacks & processed food',
-      unit: 'servings',
-      factor: 1.0,
-      step: 1,
-      max: 6,
-      chips: <double>[1, 2, 3],
-      icon: 'snack',
-      detail: 'Packaged snacks or an instant meal; packaging and brands vary.'),
 ];
 
 final List<ActivityDef> kFoodVariants = List<ActivityDef>.unmodifiable(
@@ -709,12 +698,12 @@ const List<Tip> kTips = <Tip>[
   Tip(
       id: 't12',
       cat: 'food',
-      icon: 'snack',
-      title: 'Plan a less-packaged snack',
+      icon: 'produce',
+      title: 'Choose a less-packaged snack',
       action: 'Try fruit, nuts or another minimally packaged option.',
       why:
           'Choosing less-packaged snacks can reduce packaging waste and make it easier to plan portions.',
-      ctaKey: 'snacks_processed',
+      ctaKey: 'fruits_vegetables',
       ctaAmount: 1),
 ];
 

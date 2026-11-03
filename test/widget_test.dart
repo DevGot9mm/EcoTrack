@@ -36,9 +36,12 @@ void main() {
         'fruits_vegetables',
         'vegetarian',
         'vegan',
-        'snacks_processed',
       ]),
     );
+    expect(activityDef('snacks_processed'), isNull);
+    expect(activityDef('beef')?.icon, 'cow');
+    expect(activityDef('chicken')?.icon, 'chicken');
+    expect(activityDef('pork_lamb')?.icon, 'pig');
     expect(kTips, hasLength(12));
     expect(kTips.every((Tip tip) => activityDef(tip.ctaKey) != null), isTrue);
     expect(activityDef('chicken'), isNotNull);
