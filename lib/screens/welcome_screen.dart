@@ -18,7 +18,7 @@ class _Slide {
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
-  static const List<_Slide> slides = <_Slide>[
+  static const List<_Slide> _slides = <_Slide>[
     _Slide(
       'body-front',
       'Meet Eco',
@@ -39,9 +39,9 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
-    final int i = clampInt(store.onboardSlide, 0, slides.length - 1);
-    final _Slide s = slides[i];
-    final bool last = i == slides.length - 1;
+    final int i = clampInt(store.onboardSlide, 0, _slides.length - 1);
+    final _Slide s = _slides[i];
+    final bool last = i == _slides.length - 1;
     return DecoratedBox(
       decoration: const BoxDecoration(gradient: Eco.welcomeBg),
       child: SafeArea(
@@ -279,7 +279,7 @@ class WelcomeScreen extends StatelessWidget {
                 ? MainAxisAlignment.center
                 : MainAxisAlignment.start,
             children: <Widget>[
-              for (int d = 0; d < slides.length; d++)
+              for (int d = 0; d < _slides.length; d++)
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () => store.setOnboardSlide(d),

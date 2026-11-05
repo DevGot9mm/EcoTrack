@@ -54,23 +54,6 @@ class AddActivityScreen extends StatelessWidget {
         onBack: store.addBack,
       ),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(title, style: F.h2),
-          const SizedBox(height: 4),
-          Text(sub, style: F.b(13, height: 1.45, color: cs.muted)),
-          const SizedBox(height: 18),
-          if (step == 0)
-            _catStep(context, store)
-          else if (step == 1)
-            _actStep(context, store)
-          else if (store.isFoodFlow && !amountStep)
-            _foodPreparationStep(context, store)
-          else
-            _amountStep(store, cs),
-        ],
-      ),
       footer: FlowFooter(
         children: <Widget>[
           if (amountStep)
@@ -87,6 +70,23 @@ class AddActivityScreen extends StatelessWidget {
               block: true,
               onPressed: canContinue ? store.addNext : null,
             ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Text(title, style: F.h2),
+          const SizedBox(height: 4),
+          Text(sub, style: F.b(13, height: 1.45, color: cs.muted)),
+          const SizedBox(height: 18),
+          if (step == 0)
+            _catStep(context, store)
+          else if (step == 1)
+            _actStep(context, store)
+          else if (store.isFoodFlow && !amountStep)
+            _foodPreparationStep(context, store)
+          else
+            _amountStep(store, cs),
         ],
       ),
     );
@@ -125,7 +125,7 @@ class AddActivityScreen extends StatelessWidget {
                     Text(
                       '${c.blurb} · '
                       '$choiceCount '
-                      '${id == 'food' ? 'meal types' : 'activities'}',
+                      '${id == CarbonCategory.food ? 'meal types' : 'activities'}',
                       style: F.b(13, wght: 600, color: cs.muted),
                     ),
                   ],

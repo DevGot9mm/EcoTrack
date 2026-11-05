@@ -1,0 +1,273 @@
+diff --git a/lib/screens/add_activity_screen.dart b/lib/screens/add_activity_screen.dart
+index 4b69e4a..7204fbf 100644
+--- a/lib/screens/add_activity_screen.dart
++++ b/lib/screens/add_activity_screen.dart
+@@ -54,23 +54,6 @@ class AddActivityScreen extends StatelessWidget {
+         onBack: store.addBack,
+       ),
+       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+-      child: Column(
+-        crossAxisAlignment: CrossAxisAlignment.stretch,
+-        children: <Widget>[
+-          Text(title, style: F.h2),
+-          const SizedBox(height: 4),
+-          Text(sub, style: F.b(13, height: 1.45, color: cs.muted)),
+-          const SizedBox(height: 18),
+-          if (step == 0)
+-            _catStep(context, store)
+-          else if (step == 1)
+-            _actStep(context, store)
+-          else if (store.isFoodFlow && !amountStep)
+-            _foodPreparationStep(context, store)
+-          else
+-            _amountStep(store, cs),
+-        ],
+-      ),
+       footer: FlowFooter(
+         children: <Widget>[
+           if (amountStep)
+@@ -89,6 +72,23 @@ class AddActivityScreen extends StatelessWidget {
+             ),
+         ],
+       ),
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.stretch,
++        children: <Widget>[
++          Text(title, style: F.h2),
++          const SizedBox(height: 4),
++          Text(sub, style: F.b(13, height: 1.45, color: cs.muted)),
++          const SizedBox(height: 18),
++          if (step == 0)
++            _catStep(context, store)
++          else if (step == 1)
++            _actStep(context, store)
++          else if (store.isFoodFlow && !amountStep)
++            _foodPreparationStep(context, store)
++          else
++            _amountStep(store, cs),
++        ],
++      ),
+     );
+   }
+ 
+@@ -125,7 +125,7 @@ class AddActivityScreen extends StatelessWidget {
+                     Text(
+                       '${c.blurb} · '
+                       '$choiceCount '
+-                      '${id == 'food' ? 'meal types' : 'activities'}',
++                      '${id == CarbonCategory.food ? 'meal types' : 'activities'}',
+                       style: F.b(13, wght: 600, color: cs.muted),
+                     ),
+                   ],
+diff --git a/lib/screens/profile_screen.dart b/lib/screens/profile_screen.dart
+index a843b28..fc600dd 100644
+--- a/lib/screens/profile_screen.dart
++++ b/lib/screens/profile_screen.dart
+@@ -1461,6 +1461,8 @@ class _ReportIssueForm extends StatefulWidget {
+ class _ReportIssueFormState extends State<_ReportIssueForm> {
+   final TextEditingController _title = TextEditingController();
+   final TextEditingController _details = TextEditingController();
++  String? _titleError;
++  String? _detailsError;
+ 
+   @override
+   void dispose() {
+@@ -1486,7 +1488,13 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
+         TextField(
+           controller: _title,
+           textCapitalization: TextCapitalization.sentences,
+-          decoration: const InputDecoration(labelText: 'Short title'),
++          onChanged: (_) {
++            if (_titleError != null) setState(() => _titleError = null);
++          },
++          decoration: InputDecoration(
++            labelText: 'Short title',
++            errorText: _titleError,
++          ),
+         ),
+         const SizedBox(height: 10),
+         TextField(
+@@ -1494,7 +1502,13 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
+           minLines: 3,
+           maxLines: 6,
+           textCapitalization: TextCapitalization.sentences,
+-          decoration: const InputDecoration(labelText: 'What happened?'),
++          onChanged: (_) {
++            if (_detailsError != null) setState(() => _detailsError = null);
++          },
++          decoration: InputDecoration(
++            labelText: 'What happened?',
++            errorText: _detailsError,
++          ),
+         ),
+         const SizedBox(height: 14),
+         Builder(
+@@ -1513,8 +1527,11 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
+     final String title = _title.text.trim();
+     final String details = _details.text.trim();
+     if (title.length < 3 || details.length < 10) {
+-      widget.store
+-          .toast('Add a short title and at least 10 characters of detail');
++      setState(() {
++        _titleError = title.length < 3 ? 'Add a short title' : null;
++        _detailsError =
++            details.length < 10 ? 'Add at least 10 characters of detail' : null;
++      });
+       return;
+     }
+ 
+diff --git a/lib/screens/welcome_screen.dart b/lib/screens/welcome_screen.dart
+index 40bd337..8cf7228 100644
+--- a/lib/screens/welcome_screen.dart
++++ b/lib/screens/welcome_screen.dart
+@@ -18,7 +18,7 @@ class _Slide {
+ class WelcomeScreen extends StatelessWidget {
+   const WelcomeScreen({super.key});
+ 
+-  static const List<_Slide> slides = <_Slide>[
++  static const List<_Slide> _slides = <_Slide>[
+     _Slide(
+       'body-front',
+       'Meet Eco',
+@@ -39,9 +39,9 @@ class WelcomeScreen extends StatelessWidget {
+   @override
+   Widget build(BuildContext context) {
+     final EcoStore store = EcoScope.of(context);
+-    final int i = clampInt(store.onboardSlide, 0, slides.length - 1);
+-    final _Slide s = slides[i];
+-    final bool last = i == slides.length - 1;
++    final int i = clampInt(store.onboardSlide, 0, _slides.length - 1);
++    final _Slide s = _slides[i];
++    final bool last = i == _slides.length - 1;
+     return DecoratedBox(
+       decoration: const BoxDecoration(gradient: Eco.welcomeBg),
+       child: SafeArea(
+@@ -279,7 +279,7 @@ class WelcomeScreen extends StatelessWidget {
+                 ? MainAxisAlignment.center
+                 : MainAxisAlignment.start,
+             children: <Widget>[
+-              for (int d = 0; d < slides.length; d++)
++              for (int d = 0; d < _slides.length; d++)
+                 GestureDetector(
+                   behavior: HitTestBehavior.opaque,
+                   onTap: () => store.setOnboardSlide(d),
+diff --git a/test/flow_test.dart b/test/flow_test.dart
+index a7adc55..6990d4f 100644
+--- a/test/flow_test.dart
++++ b/test/flow_test.dart
+@@ -2,19 +2,12 @@ import 'package:flutter/material.dart';
+ import 'package:flutter/gestures.dart';
+ import 'package:flutter_test/flutter_test.dart';
+ 
+-import 'package:ecotrack/celebration_data.dart';
+ import 'package:ecotrack/main.dart';
+-import 'package:ecotrack/models.dart';
+ import 'package:ecotrack/screens/add_activity_screen.dart';
+-import 'package:ecotrack/screens/challenges_screen.dart';
+-import 'package:ecotrack/screens/home_screen.dart';
+-import 'package:ecotrack/screens/profile_screen.dart';
+ import 'package:ecotrack/store.dart';
+ import 'package:ecotrack/theme.dart';
+-import 'package:ecotrack/widgets/tab_bar.dart';
+ import 'package:ecotrack/widgets/celebrations.dart';
+ import 'package:ecotrack/widgets/common.dart';
+-import 'package:ecotrack/widgets/sheets.dart';
+ 
+ 
+ void main() {
+diff --git a/test/home_test.dart b/test/home_test.dart
+index a887bd9..8d18e45 100644
+--- a/test/home_test.dart
++++ b/test/home_test.dart
+@@ -2,19 +2,14 @@ import 'package:flutter/material.dart';
+ import 'package:flutter/gestures.dart';
+ import 'package:flutter_test/flutter_test.dart';
+ 
+-import 'package:ecotrack/celebration_data.dart';
+ import 'package:ecotrack/main.dart';
+ import 'package:ecotrack/models.dart';
+-import 'package:ecotrack/screens/add_activity_screen.dart';
+ import 'package:ecotrack/screens/challenges_screen.dart';
+ import 'package:ecotrack/screens/home_screen.dart';
+-import 'package:ecotrack/screens/profile_screen.dart';
+ import 'package:ecotrack/store.dart';
+ import 'package:ecotrack/theme.dart';
+-import 'package:ecotrack/widgets/tab_bar.dart';
+ import 'package:ecotrack/widgets/celebrations.dart';
+ import 'package:ecotrack/widgets/common.dart';
+-import 'package:ecotrack/widgets/sheets.dart';
+ 
+ 
+ void main() {
+diff --git a/test/profile_test.dart b/test/profile_test.dart
+index 78d8916..738cb2c 100644
+--- a/test/profile_test.dart
++++ b/test/profile_test.dart
+@@ -1,18 +1,10 @@
+ import 'package:flutter/material.dart';
+-import 'package:flutter/gestures.dart';
+ import 'package:flutter_test/flutter_test.dart';
+ 
+-import 'package:ecotrack/celebration_data.dart';
+-import 'package:ecotrack/main.dart';
+ import 'package:ecotrack/models.dart';
+-import 'package:ecotrack/screens/add_activity_screen.dart';
+-import 'package:ecotrack/screens/challenges_screen.dart';
+-import 'package:ecotrack/screens/home_screen.dart';
+ import 'package:ecotrack/screens/profile_screen.dart';
+ import 'package:ecotrack/store.dart';
+ import 'package:ecotrack/theme.dart';
+-import 'package:ecotrack/widgets/tab_bar.dart';
+-import 'package:ecotrack/widgets/celebrations.dart';
+ import 'package:ecotrack/widgets/common.dart';
+ import 'package:ecotrack/widgets/sheets.dart';
+ 
+diff --git a/test/responsive_test.dart b/test/responsive_test.dart
+index 103c547..257ed94 100644
+--- a/test/responsive_test.dart
++++ b/test/responsive_test.dart
+@@ -1,19 +1,11 @@
+ import 'package:flutter/material.dart';
+-import 'package:flutter/gestures.dart';
+ import 'package:flutter_test/flutter_test.dart';
+ 
+-import 'package:ecotrack/celebration_data.dart';
+ import 'package:ecotrack/main.dart';
+-import 'package:ecotrack/models.dart';
+-import 'package:ecotrack/screens/add_activity_screen.dart';
+-import 'package:ecotrack/screens/challenges_screen.dart';
+-import 'package:ecotrack/screens/home_screen.dart';
+-import 'package:ecotrack/screens/profile_screen.dart';
+ import 'package:ecotrack/store.dart';
+ import 'package:ecotrack/theme.dart';
+ import 'package:ecotrack/widgets/tab_bar.dart';
+ import 'package:ecotrack/widgets/celebrations.dart';
+-import 'package:ecotrack/widgets/common.dart';
+ import 'package:ecotrack/widgets/sheets.dart';
+ 
+ 
+diff --git a/test/store_test.dart b/test/store_test.dart
+index bc85329..ffc80fb 100644
+--- a/test/store_test.dart
++++ b/test/store_test.dart
+@@ -1,20 +1,8 @@
+-import 'package:flutter/material.dart';
+-import 'package:flutter/gestures.dart';
+ import 'package:flutter_test/flutter_test.dart';
+ 
+ import 'package:ecotrack/celebration_data.dart';
+-import 'package:ecotrack/main.dart';
+ import 'package:ecotrack/models.dart';
+-import 'package:ecotrack/screens/add_activity_screen.dart';
+-import 'package:ecotrack/screens/challenges_screen.dart';
+-import 'package:ecotrack/screens/home_screen.dart';
+-import 'package:ecotrack/screens/profile_screen.dart';
+ import 'package:ecotrack/store.dart';
+-import 'package:ecotrack/theme.dart';
+-import 'package:ecotrack/widgets/tab_bar.dart';
+-import 'package:ecotrack/widgets/celebrations.dart';
+-import 'package:ecotrack/widgets/common.dart';
+-import 'package:ecotrack/widgets/sheets.dart';
+ 
+ 
+ void main() {

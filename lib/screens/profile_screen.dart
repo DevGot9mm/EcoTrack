@@ -1461,6 +1461,8 @@ class _ReportIssueForm extends StatefulWidget {
 class _ReportIssueFormState extends State<_ReportIssueForm> {
   final TextEditingController _title = TextEditingController();
   final TextEditingController _details = TextEditingController();
+  String? _titleError;
+  String? _detailsError;
 
   @override
   void dispose() {
@@ -1486,7 +1488,13 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
         TextField(
           controller: _title,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(labelText: 'Short title'),
+          onChanged: (_) {
+            if (_titleError != null) setState(() => _titleError = null);
+          },
+          decoration: InputDecoration(
+            labelText: 'Short title',
+            errorText: _titleError,
+          ),
         ),
         const SizedBox(height: 10),
         TextField(
@@ -1494,7 +1502,13 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
           minLines: 3,
           maxLines: 6,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(labelText: 'What happened?'),
+          onChanged: (_) {
+            if (_detailsError != null) setState(() => _detailsError = null);
+          },
+          decoration: InputDecoration(
+            labelText: 'What happened?',
+            errorText: _detailsError,
+          ),
         ),
         const SizedBox(height: 14),
         Builder(
@@ -1513,8 +1527,11 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
     final String title = _title.text.trim();
     final String details = _details.text.trim();
     if (title.length < 3 || details.length < 10) {
-      widget.store
-          .toast('Add a short title and at least 10 characters of detail');
+      setState(() {
+        _titleError = title.length < 3 ? 'Add a short title' : null;
+        _detailsError =
+            details.length < 10 ? 'Add at least 10 characters of detail' : null;
+      });
       return;
     }
 

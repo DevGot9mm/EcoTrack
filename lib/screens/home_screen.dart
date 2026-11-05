@@ -15,7 +15,6 @@ import '../widgets/sheets.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-
   Widget _section({required Widget child}) =>
       Padding(padding: const EdgeInsets.only(top: 26), child: child);
 
@@ -139,7 +138,8 @@ class HomeScreen extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   'Daily goal ${fmt1(store.dailyTarget)} kg',
-                                  style: F.b(12, wght: 700, color: Eco.onHero72),
+                                  style:
+                                      F.b(12, wght: 700, color: Eco.onHero72),
                                 ),
                               ),
                               Text(
@@ -752,9 +752,7 @@ class _HomeBannerCard extends StatelessWidget {
                     children: <Widget>[
                       Text(
                         eyebrow.toUpperCase(),
-                        style: F
-                            .eyebrow(context)
-                            .copyWith(color: Eco.onHero66),
+                        style: F.eyebrow(context).copyWith(color: Eco.onHero66),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

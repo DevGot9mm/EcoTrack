@@ -159,8 +159,7 @@ class _FeaturedChallengeCard extends StatelessWidget {
                         child: Text(
                           '${challenge.progress.round()} of '
                           '${challenge.target.round()} daily check-ins',
-                          style: F.b(12,
-                              wght: 800, color: Eco.onHero85),
+                          style: F.b(12, wght: 800, color: Eco.onHero85),
                         ),
                       ),
                       Text(
