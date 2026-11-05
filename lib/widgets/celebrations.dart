@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
-import 'package:flutter/material.dart' hide Badge;
+import 'package:flutter/material.dart';
 
+import '../celebration_data.dart';
 import '../icons.dart';
 import '../models.dart';
 import '../store.dart';
@@ -12,13 +14,6 @@ import '../theme.dart';
 
 /// Set to true in tests to disable infinite animations (StreakPulse, etc.)
 bool debugDisableCelebrationAnimations = false;
-
-enum CelebrationKind {
-  badge,
-  levelUp,
-  challengeComplete,
-  points,
-}
 
 /* ==========================================================================
    The overlay entry — managed by AppGate via store state
@@ -41,8 +36,9 @@ class _CelebrationHostState extends State<CelebrationHost>
   late Animation<double> _scale;
   late Animation<double> _opacity;
   late Animation<double> _slide;
-  CelebrationKind? _active;
-  Map<String, dynamic>? _data;
+  CelebrationData? _active;
+  Timer? _dismissTimer;
+  int _displayGeneration = 0;
 
   @override
   void initState() {
@@ -70,24 +66,29 @@ class _CelebrationHostState extends State<CelebrationHost>
 
   @override
   void dispose() {
+    _dismissTimer?.cancel();
     _ctrl.dispose();
     super.dispose();
   }
 
-  void _show(CelebrationKind kind, Map<String, dynamic> data) {
-    _active = kind;
-    _data = data;
+  void _show(CelebrationData data) {
+    _dismissTimer?.cancel();
+    final int generation = ++_displayGeneration;
+    setState(() {
+      _active = data;
+    });
     _ctrl.forward(from: 0.0);
-    Future.delayed(const Duration(milliseconds: 2800), () {
+    _dismissTimer = Timer(const Duration(milliseconds: 2800), () {
       if (!mounted) return;
       _ctrl.reverse().then((_) {
-        if (!mounted) return;
+        if (!mounted || generation != _displayGeneration) return;
         setState(() {
           _active = null;
-          _data = null;
         });
         final EcoStore store = EcoScope.of(context);
-        store.clearCelebration();
+        if (identical(store.celebrationData, data)) {
+          store.clearCelebration();
+        }
       });
     });
   }
@@ -98,18 +99,16 @@ class _CelebrationHostState extends State<CelebrationHost>
       listenable: EcoScope.of(context),
       builder: (BuildContext context, Widget? child) {
         final EcoStore store = EcoScope.of(context);
-        final kind = store.celebrationKind;
-        final data = store.celebrationData;
+        final CelebrationData? data = store.celebrationData;
 
         Widget? overlay;
-        if (kind != null && kind != _active) {
-          WidgetsBinding.instance
-              .addPostFrameCallback((_) => _show(kind, data));
+        if (data != null && !identical(data, _active)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _show(data));
         }
 
         if (_active == null) return const SizedBox.shrink();
 
-        overlay = _buildOverlay(_active!, _data ?? {});
+        overlay = _buildOverlay(_active!);
 
         return AnimatedBuilder(
           animation: _ctrl,
@@ -130,27 +129,15 @@ class _CelebrationHostState extends State<CelebrationHost>
     );
   }
 
-  Widget _buildOverlay(CelebrationKind kind, Map<String, dynamic> data) {
-    switch (kind) {
-      case CelebrationKind.badge:
-        return _BadgeCelebration(badge: data['badge'] as Badge);
-      case CelebrationKind.levelUp:
-        return _LevelUpCelebration(
-          name: data['name'] as String,
-          idx: data['idx'] as int,
-        );
-      case CelebrationKind.challengeComplete:
-        return _ChallengeCelebration(
-          title: data['title'] as String,
-          points: data['points'] as int,
-        );
-      case CelebrationKind.points:
-        return _PointsPopup(
-          amount: data['amount'] as int,
-          reason: data['reason'] as String,
-        );
-    }
-  }
+  Widget _buildOverlay(CelebrationData data) => switch (data) {
+        BadgeUnlockCelebration(:final badge) => _BadgeCelebration(badge: badge),
+        LevelUpCelebration(:final name, :final idx) =>
+          _LevelUpCelebration(name: name, idx: idx),
+        ChallengeCompleteCelebration(:final title, :final points) =>
+          _ChallengeCelebration(title: title, points: points),
+        PointsCelebration(:final amount, :final reason) =>
+          _PointsPopup(amount: amount, reason: reason),
+      };
 }
 
 /// Wraps the card in a bottom-to-top slide-in.
@@ -181,7 +168,7 @@ class _SlideIn extends StatelessWidget {
 class _BadgeCelebration extends StatelessWidget {
   const _BadgeCelebration({required this.badge});
 
-  final Badge badge;
+  final Achievement badge;
 
   @override
   Widget build(BuildContext context) {

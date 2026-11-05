@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// One icon family, as in the prototype: a single outlined set, used at a
 /// consistent 1.25em optical size with the surrounding text colour.
@@ -63,7 +64,7 @@ const Map<String, IconData> kIcons = <String, IconData>{
   'close': Icons.close,
   'info': Icons.info_outline,
   'bookmark': Icons.bookmark_border,
-  'google': Icons.g_mobiledata,
+  'bookmarkOn': Icons.bookmark,
   'tips': Icons.tips_and_updates_outlined,
   'sparkles': Icons.auto_awesome_outlined,
   'trophy': Icons.emoji_events_outlined,
@@ -83,6 +84,10 @@ const Map<String, IconData> kIcons = <String, IconData>{
   'book': Icons.menu_book_outlined,
 };
 
+const Map<String, FaIconData> kBrandIcons = <String, FaIconData>{
+  'google': FontAwesomeIcons.google,
+};
+
 IconData ecoIcon(String name) => kIcons[name] ?? Icons.help_outline;
 
 /// Convenience wrapper that keeps icon sizing in `em`, like the prototype's
@@ -96,6 +101,10 @@ class EcoIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final FaIconData? brandIcon = kBrandIcons[name];
+    if (brandIcon != null) {
+      return FaIcon(brandIcon, size: size, color: color);
+    }
     if (name == 'cow' ||
         name == 'chicken' ||
         name == 'pig' ||

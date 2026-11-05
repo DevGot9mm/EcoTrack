@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../models.dart';
+import '../responsive.dart';
 import '../store.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -48,8 +49,8 @@ class WelcomeScreen extends StatelessWidget {
           builder: (BuildContext context, BoxConstraints constraints) {
             final Size screen = MediaQuery.sizeOf(context);
             final bool landscape = screen.width > screen.height;
-            final bool tablet = screen.shortestSide >= 600;
-            if (landscape && screen.width >= 600) {
+            final bool tablet = context.windowSize != WindowSize.compact;
+            if (landscape && context.windowSize != WindowSize.compact) {
               return _landscapeLayout(
                 context,
                 store,
@@ -313,7 +314,7 @@ class WelcomeScreen extends StatelessWidget {
           tone: EcoButtonTone.onDark,
           block: true,
           minHeight: compact ? 46 : 52,
-          onPressed: () => store.go('auth'),
+          onPressed: () => store.go(AppRoute.auth),
         ),
       ],
     );

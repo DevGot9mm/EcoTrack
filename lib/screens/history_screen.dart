@@ -15,8 +15,9 @@ class HistoryScreen extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     List<Entry> acts = store.sortedActivities;
-    if (store.historyFilter != 'all') {
-      acts = acts.where((Entry a) => a.cat == store.historyFilter).toList();
+    final CarbonCategory? filter = store.historyFilter;
+    if (filter != null) {
+      acts = acts.where((Entry a) => a.cat == filter).toList();
     }
 
     final Map<int, List<Entry>> groups = <int, List<Entry>>{};
@@ -25,46 +26,61 @@ class HistoryScreen extends StatelessWidget {
       groups.putIfAbsent(i, () => <Entry>[]).add(a);
     }
     final List<int> keys = groups.keys.toList()..sort();
+    final List<({int? day, Entry? entry})> historyItems =
+        <({int? day, Entry? entry})>[];
+    for (final int day in keys) {
+      historyItems.add((day: day, entry: null));
+      for (final Entry entry in groups[day]!) {
+        historyItems.add((day: null, entry: entry));
+      }
+    }
 
     final double weekTotal = store.total(store.inRange(0, 6));
 
-    final Widget body = keys.isEmpty
-        ? EcoEmptyState(
-            mascot: 'face-sad',
-            title: 'Nothing logged here yet',
-            body:
-                'Try another category, or add your first activity for this one.',
-            action: EcoButton(
-              label: 'Log an activity',
-              leading: 'plus',
-              onPressed: store.openAdd,
-            ),
-          )
-        : Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              for (final int k in keys) ...<Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(top: 22, bottom: 10),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: <Widget>[
-                      Expanded(child: Text(dayLabel(k), style: F.d(16))),
-                      Text(
-                        '${kgText(store.total(groups[k]!))} CO₂e',
-                        style: F.b(13, wght: 800, color: cs.muted),
-                      ),
-                    ],
+    final Widget body;
+    if (keys.isEmpty) {
+      body = EcoEmptyState(
+        mascot: 'face-sad',
+        title: 'Nothing logged here yet',
+        body: 'Try another category, or add your first activity for this one.',
+        action: EcoButton(
+          label: 'Log an activity',
+          leading: 'plus',
+          onPressed: store.openAdd,
+        ),
+      );
+    } else {
+      body = ListView.builder(
+        physics: const ClampingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+        itemCount: historyItems.length,
+        itemBuilder: (BuildContext context, int index) {
+          final ({int? day, Entry? entry}) item = historyItems[index];
+          if (item.entry == null) {
+            final int day = item.day!;
+            return Padding(
+              padding: const EdgeInsets.only(top: 22, bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: <Widget>[
+                  Expanded(child: Text(dayLabel(day), style: F.d(16))),
+                  Text(
+                    '${kgText(store.total(groups[day]!))} CO₂e',
+                    style: F.b(13, wght: 800, color: cs.muted),
                   ),
-                ),
-                for (int i = 0; i < groups[k]!.length; i++) ...<Widget>[
-                  if (i > 0) const SizedBox(height: 8),
-                  _HistRow(entry: groups[k]![i], store: store),
                 ],
-              ],
-            ],
+              ),
+            );
+          }
+          final bool firstInDay = historyItems[index - 1].entry == null;
+          return Padding(
+            padding: EdgeInsets.only(top: firstInDay ? 0 : 8),
+            child: _HistRow(entry: item.entry!, store: store),
           );
+        },
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -105,10 +121,10 @@ class HistoryScreen extends StatelessWidget {
             children: <Widget>[
               EcoChip(
                 label: 'All',
-                active: store.historyFilter == 'all',
-                onTap: () => store.setHistoryFilter('all'),
+                active: store.historyFilter == null,
+                onTap: () => store.setHistoryFilter(null),
               ),
-              for (final String id in kCatOrder)
+              for (final CarbonCategory id in kCatOrder)
                 EcoChip(
                   label: catOf(id).name,
                   dotColor: store.categoryColor(id),
@@ -119,11 +135,13 @@ class HistoryScreen extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
-            child: body,
-          ),
+          child: keys.isEmpty
+              ? SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+                  child: body,
+                )
+              : body,
         ),
       ],
     );
@@ -176,8 +194,10 @@ class _HistRow extends StatelessWidget {
                 ],
               ),
             ),
-            Text.rich(
-              TextSpan(
+            RichText(
+              textScaler: MediaQuery.textScalerOf(context),
+              textAlign: TextAlign.end,
+              text: TextSpan(
                 children: <InlineSpan>[
                   TextSpan(text: fmt2(entry.co2), style: F.d(16)),
                   TextSpan(

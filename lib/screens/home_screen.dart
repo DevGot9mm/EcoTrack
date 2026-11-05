@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../icons.dart';
 import '../models.dart';
+import '../responsive.dart';
 import '../store.dart';
 import '../theme.dart';
 import '../widgets/charts.dart';
@@ -23,14 +24,14 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
     final cs = Theme.of(context).colorScheme;
-    final bool tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final bool tablet = context.windowSize != WindowSize.compact;
 
     final double todayTotal = store.total(store.inRange(0, 0));
     final double tw = store.total(store.inRange(0, 6));
     final double lw = store.total(store.inRange(7, 13));
     final int delta = lw > 0 ? (((tw - lw) / lw) * 100).round() : 0;
     final bool improved = delta <= 0;
-    final Map<String, double> t = store.catTotals(store.inRange(0, 6));
+    final Map<CarbonCategory, double> t = store.catTotals(store.inRange(0, 6));
     final double weekTotal = tw > 0 ? tw : 1;
     final int targetPct = clampInt(
       ((todayTotal / store.dailyTarget) * 100).round(),
@@ -79,7 +80,7 @@ class HomeScreen extends StatelessWidget {
                           message: 'Profile',
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
-                            onTap: () => store.go('profile'),
+                            onTap: () => store.go(AppRoute.profile),
                             child: MascotCrop(
                               store.playerAvatar,
                               size: 46,
@@ -94,7 +95,7 @@ class HomeScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              '${store.greeting}, ${store.playerName}',
+                              '${store.greeting}, ${store.greetingName}',
                               style: F.d(20, height: 1.15),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -110,7 +111,7 @@ class HomeScreen extends StatelessWidget {
                         message: 'Eco tips',
                         child: EcoIconButton(
                           'tips',
-                          onPressed: () => store.go('tips'),
+                          onPressed: () => store.go(AppRoute.tips),
                         ),
                       ),
                     ],
@@ -196,7 +197,7 @@ class HomeScreen extends StatelessWidget {
                       buttonKey: const ValueKey<String>(
                         'home-banner-challenges-button',
                       ),
-                      onPressed: () => store.go('challenges'),
+                      onPressed: () => store.go(AppRoute.challenges),
                     ),
                   ],
                 ),
@@ -224,8 +225,8 @@ class HomeScreen extends StatelessWidget {
                             WeekBars(
                               days: days,
                               maxDay: maxDay,
-                              categoryColors: <String, Color>{
-                                for (final String id in kCatOrder)
+                              categoryColors: <CarbonCategory, Color>{
+                                for (final CarbonCategory id in kCatOrder)
                                   id: store.categoryColor(id),
                               },
                             ),
@@ -254,7 +255,7 @@ class HomeScreen extends StatelessWidget {
                       const SectionHead(title: 'Where it comes from'),
                       Column(
                         children: <Widget>[
-                          for (final String id in kCatOrder)
+                          for (final CarbonCategory id in kCatOrder)
                             _BreakdownRow(
                               cat: catOf(id),
                               categoryColor: store.categoryColor(id),
@@ -279,7 +280,7 @@ class HomeScreen extends StatelessWidget {
                         title: 'Today’s challenge',
                         action: SectionLink(
                           label: 'All',
-                          onTap: () => store.go('challenges'),
+                          onTap: () => store.go(AppRoute.challenges),
                         ),
                       ),
                       EcoCard(
@@ -446,7 +447,7 @@ class HomeScreen extends StatelessWidget {
                             child: EcoCard(
                               flat: true,
                               padding: const EdgeInsets.all(14),
-                              onTap: () => store.go('challenges'),
+                              onTap: () => store.go(AppRoute.challenges),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
@@ -469,13 +470,6 @@ class HomeScreen extends StatelessWidget {
                                     style: F.d(25),
                                     maxLines: 1,
                                   ),
-                                  Text(
-                                    'Best run: 12 days',
-                                    style:
-                                        F.b(13, height: 1.45, color: cs.muted),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
                                 ],
                               ),
                             ),
@@ -494,7 +488,7 @@ class HomeScreen extends StatelessWidget {
                     title: 'Small wins for today',
                     action: SectionLink(
                       label: 'All tips',
-                      onTap: () => store.go('tips'),
+                      onTap: () => store.go(AppRoute.tips),
                     ),
                   ),
                 ),

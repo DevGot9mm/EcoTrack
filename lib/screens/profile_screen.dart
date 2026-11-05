@@ -1,12 +1,13 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart' hide Badge;
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../icons.dart';
 import '../models.dart';
+import '../responsive.dart';
 import '../store.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -248,7 +249,7 @@ class _GoalProgress extends StatelessWidget {
   final String label;
   final double value;
   final double target;
-  final Map<String, double> categories;
+  final Map<CarbonCategory, double> categories;
 
   @override
   Widget build(BuildContext context) {
@@ -287,7 +288,7 @@ class _CarbonMixBar extends StatelessWidget {
 
   final double progress;
   final double total;
-  final Map<String, double> categories;
+  final Map<CarbonCategory, double> categories;
   final double height;
 
   @override
@@ -299,12 +300,7 @@ class _CarbonMixBar extends StatelessWidget {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final double filledWidth = constraints.maxWidth * fill;
-        final List<String> categoriesInOrder = <String>[
-          'transport',
-          'electricity',
-          'food'
-        ];
-        double left = 0;
+        final List<CarbonCategory> categoriesInOrder = kCatOrder;
         final List<Widget> segments = <Widget>[
           Positioned.fill(
             child: DecoratedBox(
@@ -314,25 +310,25 @@ class _CarbonMixBar extends StatelessWidget {
               ),
             ),
           ),
-          if (total > 0)
-            for (final String category in categoriesInOrder)
-              if ((categories[category] ?? 0) > 0)
-                Builder(
-                  builder: (BuildContext context) {
-                    final double width =
-                        filledWidth * (categories[category]! / total);
-                    final Widget segment = Positioned(
-                      left: left,
-                      top: 0,
-                      bottom: 0,
-                      width: width,
-                      child: ColoredBox(color: store.categoryColor(category)),
-                    );
-                    left += width;
-                    return segment;
-                  },
-                ),
         ];
+        if (total > 0) {
+          double left = 0;
+          for (final CarbonCategory category in categoriesInOrder) {
+            final double amount = categories[category] ?? 0;
+            if (amount <= 0) continue;
+            final double width = filledWidth * (amount / total);
+            segments.add(
+              Positioned(
+                left: left,
+                top: 0,
+                bottom: 0,
+                width: width,
+                child: ColoredBox(color: store.categoryColor(category)),
+              ),
+            );
+            left += width;
+          }
+        }
 
         return ClipRRect(
           borderRadius: BorderRadius.circular(Eco.rPill),
@@ -365,8 +361,6 @@ void _showAvatarPicker(BuildContext context, EcoStore store) {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const SheetGrab(),
-            const SizedBox(height: 8),
             const SheetTitle(title: 'Choose a profile picture'),
             const SizedBox(height: 16),
             Wrap(
@@ -427,12 +421,12 @@ class _BadgesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final bool wide = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final bool wide = context.windowSize != WindowSize.compact;
     final Map<String, int> originalOrder = <String, int>{
       for (int i = 0; i < store.badges.length; i++) store.badges[i].id: i,
     };
-    final List<Badge> orderedBadges = List<Badge>.of(store.badges)
-      ..sort((Badge a, Badge b) {
+    final List<Achievement> orderedBadges = List<Achievement>.of(store.badges)
+      ..sort((Achievement a, Achievement b) {
         if (a.unlocked != b.unlocked) return a.unlocked ? 1 : -1;
         return originalOrder[a.id]!.compareTo(originalOrder[b.id]!);
       });
@@ -452,7 +446,7 @@ class _BadgesSection extends StatelessWidget {
           ),
           itemCount: orderedBadges.length,
           itemBuilder: (BuildContext context, int i) {
-            final Badge b = orderedBadges[i];
+            final Achievement b = orderedBadges[i];
             return _BadgeItem(
               b: b,
               cs: cs,
@@ -464,15 +458,13 @@ class _BadgesSection extends StatelessWidget {
     );
   }
 
-  void _showBadgeDetail(BuildContext context, Badge b) {
+  void _showBadgeDetail(BuildContext context, Achievement b) {
     final cs = Theme.of(context).colorScheme;
     showEcoSheet(
       context,
       Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const SheetGrab(),
-          const SizedBox(height: 8),
           Center(
             child: Container(
               width: 56,
@@ -530,7 +522,7 @@ class _BadgesSection extends StatelessWidget {
 class _BadgeItem extends StatefulWidget {
   const _BadgeItem({required this.b, required this.cs, required this.onTap});
 
-  final Badge b;
+  final Achievement b;
   final ColorScheme cs;
   final VoidCallback onTap;
 
@@ -589,7 +581,7 @@ class _BadgeItemState extends State<_BadgeItem> {
   }
 
   Widget _frontFace(ColorScheme cs) {
-    final Badge b = widget.b;
+    final Achievement b = widget.b;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -631,7 +623,7 @@ class _BadgeItemState extends State<_BadgeItem> {
   }
 
   Widget _backFace(ColorScheme cs) {
-    final Badge b = widget.b;
+    final Achievement b = widget.b;
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.rotationY(math.pi),
@@ -688,7 +680,7 @@ class _SettingsSection extends StatelessWidget {
       _SettingsRow(
         icon: 'tips',
         label: 'Tips',
-        onTap: () => store.go('tips'),
+        onTap: () => store.go(AppRoute.tips),
       ),
       _SettingsRow(
         icon: 'shield',
@@ -726,7 +718,7 @@ class _SettingsSection extends StatelessWidget {
         const SizedBox(height: 8),
         LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            final bool tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+            final bool tablet = context.windowSize != WindowSize.compact;
             final double itemWidth =
                 tablet ? (constraints.maxWidth - 12) / 2 : constraints.maxWidth;
             return Wrap(
@@ -980,74 +972,103 @@ Future<void> _showAccountSettings(
   BuildContext context,
   EcoStore store,
 ) async {
-  final TextEditingController name =
-      TextEditingController(text: store.playerName);
   await showEcoSheet(
     context,
-    Builder(
-      builder: (BuildContext ctx) {
-        final cs = Theme.of(ctx).colorScheme;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            const SheetTitle(title: 'Account & security'),
-            const SizedBox(height: 6),
-            Text(
-              'Profile changes stay in this demo session. Email verification, '
-              'password changes, and account recovery need a backend and are '
-              'not available yet.',
-              style: F.b(13, height: 1.45, color: cs.muted),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: <Widget>[
-                const MascotArt('face-curious', width: 58),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Personalize your profile and choose how your activity categories look.',
-                    style: F.b(13, height: 1.4, color: cs.ink2),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: name,
-              textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(labelText: 'Display name'),
-            ),
-            const SizedBox(height: 14),
-            EcoButton(
-              label: 'Save name',
-              block: true,
-              onPressed: () {
-                if (name.text.trim().length < 2) {
-                  store.toast('Enter at least two characters');
-                  return;
-                }
-                store.setPlayerName(name.text);
-                Navigator.pop(ctx);
-              },
-            ),
-            const SizedBox(height: 8),
-            EcoButton(
-              label: 'Change profile picture',
-              leading: 'user',
-              tone: EcoButtonTone.ghost,
-              block: true,
-              onPressed: () {
-                Navigator.pop(ctx);
-                _showAvatarPicker(context, store);
-              },
-            ),
-          ],
-        );
-      },
+    _AccountSettingsForm(
+      store: store,
+      onChangeAvatar: () => _showAvatarPicker(context, store),
     ),
   );
-  name.dispose();
+}
+
+class _AccountSettingsForm extends StatefulWidget {
+  const _AccountSettingsForm({
+    required this.store,
+    required this.onChangeAvatar,
+  });
+
+  final EcoStore store;
+  final VoidCallback onChangeAvatar;
+
+  @override
+  State<_AccountSettingsForm> createState() => _AccountSettingsFormState();
+}
+
+class _AccountSettingsFormState extends State<_AccountSettingsForm> {
+  late final TextEditingController _name =
+      TextEditingController(text: widget.store.playerName);
+  String? _error;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const SheetTitle(title: 'Account & security'),
+        const SizedBox(height: 6),
+        Text(
+          'Profile changes stay in this demo session. Email verification, '
+          'password changes, and account recovery need a backend and are '
+          'not available yet.',
+          style: F.b(13, height: 1.45, color: cs.muted),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: <Widget>[
+            const MascotArt('face-curious', width: 58),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Personalize your profile and choose how your activity categories look.',
+                style: F.b(13, height: 1.4, color: cs.ink2),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _name,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            labelText: 'Display name',
+            errorText: _error,
+          ),
+        ),
+        const SizedBox(height: 14),
+        EcoButton(
+          label: 'Save name',
+          block: true,
+          onPressed: () {
+            if (_name.text.trim().length < 2) {
+              setState(() => _error = 'Enter at least two characters.');
+              return;
+            }
+            widget.store.setPlayerName(_name.text);
+            Navigator.pop(context);
+          },
+        ),
+        const SizedBox(height: 8),
+        EcoButton(
+          label: 'Change profile picture',
+          leading: 'user',
+          tone: EcoButtonTone.ghost,
+          block: true,
+          onPressed: () {
+            Navigator.pop(context);
+            widget.onChangeAvatar();
+          },
+        ),
+      ],
+    );
+  }
 }
 
 void _showUnitSettings(BuildContext context, EcoStore store) {
@@ -1130,7 +1151,7 @@ class _CategoryColorPickerState extends State<_CategoryColorPicker> {
     final ColorScheme cs = Theme.of(context).colorScheme;
     return Column(
       children: <Widget>[
-        for (final String id in kCatOrder) ...<Widget>[
+        for (final CarbonCategory id in kCatOrder) ...<Widget>[
           EcoCard(
             flat: true,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -1307,7 +1328,7 @@ void _showHelp(BuildContext context, EcoStore store) {
           block: true,
           onPressed: () {
             Navigator.pop(context);
-            store.go('tips');
+            store.go(AppRoute.tips);
           },
         ),
       ],
@@ -1499,10 +1520,10 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
 
     try {
       final RenderObject? renderObject = shareContext.findRenderObject();
-      final Rect? sharePositionOrigin = renderObject is RenderBox &&
-              renderObject.hasSize
-          ? renderObject.localToGlobal(Offset.zero) & renderObject.size
-          : null;
+      final Rect? sharePositionOrigin =
+          renderObject is RenderBox && renderObject.hasSize
+              ? renderObject.localToGlobal(Offset.zero) & renderObject.size
+              : null;
       final ShareResult result = await Share.shareWithResult(
         'EcoTrack issue report\n\n$title\n\n$details',
         subject: 'EcoTrack issue report: $title',

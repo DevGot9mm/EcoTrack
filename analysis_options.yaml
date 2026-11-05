@@ -1,7 +1,6 @@
 # EcoTrack analysis options.
 #
-# Deliberately self-contained: the project ships with no third-party packages,
-# so nothing here pulls a lint set from pub.
+# Keep analyzer configuration focused on checks used by this project.
 analyzer:
   exclude:
     - build/**

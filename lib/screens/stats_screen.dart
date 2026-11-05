@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models.dart';
+import '../responsive.dart';
 import '../store.dart';
 import '../theme.dart';
 import '../widgets/charts.dart';
@@ -19,7 +20,8 @@ class StatsScreen extends StatelessWidget {
     final int days = store.statsPeriod == 'week' ? 7 : 30;
 
     final List<double> series = <double>[];
-    final List<Map<String, double>> categorySeries = <Map<String, double>>[];
+    final List<Map<CarbonCategory, double>> categorySeries =
+        <Map<CarbonCategory, double>>[];
     final List<String> chartLabels = <String>[];
     for (int d = days - 1; d >= 0; d--) {
       series.add(store.total(store.inRange(d, d)));
@@ -36,14 +38,18 @@ class StatsScreen extends StatelessWidget {
     );
     final double avg = sum / days;
 
-    final Map<String, double> t = store.catTotals(store.inRange(0, days - 1));
-    final double rawTot =
-        (t['transport'] ?? 0) + (t['electricity'] ?? 0) + (t['food'] ?? 0);
+    final Map<CarbonCategory, double> t =
+        store.catTotals(store.inRange(0, days - 1));
+    final double rawTot = kCatOrder.fold<double>(
+      0,
+      (double sum, CarbonCategory category) => sum + (t[category] ?? 0),
+    );
     final double tot = rawTot > 0 ? rawTot : 1;
 
-    final List<String> order = kCatOrder.toList()
-      ..sort((String a, String b) => (t[b] ?? 0).compareTo(t[a] ?? 0));
-    final String biggest = order.first;
+    final List<CarbonCategory> order = kCatOrder.toList()
+      ..sort((CarbonCategory a, CarbonCategory b) =>
+          (t[b] ?? 0).compareTo(t[a] ?? 0));
+    final CarbonCategory biggest = order.first;
 
     final Map<String, double> byAct = <String, double>{};
     for (final Entry a in store.inRange(0, days - 1)) {
@@ -67,6 +73,116 @@ class StatsScreen extends StatelessWidget {
         _legendItem(cs.muted, 'Goal', '${fmt1(targetPerDay)} kg/day', cs),
       ],
     );
+    final Widget trendSection = _section(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const SectionHead(title: 'Your trend'),
+          EcoCard(
+            flat: true,
+            padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                TrendChart(
+                  series: series,
+                  max: max,
+                  targetPerDay: targetPerDay,
+                  labels: chartLabels,
+                  categorySeries: categorySeries,
+                  categoryColors: <CarbonCategory, Color>{
+                    for (final CarbonCategory id in kCatOrder)
+                      id: store.categoryColor(id),
+                  },
+                ),
+                const SizedBox(height: 12),
+                trendLegend,
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    final Widget categorySection = _section(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const SectionHead(title: 'By category'),
+          EcoCard(
+            flat: true,
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints c) {
+                final bool wide = context.windowSize != WindowSize.compact;
+                final double donutSize =
+                    (c.maxWidth * (wide ? 0.4 : 0.32)).clamp(
+                  100.0,
+                  wide ? 190.0 : 160.0,
+                );
+                return Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: donutSize,
+                      height: donutSize,
+                      child: Stack(
+                        children: <Widget>[
+                          DonutChart(
+                            totals: t,
+                            categoryColors: <CarbonCategory, Color>{
+                              for (final CarbonCategory id in kCatOrder)
+                                id: store.categoryColor(id),
+                            },
+                            size: donutSize,
+                          ),
+                          Positioned.fill(
+                            child: Center(
+                              child: _ImpactCenter(
+                                total: sum,
+                                average: avg,
+                                target: targetPerDay,
+                                size: donutSize * 0.76,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          for (int i = 0; i < kCatOrder.length; i++)
+                            Padding(
+                              padding: EdgeInsets.only(top: i == 0 ? 0 : 12),
+                              child: _catLegend(
+                                catOf(kCatOrder[i]),
+                                t[kCatOrder[i]] ?? 0,
+                                tot,
+                                cs,
+                                store,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+    final Widget trendAndCategory = context.windowSize == WindowSize.expanded
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(child: trendSection),
+              const SizedBox(width: 16),
+              Expanded(child: categorySection),
+            ],
+          )
+        : Column(children: <Widget>[trendSection, categorySection]);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -102,114 +218,7 @@ class StatsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                _section(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      const SectionHead(title: 'Your trend'),
-                      EcoCard(
-                        flat: true,
-                        padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            TrendChart(
-                              series: series,
-                              max: max,
-                              targetPerDay: targetPerDay,
-                              labels: chartLabels,
-                              categorySeries: categorySeries,
-                              categoryColors: <String, Color>{
-                                for (final String id in kCatOrder)
-                                  id: store.categoryColor(id),
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            trendLegend,
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                _section(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      const SectionHead(title: 'By category'),
-                      EcoCard(
-                        flat: true,
-                        child: LayoutBuilder(
-                          builder: (BuildContext ctx, BoxConstraints c) {
-                            final double donutSize = (c.maxWidth *
-                                    (MediaQuery.sizeOf(context).shortestSide >=
-                                            600
-                                        ? 0.4
-                                        : 0.32))
-                                .clamp(
-                              100.0,
-                              MediaQuery.sizeOf(context).shortestSide >= 600
-                                  ? 190.0
-                                  : 160.0,
-                            );
-                            return Row(
-                              children: <Widget>[
-                                SizedBox(
-                                  width: donutSize,
-                                  height: donutSize,
-                                  child: Stack(
-                                    children: <Widget>[
-                                      DonutChart(
-                                        totals: t,
-                                        categoryColors: <String, Color>{
-                                          for (final String id in kCatOrder)
-                                            id: store.categoryColor(id),
-                                        },
-                                        size: donutSize,
-                                      ),
-                                      Positioned.fill(
-                                        child: Center(
-                                          child: _ImpactCenter(
-                                            total: sum,
-                                            average: avg,
-                                            target: targetPerDay,
-                                            size: donutSize * 0.76,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 18),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      for (int i = 0; i < kCatOrder.length; i++)
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            top: i == 0 ? 0 : 12,
-                                          ),
-                                          child: _catLegend(
-                                            catOf(kCatOrder[i]),
-                                            t[kCatOrder[i]] ?? 0,
-                                            tot,
-                                            cs,
-                                            store,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                trendAndCategory,
                 _section(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -260,7 +269,12 @@ class StatsScreen extends StatelessWidget {
                                 label:
                                     'See ${catOf(biggest).name.toLowerCase()} tips',
                                 trailingIcon: 'arrowRight',
-                                onTap: () => store.browseCategory(biggest),
+                                onTap: () {
+                                  store.setTipFilter(
+                                    TipFilterCategory.forCategory(biggest),
+                                  );
+                                  store.go(AppRoute.tips);
+                                },
                               ),
                             ],
                           ),
@@ -407,7 +421,7 @@ class _ImpactCenterState extends State<_ImpactCenter> {
       statusColor = cs.amber;
       status = 'Near goal';
     } else {
-      statusColor = const Color(0xFFB64F3E);
+      statusColor = cs.danger;
       status = 'Above goal';
     }
 

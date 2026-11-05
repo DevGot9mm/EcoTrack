@@ -2,26 +2,23 @@ import 'package:flutter/material.dart';
 
 import '../icons.dart';
 import '../models.dart';
+import '../responsive.dart';
 import '../store.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 
-class TipsScreen extends StatefulWidget {
+class TipsScreen extends StatelessWidget {
   const TipsScreen({super.key});
 
-  @override
-  State<TipsScreen> createState() => _TipsScreenState();
-}
-
-class _TipsScreenState extends State<TipsScreen> {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
     final List<Tip> filtered = switch (store.tipFilter) {
-      'all' => kTips,
-      'saved' =>
+      TipFilter.all => kTips,
+      TipFilter.saved =>
         kTips.where((Tip tip) => store.savedTips[tip.id] ?? false).toList(),
-      _ => kTips.where((Tip tip) => tip.cat == store.tipFilter).toList(),
+      final TipFilter filter =>
+        kTips.where((Tip tip) => tip.cat == filter.category).toList(),
     };
 
     return EcoScreen(
@@ -40,10 +37,28 @@ class _TipsScreenState extends State<TipsScreen> {
               body: 'Bookmark a tip and it will appear here for later.',
             )
           else
-            for (int i = 0; i < filtered.length; i++) ...<Widget>[
-              if (i > 0) const SizedBox(height: 12),
-              _TipCard(tip: filtered[i], store: store),
-            ],
+            LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final int columns = switch (context.windowSize) {
+                  WindowSize.compact => 1,
+                  WindowSize.medium => 2,
+                  WindowSize.expanded => 3,
+                };
+                final double width =
+                    (constraints.maxWidth - 12 * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: <Widget>[
+                    for (final Tip tip in filtered)
+                      SizedBox(
+                        width: width,
+                        child: _TipCard(tip: tip, store: store),
+                      ),
+                  ],
+                );
+              },
+            ),
         ],
       ),
     );
@@ -63,14 +78,25 @@ class _FilterBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: <Widget>[
-          _filterChip('All', 'all', store, cs),
+          _filterChip('All', TipFilter.all, store, cs),
           const SizedBox(width: 8),
-          ...kCatOrder.map((String cat) {
-            final c = catOf(cat);
-            return _filterChip(c.name, cat, store, cs);
+          ...kCatOrder.map((CarbonCategory category) {
+            final c = catOf(category);
+            return _filterChip(
+              c.name,
+              TipFilterCategory.forCategory(category),
+              store,
+              cs,
+            );
           }),
           const SizedBox(width: 8),
-          _filterChip('Saved', 'saved', store, cs, icon: 'bookmark'),
+          _filterChip(
+            'Saved',
+            TipFilter.saved,
+            store,
+            cs,
+            icon: 'bookmark',
+          ),
         ],
       ),
     );
@@ -78,14 +104,14 @@ class _FilterBar extends StatelessWidget {
 
   Widget _filterChip(
     String label,
-    String cat,
+    TipFilter filter,
     EcoStore store,
     ColorScheme cs, {
     String? icon,
   }) {
-    final bool active = store.tipFilter == cat;
+    final bool active = store.tipFilter == filter;
     return Pressable(
-      onTap: () => store.setTipFilter(cat),
+      onTap: () => store.setTipFilter(filter),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
@@ -212,7 +238,7 @@ class _TipCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
               EcoIconButton(
-                store.savedTips[tip.id] ?? false ? 'bookmark' : 'bookmark',
+                store.savedTips[tip.id] ?? false ? 'bookmarkOn' : 'bookmark',
                 plain: true,
                 iconSize: 18,
                 iconColor:

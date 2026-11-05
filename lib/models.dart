@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart' hide Badge;
+import 'package:flutter/material.dart';
 
 import 'theme.dart';
 
@@ -15,6 +15,25 @@ class CatColors {
   final Color ink;
 }
 
+enum CarbonCategory { transport, electricity, food }
+
+enum TipFilter { all, saved, transport, electricity, food }
+
+extension TipFilterCategory on TipFilter {
+  CarbonCategory? get category => switch (this) {
+        TipFilter.all || TipFilter.saved => null,
+        TipFilter.transport => CarbonCategory.transport,
+        TipFilter.electricity => CarbonCategory.electricity,
+        TipFilter.food => CarbonCategory.food,
+      };
+
+  static TipFilter forCategory(CarbonCategory category) => switch (category) {
+        CarbonCategory.transport => TipFilter.transport,
+        CarbonCategory.electricity => TipFilter.electricity,
+        CarbonCategory.food => TipFilter.food,
+      };
+}
+
 class Cat {
   const Cat({
     required this.id,
@@ -24,7 +43,7 @@ class Cat {
     required this.icon,
   });
 
-  final String id;
+  final CarbonCategory id;
   final String name;
   final String blurb;
   final Color color;
@@ -44,43 +63,42 @@ class Cat {
 
     final bool dark = cs.brightness == Brightness.dark;
     switch (id) {
-      case 'transport':
+      case CarbonCategory.transport:
         return CatColors(
           tint: dark ? cs.transportTint : const Color(0xFFE3F0F1),
           ink: dark ? cs.transportInk : const Color(0xFF2A5F68),
         );
-      case 'electricity':
+      case CarbonCategory.electricity:
         return CatColors(
           tint: dark ? cs.electricityTint : const Color(0xFFFBF0DA),
           ink: dark ? cs.electricityInk : const Color(0xFF7F5606),
         );
-      case 'food':
+      case CarbonCategory.food:
         return CatColors(
           tint: dark ? cs.foodTint : const Color(0xFFEDF4DE),
           ink: dark ? cs.foodInk : const Color(0xFF546D2C),
         );
     }
-    return const CatColors(tint: Color(0xFFE3F0F1), ink: Color(0xFF2A5F68));
   }
 }
 
-const Map<String, Cat> kCats = <String, Cat>{
-  'transport': Cat(
-    id: 'transport',
+const Map<CarbonCategory, Cat> kCats = <CarbonCategory, Cat>{
+  CarbonCategory.transport: Cat(
+    id: CarbonCategory.transport,
     name: 'Transport',
     blurb: 'Getting around',
     color: Eco.transport,
     icon: 'bus',
   ),
-  'electricity': Cat(
-    id: 'electricity',
+  CarbonCategory.electricity: Cat(
+    id: CarbonCategory.electricity,
     name: 'Electricity',
     blurb: 'Power at home',
     color: Eco.electricity,
     icon: 'bolt',
   ),
-  'food': Cat(
-    id: 'food',
+  CarbonCategory.food: Cat(
+    id: CarbonCategory.food,
     name: 'Food',
     blurb: 'What you eat',
     color: Eco.food,
@@ -88,9 +106,13 @@ const Map<String, Cat> kCats = <String, Cat>{
   ),
 };
 
-const List<String> kCatOrder = <String>['transport', 'electricity', 'food'];
+const List<CarbonCategory> kCatOrder = <CarbonCategory>[
+  CarbonCategory.transport,
+  CarbonCategory.electricity,
+  CarbonCategory.food,
+];
 
-Cat catOf(String id) => kCats[id] ?? kCats['transport']!;
+Cat catOf(CarbonCategory id) => kCats[id]!;
 
 class ActivityDef {
   const ActivityDef({
@@ -107,7 +129,7 @@ class ActivityDef {
   });
 
   final String key;
-  final String cat;
+  final CarbonCategory cat;
   final String name;
   final String unit;
 
@@ -186,7 +208,7 @@ List<FoodPreparation> foodPreparationOptions(String foodKey) =>
 const List<ActivityDef> kActivities = <ActivityDef>[
   ActivityDef(
       key: 'car',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       name: 'Car',
       unit: 'km',
       factor: 0.192,
@@ -196,7 +218,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       icon: 'car'),
   ActivityDef(
       key: 'carpool',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       name: 'Shared car',
       unit: 'km',
       factor: 0.096,
@@ -207,7 +229,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Per passenger; assumes two people share a petrol car.'),
   ActivityDef(
       key: 'taxi',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       name: 'Taxi or rideshare',
       unit: 'km',
       factor: 0.192,
@@ -218,7 +240,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'A typical occupied-car estimate per passenger kilometre.'),
   ActivityDef(
       key: 'electric_car',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       name: 'Electric car',
       unit: 'km',
       factor: 0.06,
@@ -230,7 +252,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
           'Use-phase estimate; actual emissions depend on your power grid.'),
   ActivityDef(
       key: 'motorcycle',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       name: 'Motorcycle',
       unit: 'km',
       factor: 0.103,
@@ -240,7 +262,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       icon: 'motorcycle'),
   ActivityDef(
       key: 'bus',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       name: 'Bus',
       unit: 'km',
       factor: 0.082,
@@ -250,7 +272,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       icon: 'bus'),
   ActivityDef(
       key: 'train',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       name: 'Train',
       unit: 'km',
       factor: 0.035,
@@ -261,7 +283,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'A shared-rail estimate; route and occupancy can change it.'),
   ActivityDef(
       key: 'metro',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       name: 'Metro or subway',
       unit: 'km',
       factor: 0.035,
@@ -272,7 +294,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'A typical shared-rail estimate per passenger kilometre.'),
   ActivityDef(
       key: 'bicycle',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       name: 'Bicycle',
       unit: 'km',
       factor: 0,
@@ -283,7 +305,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Counts direct travel emissions, not equipment manufacturing.'),
   ActivityDef(
       key: 'walking',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       name: 'Walking',
       unit: 'km',
       factor: 0,
@@ -294,7 +316,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'No direct travel emissions.'),
   ActivityDef(
       key: 'home',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       name: 'Electricity from bill',
       unit: 'kWh',
       factor: 0.72,
@@ -305,7 +327,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Enter kWh from your bill or meter; no conversion is needed.'),
   ActivityDef(
       key: 'ac',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       name: 'Air conditioner (AC)',
       unit: 'hours',
       factor: 0.62,
@@ -316,7 +338,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Uses a typical 0.86 kW AC estimate; real units vary widely.'),
   ActivityDef(
       key: 'charging',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       name: 'Phone or tablet charging',
       unit: 'hours',
       factor: 0.012,
@@ -327,7 +349,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Typical 15 W charger estimate; actual devices vary.'),
   ActivityDef(
       key: 'fan',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       name: 'Electric fan',
       unit: 'hours',
       factor: 0.036,
@@ -338,7 +360,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Typical 50 W fan estimate, not a meter reading.'),
   ActivityDef(
       key: 'lighting',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       name: 'LED light',
       unit: 'hours',
       factor: 0.007,
@@ -349,7 +371,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Assumes one 10 W LED bulb.'),
   ActivityDef(
       key: 'laptop',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       name: 'Laptop',
       unit: 'hours',
       factor: 0.04,
@@ -360,7 +382,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Typical 55 W laptop estimate while in use.'),
   ActivityDef(
       key: 'desktop',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       name: 'Desktop computer',
       unit: 'hours',
       factor: 0.18,
@@ -371,7 +393,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Typical 250 W desktop estimate; gaming systems can use more.'),
   ActivityDef(
       key: 'television',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       name: 'Television',
       unit: 'hours',
       factor: 0.07,
@@ -382,7 +404,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Typical 100 W television estimate.'),
   ActivityDef(
       key: 'laundry',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       name: 'Washing machine',
       unit: 'loads',
       factor: 0.36,
@@ -393,7 +415,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Typical wash-cycle estimate; hot-water cycles use more.'),
   ActivityDef(
       key: 'refrigerator',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       name: 'Refrigerator',
       unit: 'days',
       factor: 0.72,
@@ -405,7 +427,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
           'Typical daily estimate for an efficient fridge; older models vary.'),
   ActivityDef(
       key: 'beef',
-      cat: 'food',
+      cat: CarbonCategory.food,
       name: 'Beef & steak',
       unit: 'servings',
       factor: 4.0,
@@ -416,7 +438,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Estimate for a 150 g cooked serving; sides are not included.'),
   ActivityDef(
       key: 'chicken',
-      cat: 'food',
+      cat: CarbonCategory.food,
       name: 'Chicken & poultry',
       unit: 'servings',
       factor: 1.6,
@@ -428,7 +450,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
           'Includes chicken or duck; estimate for one 150 g cooked serving.'),
   ActivityDef(
       key: 'pork_lamb',
-      cat: 'food',
+      cat: CarbonCategory.food,
       name: 'Pork & lamb',
       unit: 'servings',
       factor: 2.8,
@@ -439,7 +461,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
       detail: 'Includes pork or lamb; estimate for one 150 g cooked serving.'),
   ActivityDef(
       key: 'fish',
-      cat: 'food',
+      cat: CarbonCategory.food,
       name: 'Fish & seafood',
       unit: 'servings',
       factor: 1.1,
@@ -451,7 +473,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
           'Estimate for a 150 g cooked serving; species can change the total.'),
   ActivityDef(
       key: 'dairy',
-      cat: 'food',
+      cat: CarbonCategory.food,
       name: 'Dairy & eggs',
       unit: 'servings',
       factor: 1.0,
@@ -463,7 +485,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
           'Includes milk, cheese or eggs; estimate for one typical serving.'),
   ActivityDef(
       key: 'rice_grains',
-      cat: 'food',
+      cat: CarbonCategory.food,
       name: 'Rice & grains',
       unit: 'servings',
       factor: 0.8,
@@ -475,7 +497,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
           'Includes rice, noodles or bread; estimate for one prepared serving.'),
   ActivityDef(
       key: 'plant_protein',
-      cat: 'food',
+      cat: CarbonCategory.food,
       name: 'Plant-based protein',
       unit: 'servings',
       factor: 0.6,
@@ -487,7 +509,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
           'Includes tofu, tempeh or beans; estimate for one typical serving.'),
   ActivityDef(
       key: 'fruits_vegetables',
-      cat: 'food',
+      cat: CarbonCategory.food,
       name: 'Fruits & vegetables',
       unit: 'servings',
       factor: 0.5,
@@ -499,7 +521,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
           'A typical fresh-produce serving; growing methods and season vary.'),
   ActivityDef(
       key: 'vegetarian',
-      cat: 'food',
+      cat: CarbonCategory.food,
       name: 'Vegetarian meal',
       unit: 'servings',
       factor: 0.7,
@@ -511,7 +533,7 @@ const List<ActivityDef> kActivities = <ActivityDef>[
           'A mixed vegetarian dish; ingredients and portion sizes can vary.'),
   ActivityDef(
       key: 'vegan',
-      cat: 'food',
+      cat: CarbonCategory.food,
       name: 'Vegan meal',
       unit: 'servings',
       factor: 0.45,
@@ -526,13 +548,13 @@ const List<ActivityDef> kActivities = <ActivityDef>[
 final List<ActivityDef> kFoodVariants = List<ActivityDef>.unmodifiable(
   <ActivityDef>[
     for (final ActivityDef food in kActivities.where(
-      (ActivityDef activity) => activity.cat == 'food',
+      (ActivityDef activity) => activity.cat == CarbonCategory.food,
     ))
       for (final FoodPreparation preparation
           in foodPreparationOptions(food.key))
         ActivityDef(
           key: '${food.key}_${preparation.id}',
-          cat: 'food',
+          cat: CarbonCategory.food,
           name: '${food.name} · ${preparation.name.toLowerCase()}',
           unit: food.unit,
           factor: food.factor * preparation.multiplier,
@@ -555,7 +577,7 @@ ActivityDef? activityDef(String key) {
   return null;
 }
 
-List<ActivityDef> actsOf(String cat) =>
+List<ActivityDef> actsOf(CarbonCategory cat) =>
     kActivities.where((ActivityDef a) => a.cat == cat).toList();
 
 List<ActivityDef> foodPreparationsOf(String foodKey) => kFoodVariants
@@ -575,7 +597,7 @@ class Tip {
   });
 
   final String id;
-  final String cat;
+  final CarbonCategory cat;
   final String icon;
   final String title;
   final String action;
@@ -587,7 +609,7 @@ class Tip {
 const List<Tip> kTips = <Tip>[
   Tip(
       id: 't1',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       icon: 'walk',
       title: 'Walk trips under 2 km',
       action: 'Leave the bike helmet at home for short errands.',
@@ -597,7 +619,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 2),
   Tip(
       id: 't2',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       icon: 'air',
       title: 'Set the AC to 25°C',
       action: 'Each degree warmer cuts roughly 6% of its power draw.',
@@ -607,7 +629,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 3),
   Tip(
       id: 't3',
-      cat: 'food',
+      cat: CarbonCategory.food,
       icon: 'leaf',
       title: 'Swap one beef meal a week',
       action: 'Try a vegetarian dish on the day you would have had beef.',
@@ -617,7 +639,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 1),
   Tip(
       id: 't4',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       icon: 'plug',
       title: 'Unplug chargers when idle',
       action: 'Unplug your phone charger once the device is full.',
@@ -627,7 +649,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 1),
   Tip(
       id: 't5',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       icon: 'bus',
       title: 'Take the bus once a week',
       action: 'Pick your longest regular drive and ride it instead.',
@@ -637,7 +659,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 15),
   Tip(
       id: 't6',
-      cat: 'food',
+      cat: CarbonCategory.food,
       icon: 'sprout',
       title: 'Eat what you buy',
       action: 'Plan two meals around what is already in the fridge.',
@@ -647,7 +669,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 1),
   Tip(
       id: 't7',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       icon: 'refresh',
       title: 'Air-dry your laundry',
       action: 'Skip the dryer on the next sunny day.',
@@ -657,7 +679,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 3),
   Tip(
       id: 't8',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       icon: 'bike',
       title: 'Cycle the short hop',
       action: 'Replace one short ride with pedal power.',
@@ -667,7 +689,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 5),
   Tip(
       id: 't9',
-      cat: 'food',
+      cat: CarbonCategory.food,
       icon: 'grains',
       title: 'Try rice or noodles as the main',
       action: 'Build one meal around grains with vegetables or beans.',
@@ -677,7 +699,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 1),
   Tip(
       id: 't10',
-      cat: 'food',
+      cat: CarbonCategory.food,
       icon: 'tofu',
       title: 'Add beans or tofu',
       action: 'Replace one meat portion with beans, tofu or tempeh.',
@@ -687,7 +709,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 1),
   Tip(
       id: 't11',
-      cat: 'food',
+      cat: CarbonCategory.food,
       icon: 'produce',
       title: 'Choose seasonal produce',
       action: 'Add a serving of fresh fruit or vegetables to a meal.',
@@ -697,7 +719,7 @@ const List<Tip> kTips = <Tip>[
       ctaAmount: 1),
   Tip(
       id: 't12',
-      cat: 'food',
+      cat: CarbonCategory.food,
       icon: 'produce',
       title: 'Choose a less-packaged snack',
       action: 'Try fruit, nuts or another minimally packaged option.',
@@ -732,7 +754,7 @@ class Challenge {
   });
 
   final String id;
-  final String cat;
+  final CarbonCategory cat;
   final String title;
   final String why;
   final int reward;
@@ -753,7 +775,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
   final List<Challenge> pool = <Challenge>[
     Challenge(
       id: 'c1',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       title: 'Legs before engine',
       why: 'Choose walking or cycling for one short trip today.',
       reward: 30,
@@ -764,7 +786,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c2',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       title: 'Lights off when you leave',
       why: 'Switch off unused lights once a day for three days in a row.',
       reward: 20,
@@ -775,7 +797,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c3',
-      cat: 'food',
+      cat: CarbonCategory.food,
       title: 'Meat-free for a meal',
       why: 'Choose one plant-forward meal today.',
       reward: 25,
@@ -786,7 +808,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c4',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       title: 'Unplug before bed',
       why: 'Switch off one idle device each night for three nights in a row.',
       reward: 20,
@@ -797,7 +819,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c5',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       title: 'Ride the bus once',
       why: 'Replace one car trip with public transport this week.',
       reward: 25,
@@ -808,7 +830,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c6',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       title: 'Cooler by one degree',
       why: 'Set your AC a little warmer for three days in a row.',
       reward: 25,
@@ -819,7 +841,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c7',
-      cat: 'food',
+      cat: CarbonCategory.food,
       title: 'Plan a leftovers meal',
       why: 'Use food you already have for one meal this week.',
       reward: 20,
@@ -830,7 +852,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c8',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       title: 'Cycle a short trip',
       why: 'Use a bicycle instead of a motor vehicle once this week.',
       reward: 25,
@@ -841,7 +863,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c9',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       title: 'Air-dry a load',
       why: 'Skip the tumble dryer for one laundry load this week.',
       reward: 20,
@@ -852,7 +874,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c10',
-      cat: 'food',
+      cat: CarbonCategory.food,
       title: 'Try a plant-based lunch',
       why: 'Choose a vegan lunch once this week.',
       reward: 25,
@@ -863,7 +885,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c11',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       title: 'Share the ride',
       why: 'Carpool or share a rideshare for one trip this week.',
       reward: 20,
@@ -874,7 +896,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c12',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       title: 'Use daylight',
       why: 'Leave a light off while daylight is enough, three days in a row.',
       reward: 20,
@@ -885,7 +907,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c13',
-      cat: 'food',
+      cat: CarbonCategory.food,
       title: 'Make two meat-free meals',
       why: 'Choose two plant-forward meals on separate days this week.',
       reward: 30,
@@ -896,7 +918,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c14',
-      cat: 'transport',
+      cat: CarbonCategory.transport,
       title: 'Choose the train',
       why: 'Take a train or metro for one journey this week.',
       reward: 25,
@@ -907,7 +929,7 @@ List<Challenge> seedChallenges({DateTime? now}) {
     ),
     Challenge(
       id: 'c15',
-      cat: 'electricity',
+      cat: CarbonCategory.electricity,
       title: 'A lower-energy wash',
       why: 'Choose a cool wash cycle twice this week.',
       reward: 25,
@@ -952,8 +974,8 @@ List<Challenge> seedChallenges({DateTime? now}) {
   ];
 }
 
-class Badge {
-  Badge({
+class Achievement {
+  Achievement({
     required this.id,
     required this.icon,
     required this.name,
@@ -972,8 +994,8 @@ class Badge {
   final double target;
 }
 
-List<Badge> seedBadges() => <Badge>[
-      Badge(
+List<Achievement> seedAchievements() => <Achievement>[
+      Achievement(
         id: 'b1',
         icon: 'sprout',
         name: 'First step',
@@ -982,7 +1004,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 1,
       ),
-      Badge(
+      Achievement(
         id: 'b2',
         icon: 'flame',
         name: 'Week streak',
@@ -991,7 +1013,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 7,
       ),
-      Badge(
+      Achievement(
         id: 'b3',
         icon: 'leaf',
         name: 'Green chef',
@@ -1000,7 +1022,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 5,
       ),
-      Badge(
+      Achievement(
         id: 'b4',
         icon: 'bus',
         name: 'Transit regular',
@@ -1009,7 +1031,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 10,
       ),
-      Badge(
+      Achievement(
         id: 'b5',
         icon: 'bike',
         name: 'Cyclist',
@@ -1018,7 +1040,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 25,
       ),
-      Badge(
+      Achievement(
         id: 'b6',
         icon: 'bolt',
         name: 'Energy mindful',
@@ -1027,7 +1049,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 10,
       ),
-      Badge(
+      Achievement(
         id: 'b7',
         icon: 'flag',
         name: 'Challenger',
@@ -1036,7 +1058,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 5,
       ),
-      Badge(
+      Achievement(
         id: 'b8',
         icon: 'trophy',
         name: 'Tree planter',
@@ -1045,7 +1067,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 2000,
       ),
-      Badge(
+      Achievement(
         id: 'b9',
         icon: 'walk',
         name: 'Low-carbon commute',
@@ -1054,7 +1076,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 5,
       ),
-      Badge(
+      Achievement(
         id: 'b10',
         icon: 'food',
         name: 'Mindful meals',
@@ -1063,7 +1085,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 10,
       ),
-      Badge(
+      Achievement(
         id: 'b11',
         icon: 'plus',
         name: 'Your own footprint',
@@ -1072,7 +1094,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 3,
       ),
-      Badge(
+      Achievement(
         id: 'b12',
         icon: 'chart',
         name: 'Well-rounded',
@@ -1081,7 +1103,7 @@ List<Badge> seedBadges() => <Badge>[
         progress: 0,
         target: 3,
       ),
-      Badge(
+      Achievement(
         id: 'b13',
         icon: 'bookmark',
         name: 'Tip collector',
@@ -1157,7 +1179,7 @@ class Entry {
 
   final String id;
   final String key;
-  final String cat;
+  final CarbonCategory cat;
   final double amount;
   final double co2;
   final DateTime at;

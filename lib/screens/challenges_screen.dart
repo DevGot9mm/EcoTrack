@@ -411,8 +411,6 @@ class _ChallengeCard extends StatelessWidget {
       Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const SheetGrab(),
-          const SizedBox(height: 8),
           Text(
             challenge.title,
             style: F.d(20),

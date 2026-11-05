@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../icons.dart';
 import '../models.dart';
@@ -42,29 +43,36 @@ class _PressableState extends State<Pressable> {
     Widget child = widget.fillWidth
         ? SizedBox(width: double.infinity, child: widget.child)
         : widget.child;
-    child = HolographicCard(
-      borderRadius: widget.borderRadius.topLeft.x,
-      backgroundColor: Colors.transparent,
-      sweepColor: const Color(0xFF7BC96F),
-      glowColor: const Color(0xFF4CAF50),
-      hoverScale: 1.01,
-      width: widget.fillWidth ? double.infinity : null,
-      height: null,
-      child: child,
-    );
-    if (widget.onTap == null) return child;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onTap,
-      onTapDown: (_) => _setDown(true),
-      onTapUp: (_) => _setDown(false),
-      onTapCancel: () => _setDown(false),
-      child: AnimatedScale(
-        scale: _down ? widget.scale : 1,
-        duration: Eco.dur1,
-        curve: Eco.easeOut,
+    if (RendererBinding.instance.mouseTracker.mouseIsConnected) {
+      child = HolographicCard(
+        borderRadius: widget.borderRadius.topLeft.x,
+        backgroundColor: Colors.transparent,
+        sweepColor: const Color(0xFF7BC96F),
+        glowColor: const Color(0xFF4CAF50),
+        hoverScale: 1.01,
+        width: widget.fillWidth ? double.infinity : null,
+        height: null,
         child: child,
-      ),
+      );
+    }
+    return Semantics(
+      button: true,
+      enabled: widget.onTap != null,
+      child: widget.onTap == null
+          ? child
+          : GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: widget.onTap,
+              onTapDown: (_) => _setDown(true),
+              onTapUp: (_) => _setDown(false),
+              onTapCancel: () => _setDown(false),
+              child: AnimatedScale(
+                scale: _down ? widget.scale : 1,
+                duration: Eco.dur1,
+                curve: Eco.easeOut,
+                child: child,
+              ),
+            ),
     );
   }
 }
@@ -356,23 +364,6 @@ class _FlipIconButtonState extends State<FlipIconButton>
   }
 }
 
-class SheetGrab extends StatelessWidget {
-  const SheetGrab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      width: 42,
-      height: 5,
-      decoration: BoxDecoration(
-        color: cs.lineStrong,
-        borderRadius: BorderRadius.circular(99),
-      ),
-    );
-  }
-}
-
 class _Spinner extends StatelessWidget {
   const _Spinner();
 
@@ -488,6 +479,12 @@ const Map<String, String> _avatarAssetPaths = <String, String>{
   'level-5': 'assets/level-mascots/level-5.png',
 };
 
+const Set<String> _portraitAvatarNames = <String>{
+  'image.png',
+  'image-2.png',
+  'image-5.png',
+};
+
 String mascotPath(String name) =>
     _avatarAssetPaths[name] ?? 'assets/mascot-clean/$name.png';
 
@@ -514,9 +511,18 @@ class MascotArt extends StatelessWidget {
       fit: BoxFit.contain,
       alignment: alignment,
       filterQuality: FilterQuality.medium,
+      errorBuilder: (BuildContext context, Object error, StackTrace? stack) =>
+          _mascotFallback(context),
     );
   }
 }
+
+Widget _mascotFallback(BuildContext context) => Center(
+      child: Icon(
+        Icons.eco_outlined,
+        color: Theme.of(context).colorScheme.muted,
+      ),
+    );
 
 /// The cropped mascot used inside avatars and chips — the art is scaled past the
 /// rounded frame and clipped, exactly as the prototype does.
@@ -547,6 +553,11 @@ class MascotCrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color bg = background ?? Theme.of(context).colorScheme.mint;
+    final int portraitCacheWidth =
+        (size * photoScale * MediaQuery.devicePixelRatioOf(context))
+            .round()
+            .clamp(1, 256)
+            .toInt();
     final Widget image = Container(
       width: size,
       height: size,
@@ -554,8 +565,14 @@ class MascotCrop extends StatelessWidget {
       child: _avatarAssetPaths.containsKey(name)
           ? Image.asset(
               mascotPath(name),
+              cacheWidth: _portraitAvatarNames.contains(name)
+                  ? portraitCacheWidth
+                  : null,
               fit: BoxFit.cover,
               filterQuality: FilterQuality.medium,
+              errorBuilder:
+                  (BuildContext context, Object error, StackTrace? stack) =>
+                      _mascotFallback(context),
             )
           : Stack(
               clipBehavior: Clip.hardEdge,
@@ -568,6 +585,9 @@ class MascotCrop extends StatelessWidget {
                     mascotPath(name),
                     fit: BoxFit.contain,
                     filterQuality: FilterQuality.medium,
+                    errorBuilder: (BuildContext context, Object error,
+                            StackTrace? stack) =>
+                        _mascotFallback(context),
                   ),
                 ),
               ],
@@ -724,7 +744,7 @@ class EcoButton extends StatelessWidget {
 
     switch (tone) {
       case EcoButtonTone.primary:
-        bg = cs.leaf;
+        bg = cs.primary;
         fg = cs.onPrimary;
         border = null;
         shadows = Eco.shadowPrimaryBtn;
@@ -748,6 +768,12 @@ class EcoButton extends StatelessWidget {
         shadows = const <BoxShadow>[];
         break;
     }
+    final TextStyle buttonStyle =
+        Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontSize: 16,
+                  color: fg,
+                ) ??
+            F.b(16, wght: 800, color: fg);
 
     final bool enabled = onPressed != null && !loading;
 
@@ -759,7 +785,7 @@ class EcoButton extends StatelessWidget {
       Flexible(
         child: Text(
           loading ? (loadingLabel ?? label) : label,
-          style: F.b(16, wght: 800, color: fg),
+          style: buttonStyle,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -980,46 +1006,16 @@ class EcoSegmented extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final List<Widget> cells = <Widget>[];
-    for (int i = 0; i < items.length; i++) {
-      final bool on = i == index;
-      cells.add(
-        Expanded(
-          child: Pressable(
-            onTap: () => onChanged(i),
-            borderRadius: BorderRadius.circular(Eco.rPill),
-            child: AnimatedContainer(
-              duration: Eco.dur1,
-              curve: Eco.easeOut,
-              constraints: const BoxConstraints(minHeight: 40),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: on ? cs.surface : Colors.transparent,
-                borderRadius: BorderRadius.circular(Eco.rPill),
-                boxShadow: on ? Eco.shadow1 : const <BoxShadow>[],
-              ),
-              child: Text(
-                items[i],
-                style: F.b(
-                  14,
-                  wght: 800,
-                  color: on ? cs.leaf : cs.muted,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: cs.surface2,
-        border: Border.all(color: cs.outline),
-        borderRadius: BorderRadius.circular(Eco.rPill),
-      ),
-      child: Row(children: _gapped(cells, 4)),
+    return SegmentedButton<int>(
+      segments: <ButtonSegment<int>>[
+        for (int i = 0; i < items.length; i++)
+          ButtonSegment<int>(value: i, label: Text(items[i])),
+      ],
+      selected: <int>{index},
+      showSelectedIcon: false,
+      onSelectionChanged: (Set<int> selection) {
+        if (selection.isNotEmpty) onChanged(selection.first);
+      },
     );
   }
 }
@@ -1172,13 +1168,14 @@ class EcoTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
+    final TextTheme textTheme = Theme.of(context).textTheme;
     final Widget left = noBack
         ? const SizedBox.shrink()
         : EcoIconButton('chevronL', onPressed: onBack ?? store.back);
 
     final Widget titleWidget = Text(
       title,
-      style: F.d(21),
+      style: textTheme.titleLarge,
       textAlign: centerTitle ? TextAlign.center : TextAlign.left,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -1206,13 +1203,14 @@ class SectionHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: <Widget>[
-          Expanded(child: Text(title, style: F.h2)),
+          Expanded(child: Text(title, style: textTheme.titleLarge)),
           if (action != null) action!,
         ],
       ),
@@ -1344,6 +1342,7 @@ class StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return EcoCard(
       flat: true,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -1352,19 +1351,26 @@ class StatTile extends StatelessWidget {
         children: <Widget>[
           Text(
             value,
-            style: F.d(valueSize),
+            style: textTheme.headlineSmall?.copyWith(fontSize: valueSize),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
-          Text(caption, style: F.b(12.5, wght: 700, color: cs.muted)),
+          Text(
+            caption,
+            style: textTheme.labelSmall?.copyWith(
+              fontSize: 12.5,
+              letterSpacing: 0,
+              color: cs.muted,
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-/// A card that behaves like a data cell: big number on top, caption underneath.
+/// A tappable list row with optional leading and trailing details.
 class EcoListRow extends StatelessWidget {
   const EcoListRow({
     super.key,
@@ -1418,10 +1424,10 @@ class EcoListRow extends StatelessWidget {
                   style: F.b(13, height: 1.45, color: cs.muted)),
             if (showChevron) ...<Widget>[
               const SizedBox(width: 8),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
                 size: 17,
-                color: Color(0xFFA8B3A9),
+                color: cs.muted,
               ),
             ],
           ],
@@ -1553,9 +1559,10 @@ class Eyebrow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Text(
       text.toUpperCase(),
-      style: F.eyebrow(context).copyWith(color: color ?? cs.muted),
+      style: textTheme.labelSmall?.copyWith(color: color ?? cs.muted),
     );
   }
 }

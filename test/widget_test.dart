@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart' hide Badge;
+import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:ecotrack/celebration_data.dart';
 import 'package:ecotrack/main.dart';
 import 'package:ecotrack/models.dart';
 import 'package:ecotrack/screens/add_activity_screen.dart';
@@ -16,15 +17,151 @@ import 'package:ecotrack/widgets/common.dart';
 import 'package:ecotrack/widgets/sheets.dart';
 
 void main() {
+  testWidgets('tablet-sized app lays out onboarding and tips without overflow',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(768, 1024);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const EcoTrackApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Skip'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Continue as guest'));
+    await tester.tap(find.text('Continue as guest'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.tips_and_updates_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Eco Tips'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('large system text scale is capped at 1.3',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(
+          size: Size(390, 844),
+          textScaler: TextScaler.linear(2),
+        ),
+        child: const EcoTrackApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final BuildContext context = tester.element(find.text('Skip'));
+    expect(MediaQuery.textScalerOf(context).scale(10), 13);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('bottom sheet input remains above the keyboard inset',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (BuildContext context) => Center(
+              child: ElevatedButton(
+                onPressed: () => showEcoSheet(
+                  context,
+                  const TextField(
+                    decoration: InputDecoration(labelText: 'Input'),
+                  ),
+                ),
+                child: const Text('Open sheet'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open sheet'));
+    await tester.pumpAndSettle();
+
+    expect(
+        tester.getRect(find.byType(TextField)).bottom, lessThanOrEqualTo(544));
+    expect(tester.takeException(), isNull);
+  });
+
+  test('streak uses consecutive days with activity', () {
+    final EcoStore store = EcoStore();
+    addTearDown(store.dispose);
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    Entry entryAt(String id, DateTime at) => Entry(
+          id: id,
+          key: 'walking',
+          cat: CarbonCategory.transport,
+          amount: 1,
+          co2: 0,
+          at: at,
+        );
+
+    store.activities
+      ..clear()
+      ..add(entryAt('yesterday', today.subtract(const Duration(days: 1))));
+    expect(store.streak, 1);
+
+    store.activities
+      ..add(entryAt('today', today.add(const Duration(hours: 12))))
+      ..add(entryAt('older', today.subtract(const Duration(days: 3))));
+    expect(store.streak, 2);
+  });
+
+  test('display name is retained while greeting uses its first word', () {
+    final EcoStore store = EcoStore();
+    addTearDown(store.dispose);
+
+    store.setPlayerName('  Kelvin Kurniawan  ');
+
+    expect(store.playerName, 'Kelvin Kurniawan');
+    expect(store.greetingName, 'Kelvin');
+  });
+
+  test('celebration state uses typed payloads', () {
+    final EcoStore store = EcoStore();
+    addTearDown(store.dispose);
+
+    store.showPoints(12, 'Activity logged');
+    expect(store.celebrationData, isA<PointsCelebration>());
+    expect((store.celebrationData! as PointsCelebration).amount, 12);
+
+    final Achievement badge = store.badges.first;
+    store.showBadgeUnlock(badge);
+    expect(store.celebrationData, isA<BadgeUnlockCelebration>());
+    expect((store.celebrationData! as BadgeUnlockCelebration).badge, badge);
+
+    store.showLevelUp('Seedling', 1);
+    expect(store.celebrationData, isA<LevelUpCelebration>());
+    expect((store.celebrationData! as LevelUpCelebration).idx, 1);
+
+    store.showChallengeComplete('Walk more', 20);
+    expect(store.celebrationData, isA<ChallengeCompleteCelebration>());
+    expect(
+      (store.celebrationData! as ChallengeCompleteCelebration).points,
+      20,
+    );
+  });
+
   test('activity options include clear electricity and food variants', () {
     expect(activityDef('home')?.name, 'Electricity from bill');
     expect(
-        actsOf('electricity').map((ActivityDef activity) => activity.key),
+        actsOf(CarbonCategory.electricity)
+            .map((ActivityDef activity) => activity.key),
         containsAll(
             <String>['fan', 'lighting', 'laptop', 'laundry', 'charging']));
     expect(activityDef('appliance'), isNull);
     expect(
-      actsOf('food').map((ActivityDef activity) => activity.key),
+      actsOf(CarbonCategory.food).map((ActivityDef activity) => activity.key),
       containsAll(<String>[
         'beef',
         'chicken',
@@ -58,7 +195,7 @@ void main() {
     addTearDown(store.dispose);
 
     store.openAdd();
-    store.pickCat('food');
+    store.pickCat(CarbonCategory.food);
     store.addNext();
     expect(store.addStep, 1);
     expect(store.stepCount, 4);
@@ -76,7 +213,7 @@ void main() {
     expect(store.lastActivity?.co2, 1.7);
 
     store.openAdd();
-    store.pickCat('electricity');
+    store.pickCat(CarbonCategory.electricity);
     store.addNext();
     store.pickAct('fan');
     store.addNext();
@@ -90,7 +227,7 @@ void main() {
     addTearDown(store.dispose);
 
     store.openAdd();
-    store.pickCat('food');
+    store.pickCat(CarbonCategory.food);
     store.pickCustomActivity('Homemade stew', 2.37);
 
     expect(store.addStep, store.amountStep);
@@ -107,20 +244,20 @@ void main() {
     final EcoStore store = EcoStore();
     addTearDown(store.dispose);
 
-    store.go('tips');
+    store.go(AppRoute.tips);
     store.tryTip('t2');
-    expect(store.route, 'add');
+    expect(store.route, AppRoute.add);
     expect(store.addStep, store.amountStep);
 
     store.addBack();
-    expect(store.route, 'tips');
+    expect(store.route, AppRoute.tips);
   });
 
   test('food tips select a preparation before opening amount entry', () {
     final EcoStore store = EcoStore();
     addTearDown(store.dispose);
 
-    store.go('tips');
+    store.go(AppRoute.tips);
     store.tryTip('t3');
     expect(store.addKey, 'vegetarian_grilled');
     expect(store.addFoodType, 'vegetarian');
@@ -273,7 +410,7 @@ void main() {
     expect(tester.getBottomLeft(tipsButton).dy, closeTo(actionBottom, 1));
     await tester.tap(find.text('Explore Eco Tips'));
     await tester.pumpAndSettle();
-    expect(store.route, 'tips');
+    expect(store.route, AppRoute.tips);
 
     final Offset carouselCenter = tester.getCenter(find.byType(PageView));
     await tester.sendEventToBinding(
@@ -291,14 +428,14 @@ void main() {
     expect(tester.getSize(challengeButton).height, lessThanOrEqualTo(48));
     await tester.tap(find.text('View challenges'));
     await tester.pumpAndSettle();
-    expect(store.route, 'challenges');
+    expect(store.route, AppRoute.challenges);
   });
 
   testWidgets('app shell uses Scaffold, ListView, and landscape navigation',
       (WidgetTester tester) async {
     debugDisableCelebrationAnimations = true;
     addTearDown(() => debugDisableCelebrationAnimations = false);
-    final EcoStore store = EcoStore()..go('challenges');
+    final EcoStore store = EcoStore()..go(AppRoute.challenges);
     addTearDown(store.dispose);
     tester.view.physicalSize = const Size(900, 600);
     tester.view.devicePixelRatio = 1;
@@ -382,7 +519,7 @@ void main() {
       (WidgetTester tester) async {
     final EcoStore store = EcoStore()..playerAvatar = 'face-happy';
     addTearDown(store.dispose);
-    for (final Badge badge in store.badges) {
+    for (final Achievement badge in store.badges) {
       badge.unlocked = false;
     }
     store.badges.last.unlocked = true;
@@ -637,11 +774,14 @@ void main() {
       find.descendant(
         of: find.byTooltip('Profile picture: Portrait 1. Tap to change.'),
         matching: find.byWidgetPredicate(
-          (Widget widget) =>
-              widget is Image &&
-              widget.image is AssetImage &&
-              (widget.image as AssetImage).assetName ==
-                  'assets/images/portraits/image.png',
+          (Widget widget) {
+            if (widget is! Image || widget.image is! ResizeImage) return false;
+            final ResizeImage image = widget.image as ResizeImage;
+            return image.imageProvider is AssetImage &&
+                (image.imageProvider as AssetImage).assetName ==
+                    'assets/images/portraits/image.png' &&
+                image.width! <= 256;
+          },
         ),
       ),
       findsOneWidget,
@@ -916,7 +1056,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('No saved tips yet'), findsNothing);
-    expect(bookmarkButtons, findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is EcoIconButton && widget.icon == 'bookmarkOn',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('home small-win cards all match walk and AC card size',

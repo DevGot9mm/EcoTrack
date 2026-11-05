@@ -10,6 +10,7 @@ import 'screens/stats_screen.dart';
 import 'screens/challenges_screen.dart';
 import 'screens/tips_screen.dart';
 import 'screens/profile_screen.dart';
+import 'responsive.dart';
 import 'store.dart';
 import 'theme.dart';
 import 'widgets/tab_bar.dart';
@@ -24,8 +25,26 @@ class EcoTrackApp extends StatefulWidget {
   State<EcoTrackApp> createState() => _EcoTrackAppState();
 }
 
-class _EcoTrackAppState extends State<EcoTrackApp> {
+class _EcoTrackAppState extends State<EcoTrackApp> with WidgetsBindingObserver {
   final EcoStore _store = EcoStore();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _store.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _store.refreshChallengeWeek();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +58,16 @@ class _EcoTrackAppState extends State<EcoTrackApp> {
             debugShowCheckedModeBanner: false,
             theme: _store.isDark ? ecoDarkTheme() : ecoTheme(),
             builder: (BuildContext context, Widget? child) {
+              final MediaQueryData mediaQuery = MediaQuery.of(context);
               return DefaultTextStyle(
                 style: Theme.of(context).textTheme.bodyMedium!,
-                child: child ?? const SizedBox.shrink(),
+                child: MediaQuery(
+                  data: mediaQuery.copyWith(
+                    textScaler:
+                        mediaQuery.textScaler.clamp(maxScaleFactor: 1.3),
+                  ),
+                  child: child ?? const SizedBox.shrink(),
+                ),
               );
             },
             home: const AppGate(),
@@ -59,21 +85,21 @@ class AppGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final EcoStore store = EcoScope.of(context);
 
-    if (store.route == 'welcome') {
+    if (store.route == AppRoute.welcome) {
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.ground,
         body: const WelcomeScreen(),
       );
     }
-    if (store.route == 'auth') return const AuthScreen();
+    if (store.route == AppRoute.auth) return const AuthScreen();
 
     return OrientationBuilder(
       builder: (BuildContext context, Orientation orientation) {
         final bool useSideNavigation = orientation == Orientation.landscape &&
-            MediaQuery.sizeOf(context).width >= 700 &&
+            context.windowSize != WindowSize.compact &&
             store.showTabBar;
         return PopScope(
-          canPop: false,
+          canPop: store.canExit,
           onPopInvokedWithResult: (bool didPop, Object? result) {
             if (didPop) return;
             store.back();
@@ -98,7 +124,15 @@ class AppGate extends StatelessWidget {
                             Expanded(
                               child: Stack(
                                 children: <Widget>[
-                                  _buildBody(store),
+                                  Align(
+                                    alignment: Alignment.topCenter,
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 840,
+                                      ),
+                                      child: _buildBody(store),
+                                    ),
+                                  ),
                                   if (store.toastVisible)
                                     Positioned(
                                       top: 12,
@@ -133,24 +167,25 @@ class AppGate extends StatelessWidget {
 
   Widget _buildBody(EcoStore store) {
     switch (store.route) {
-      case 'home':
+      case AppRoute.home:
         return const HomeScreen();
-      case 'add':
+      case AppRoute.add:
         return const AddActivityScreen();
-      case 'result':
+      case AppRoute.result:
         return const ResultScreen();
-      case 'history':
+      case AppRoute.history:
         return const HistoryScreen();
-      case 'stats':
+      case AppRoute.stats:
         return const StatsScreen();
-      case 'challenges':
+      case AppRoute.challenges:
         return const ChallengesScreen();
-      case 'tips':
+      case AppRoute.tips:
         return const TipsScreen();
-      case 'profile':
-      case 'points':
+      case AppRoute.profile:
+      case AppRoute.points:
         return const ProfileScreen();
-      default:
+      case AppRoute.welcome:
+      case AppRoute.auth:
         return const HomeScreen();
     }
   }

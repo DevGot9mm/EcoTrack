@@ -273,6 +273,158 @@ class F {
       b(12.5, wght: 700, color: cs(ctx).muted);
 }
 
+TextTheme _ecoTextTheme(ColorScheme scheme) {
+  final TextTheme text = const TextTheme().apply(
+    fontFamily: EcoFont.body,
+    bodyColor: scheme.onSurface,
+    displayColor: scheme.onSurface,
+  );
+  return text.copyWith(
+    headlineSmall: TextStyle(
+      fontFamily: EcoFont.display,
+      fontSize: 24,
+      height: 1.2,
+      fontWeight: FontWeight.w600,
+      color: scheme.onSurface,
+    ),
+    titleLarge: TextStyle(
+      fontFamily: EcoFont.display,
+      fontSize: 21,
+      height: 1.2,
+      fontWeight: FontWeight.w600,
+      color: scheme.onSurface,
+    ),
+    titleMedium: TextStyle(
+      fontFamily: EcoFont.display,
+      fontSize: 17,
+      height: 1.25,
+      fontWeight: FontWeight.w600,
+      color: scheme.onSurface,
+    ),
+    bodyLarge: TextStyle(
+      fontFamily: EcoFont.body,
+      fontSize: 16,
+      height: 1.5,
+      color: scheme.onSurface,
+    ),
+    bodyMedium: TextStyle(
+      fontFamily: EcoFont.body,
+      fontSize: 14.5,
+      height: 1.45,
+      color: scheme.onSurface,
+    ),
+    labelLarge: TextStyle(
+      fontFamily: EcoFont.body,
+      fontSize: 14,
+      fontWeight: FontWeight.w800,
+      color: scheme.onSurface,
+    ),
+    labelSmall: TextStyle(
+      fontFamily: EcoFont.body,
+      fontSize: 12,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 1.2,
+      color: scheme.onSurface,
+    ),
+  );
+}
+
+InputDecorationTheme _ecoInputDecorationTheme(ColorScheme scheme) {
+  OutlineInputBorder border(Color color) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(Eco.rBtn),
+        borderSide: BorderSide(color: color, width: 1.5),
+      );
+
+  return InputDecorationTheme(
+    isDense: true,
+    filled: true,
+    fillColor: scheme.surface,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 17),
+    border: border(scheme.outline),
+    enabledBorder: border(scheme.outline),
+    focusedBorder: border(scheme.primary),
+    errorBorder: border(scheme.error),
+    focusedErrorBorder: border(scheme.error),
+  );
+}
+
+NavigationBarThemeData _ecoNavigationBarTheme(ColorScheme scheme) =>
+    NavigationBarThemeData(
+      height: Eco.tabbarH,
+      backgroundColor: scheme.surface,
+      indicatorColor: scheme.mint,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
+        (Set<WidgetState> states) => F.b(
+          11,
+          wght: 700,
+          color: states.contains(WidgetState.selected)
+              ? scheme.primary
+              : scheme.muted,
+        ),
+      ),
+      iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(
+        (Set<WidgetState> states) => IconThemeData(
+          color: states.contains(WidgetState.selected)
+              ? scheme.primary
+              : scheme.muted,
+        ),
+      ),
+    );
+
+NavigationRailThemeData _ecoNavigationRailTheme(ColorScheme scheme) =>
+    NavigationRailThemeData(
+      backgroundColor: scheme.surface,
+      minWidth: 76,
+      groupAlignment: 0,
+      labelType: NavigationRailLabelType.all,
+      indicatorColor: scheme.mint,
+      selectedIconTheme: IconThemeData(color: scheme.primary),
+      unselectedIconTheme: IconThemeData(color: scheme.muted),
+      selectedLabelTextStyle: F.b(10, wght: 700, color: scheme.primary),
+      unselectedLabelTextStyle: F.b(10, wght: 700, color: scheme.muted),
+    );
+
+SegmentedButtonThemeData _ecoSegmentedButtonTheme(ColorScheme scheme) =>
+    SegmentedButtonThemeData(
+      style: ButtonStyle(
+        minimumSize: const WidgetStatePropertyAll<Size>(Size(0, 40)),
+        padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+          EdgeInsets.symmetric(horizontal: 14),
+        ),
+        shape: WidgetStatePropertyAll<OutlinedBorder>(
+          RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(Eco.rPill)),
+        ),
+        side: WidgetStatePropertyAll<BorderSide>(
+          BorderSide(color: scheme.outline),
+        ),
+        backgroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) => states.contains(WidgetState.selected)
+              ? scheme.surface
+              : scheme.surface2,
+        ),
+        foregroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) => states.contains(WidgetState.selected)
+              ? scheme.primary
+              : scheme.muted,
+        ),
+        textStyle: WidgetStatePropertyAll<TextStyle>(
+          F.b(14, wght: 800),
+        ),
+      ),
+    );
+
+SliderThemeData _ecoSliderTheme(ColorScheme scheme) => SliderThemeData(
+      activeTrackColor: scheme.primary,
+      inactiveTrackColor: scheme.surface2,
+      thumbColor: scheme.primary,
+      overlayColor: scheme.primary.withValues(alpha: 0.12),
+      trackHeight: 8,
+      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
+      overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
+    );
+
 ThemeData ecoTheme() {
   final ColorScheme scheme = ColorScheme.fromSeed(
     seedColor: Eco.forest,
@@ -285,6 +437,8 @@ ThemeData ecoTheme() {
     onError: Colors.white,
     surface: Eco.surface,
     onSurface: Eco.ink,
+    outline: Eco.lineStrong,
+    outlineVariant: Eco.line,
     surfaceContainerLowest: Eco.surface,
     surfaceContainerLow: Eco.surface,
     surfaceContainer: Eco.surface,
@@ -292,11 +446,7 @@ ThemeData ecoTheme() {
     surfaceContainerHighest: Eco.surface2,
   );
 
-  final TextTheme text = const TextTheme().apply(
-    fontFamily: EcoFont.body,
-    bodyColor: Eco.ink,
-    displayColor: Eco.ink,
-  );
+  final TextTheme text = _ecoTextTheme(scheme);
 
   return ThemeData(
     useMaterial3: true,
@@ -311,6 +461,11 @@ ThemeData ecoTheme() {
     dividerColor: Eco.line,
     fontFamily: EcoFont.body,
     textTheme: text,
+    inputDecorationTheme: _ecoInputDecorationTheme(scheme),
+    navigationBarTheme: _ecoNavigationBarTheme(scheme),
+    navigationRailTheme: _ecoNavigationRailTheme(scheme),
+    segmentedButtonTheme: _ecoSegmentedButtonTheme(scheme),
+    sliderTheme: _ecoSliderTheme(scheme),
     hintColor: Eco.muted,
   );
 }
@@ -337,11 +492,7 @@ ThemeData ecoDarkTheme() {
     outlineVariant: EcoDark.line,
   );
 
-  final TextTheme text = const TextTheme().apply(
-    fontFamily: EcoFont.body,
-    bodyColor: EcoDark.ink,
-    displayColor: EcoDark.ink,
-  );
+  final TextTheme text = _ecoTextTheme(scheme);
 
   return ThemeData(
     useMaterial3: true,
@@ -356,6 +507,11 @@ ThemeData ecoDarkTheme() {
     dividerColor: EcoDark.line,
     fontFamily: EcoFont.body,
     textTheme: text,
+    inputDecorationTheme: _ecoInputDecorationTheme(scheme),
+    navigationBarTheme: _ecoNavigationBarTheme(scheme),
+    navigationRailTheme: _ecoNavigationRailTheme(scheme),
+    segmentedButtonTheme: _ecoSegmentedButtonTheme(scheme),
+    sliderTheme: _ecoSliderTheme(scheme),
     hintColor: EcoDark.muted,
   );
 }
@@ -373,14 +529,12 @@ extension EcoColorSchemeX on ColorScheme {
   Color get surface3 =>
       brightness == Brightness.dark ? EcoDark.surface3 : Eco.surface2;
   Color get mint => brightness == Brightness.dark ? EcoDark.mint : Eco.mint;
-  Color get cream => brightness == Brightness.dark ? EcoDark.cream : Eco.cream;
 
   // Text
   Color get ink2 => brightness == Brightness.dark ? EcoDark.ink2 : Eco.ink2;
   Color get muted => brightness == Brightness.dark ? EcoDark.muted : Eco.muted;
 
   // Lines
-  Color get outline => brightness == Brightness.dark ? EcoDark.line : Eco.line;
   Color get lineStrong =>
       brightness == Brightness.dark ? EcoDark.lineStrong : Eco.lineStrong;
   Color get lineMint =>
@@ -392,8 +546,6 @@ extension EcoColorSchemeX on ColorScheme {
   Color get leaf => brightness == Brightness.dark ? EcoDark.leaf : Eco.leaf;
   Color get forest =>
       brightness == Brightness.dark ? EcoDark.forest : Eco.forest;
-  Color get forestHover =>
-      brightness == Brightness.dark ? EcoDark.forestHover : Eco.forestHover;
   Color get forestInk =>
       brightness == Brightness.dark ? EcoDark.forestInk : Eco.forestInk;
   Color get sage => brightness == Brightness.dark ? EcoDark.sage : Eco.sage;
@@ -404,8 +556,6 @@ extension EcoColorSchemeX on ColorScheme {
       brightness == Brightness.dark ? EcoDark.amberTint : Eco.amberTint;
   Color get amberInk =>
       brightness == Brightness.dark ? EcoDark.amberInk : Eco.amberInk;
-  Color get amberHover =>
-      brightness == Brightness.dark ? EcoDark.amberHover : Eco.amberHover;
 
   // Categories
   Color get transportTint =>
@@ -434,14 +584,9 @@ extension EcoColorSchemeX on ColorScheme {
   Color get dangerTint =>
       brightness == Brightness.dark ? EcoDark.dangerTint : Eco.dangerTint;
 
-  // Dark-only surfaces
-  Color get darkCardStart => brightness == Brightness.dark
-      ? EcoDark.cardStart
-      : const Color(0xFF2A7245);
-  Color get darkCardMid =>
-      brightness == Brightness.dark ? EcoDark.cardMid : const Color(0xFF17492B);
   Color get darkCardEnd =>
       brightness == Brightness.dark ? EcoDark.cardEnd : const Color(0xFF0F3320);
+
   LinearGradient get heroCardGradient => brightness == Brightness.dark
       ? LinearGradient(
           begin: const Alignment(-0.38, -0.93),
@@ -455,9 +600,6 @@ extension EcoColorSchemeX on ColorScheme {
         )
       : Eco.cardDark;
 
-  // Semantic
-  Color get surface =>
-      brightness == Brightness.dark ? EcoDark.surface : Eco.surface;
   Color get ink => brightness == Brightness.dark ? EcoDark.ink : Eco.ink;
 }
 

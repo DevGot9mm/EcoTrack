@@ -176,7 +176,7 @@ class ResultScreen extends StatelessWidget {
                 EcoButton(
                   label: 'Back to home',
                   block: true,
-                  onPressed: () => store.go('home'),
+                  onPressed: () => store.go(AppRoute.home),
                 ),
                 EcoButton(
                   label: 'Log another activity',

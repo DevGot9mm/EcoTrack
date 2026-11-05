@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../models.dart';
+import '../responsive.dart';
 import '../theme.dart';
 
 /* ==========================================================================
@@ -14,13 +15,13 @@ class DayBar {
     required this.total,
     required this.isToday,
     required this.label,
-    this.categories = const <String, double>{},
+    this.categories = const <CarbonCategory, double>{},
   });
 
   final double total;
   final bool isToday;
   final String label;
-  final Map<String, double> categories;
+  final Map<CarbonCategory, double> categories;
 }
 
 class WeekBars extends StatelessWidget {
@@ -33,12 +34,12 @@ class WeekBars extends StatelessWidget {
 
   final List<DayBar> days;
   final double maxDay;
-  final Map<String, Color> categoryColors;
+  final Map<CarbonCategory, Color> categoryColors;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final bool tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    final bool tablet = context.windowSize != WindowSize.compact;
     final double barMaxHeight = tablet ? 82 : 62;
     final double chartHeight = tablet ? 110 : 88;
     final List<Widget> cols = <Widget>[];
@@ -46,8 +47,9 @@ class WeekBars extends StatelessWidget {
       final DayBar d = days[i];
       final double ratio = maxDay <= 0 ? 0 : d.total / maxDay;
       final double h = math.max(5, (ratio * barMaxHeight).roundToDouble());
-      final List<String> categories =
-          kCatOrder.where((String id) => (d.categories[id] ?? 0) > 0).toList();
+      final List<CarbonCategory> categories = kCatOrder
+          .where((CarbonCategory id) => (d.categories[id] ?? 0) > 0)
+          .toList();
       cols.add(
         Expanded(
           child: Column(
@@ -63,7 +65,7 @@ class WeekBars extends StatelessWidget {
                       : Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: <Widget>[
-                            for (final String id in categories)
+                            for (final CarbonCategory id in categories)
                               Container(
                                 height: h *
                                     (d.categories[id] ?? 0) /
@@ -113,8 +115,8 @@ class TrendChart extends StatefulWidget {
   final double max;
   final double targetPerDay;
   final List<String> labels;
-  final List<Map<String, double>> categorySeries;
-  final Map<String, Color> categoryColors;
+  final List<Map<CarbonCategory, double>> categorySeries;
+  final Map<CarbonCategory, Color> categoryColors;
 
   @override
   State<TrendChart> createState() => _TrendChartState();
@@ -128,7 +130,7 @@ class _TrendChartState extends State<TrendChart> {
     final cs = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints c) {
-        final bool tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+        final bool tablet = context.windowSize != WindowSize.compact;
         final double height = (c.maxWidth * 0.38).clamp(
           190.0,
           tablet ? 310.0 : 250.0,
@@ -205,8 +207,8 @@ class _TrendPainter extends CustomPainter {
   final List<double> series;
   final double max;
   final List<String> labels;
-  final List<Map<String, double>> categorySeries;
-  final Map<String, Color> categoryColors;
+  final List<Map<CarbonCategory, double>> categorySeries;
+  final Map<CarbonCategory, Color> categoryColors;
   final int? hoveredIndex;
   final Color axisColor;
   final Color mutedColor;
@@ -321,14 +323,14 @@ class _TrendPainter extends CustomPainter {
 
   Color _pointColor(int index) {
     if (index >= categorySeries.length) return Eco.leaf;
-    final Map<String, double> values = categorySeries[index];
+    final Map<CarbonCategory, double> values = categorySeries[index];
     final double total = values.values
         .fold<double>(0, (double sum, double value) => sum + value);
     if (total <= 0) return Eco.leaf;
     int r = 0;
     int g = 0;
     int b = 0;
-    for (final String id in kCatOrder) {
+    for (final CarbonCategory id in kCatOrder) {
       final double weight = (values[id] ?? 0) / total;
       final Color color = categoryColors[id] ?? catOf(id).color;
       r += (color.r * 255 * weight).round();
@@ -387,10 +389,11 @@ class _TrendPainter extends CustomPainter {
       TextAlign.left,
       weight: 800,
     );
-    final Map<String, double> values =
-        index < categorySeries.length ? categorySeries[index] : const {};
+    final Map<CarbonCategory, double> values = index < categorySeries.length
+        ? categorySeries[index]
+        : const <CarbonCategory, double>{};
     for (int row = 0; row < kCatOrder.length; row++) {
-      final String id = kCatOrder[row];
+      final CarbonCategory id = kCatOrder[row];
       final double value = values[id] ?? 0;
       final double yPos = top + 46 + row * 12;
       canvas.drawCircle(
@@ -447,11 +450,10 @@ class _TrendPainter extends CustomPainter {
       old.tooltipTextColor != tooltipTextColor;
 }
 
-String _categoryLabel(String id) => switch (id) {
-      'transport' => 'Transport',
-      'electricity' => 'Energy',
-      'food' => 'Food',
-      _ => id,
+String _categoryLabel(CarbonCategory category) => switch (category) {
+      CarbonCategory.transport => 'Transport',
+      CarbonCategory.electricity => 'Energy',
+      CarbonCategory.food => 'Food',
     };
 
 /* ==========================================================================
@@ -467,8 +469,8 @@ class DonutChart extends StatelessWidget {
     this.thickness = 16,
   });
 
-  final Map<String, double> totals;
-  final Map<String, Color> categoryColors;
+  final Map<CarbonCategory, double> totals;
+  final Map<CarbonCategory, Color> categoryColors;
   final double size;
   final double thickness;
 
@@ -488,8 +490,8 @@ class DonutChart extends StatelessWidget {
 class _DonutPainter extends CustomPainter {
   _DonutPainter(this.totals, this.categoryColors, this.thickness);
 
-  final Map<String, double> totals;
-  final Map<String, Color> categoryColors;
+  final Map<CarbonCategory, double> totals;
+  final Map<CarbonCategory, Color> categoryColors;
   final double thickness;
 
   @override
@@ -506,7 +508,7 @@ class _DonutPainter extends CustomPainter {
     );
 
     double off = 0;
-    for (final String id in kCatOrder) {
+    for (final CarbonCategory id in kCatOrder) {
       final double len = ((totals[id] ?? 0) / denom) * c;
       final double arc = math.max(0, len - 3);
       if (arc > 0) {

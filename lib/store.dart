@@ -1,44 +1,55 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart' hide Badge;
+import 'package:flutter/material.dart';
 
+import 'celebration_data.dart';
 import 'icons.dart';
 import 'models.dart';
-import 'widgets/celebrations.dart';
 
 /* ==========================================================================
    Routes
    ========================================================================== */
 
-const List<String> kTabRoutes = <String>[
-  'home',
-  'history',
-  'stats',
-  'challenges',
-  'profile',
-];
+enum AppRoute {
+  welcome,
+  auth,
+  home,
+  add,
+  result,
+  history,
+  stats,
+  challenges,
+  tips,
+  profile,
+  points,
+}
 
-const List<String> kHideTabBar = <String>['welcome', 'auth', 'add', 'result'];
+const Set<AppRoute> kHideTabBar = <AppRoute>{
+  AppRoute.welcome,
+  AppRoute.auth,
+  AppRoute.add,
+  AppRoute.result,
+};
 
-const Map<String, String> kTabActiveFor = <String, String>{
-  'tips': 'home',
-  'points': 'profile',
-  'result': 'home',
+const Map<AppRoute, AppRoute> kTabActiveFor = <AppRoute, AppRoute>{
+  AppRoute.tips: AppRoute.home,
+  AppRoute.points: AppRoute.profile,
+  AppRoute.result: AppRoute.home,
 };
 
 class TabSpec {
-  const TabSpec(this.id, this.label, this.icon);
-  final String id;
+  const TabSpec(this.route, this.label, this.icon);
+  final AppRoute route;
   final String label;
   final String icon;
 }
 
 const List<TabSpec> kTabs = <TabSpec>[
-  TabSpec('home', 'Home', 'house'),
-  TabSpec('history', 'History', 'clock'),
-  TabSpec('stats', 'Stats', 'chart'),
-  TabSpec('challenges', 'Challenges', 'flag'),
-  TabSpec('profile', 'Profile', 'user'),
+  TabSpec(AppRoute.home, 'Home', 'house'),
+  TabSpec(AppRoute.history, 'History', 'clock'),
+  TabSpec(AppRoute.stats, 'Stats', 'chart'),
+  TabSpec(AppRoute.challenges, 'Challenges', 'flag'),
+  TabSpec(AppRoute.profile, 'Profile', 'user'),
 ];
 
 /* ==========================================================================
@@ -61,33 +72,32 @@ class EcoStore extends ChangeNotifier {
   String playerAvatar = 'image.png';
   final String joined = 'September 2026';
   int points = 1520;
-  int streak = 7;
   double dailyTarget = 6;
   double weeklyTarget = 42;
   String distanceUnit = 'km';
   bool notifyOn = true;
   final Map<String, bool> savedTips = <String, bool>{};
-  final Map<String, Color> categoryColors = <String, Color>{};
+  final Map<CarbonCategory, Color> categoryColors = <CarbonCategory, Color>{};
   final Map<String, ActivityDef> customActivityDefs = <String, ActivityDef>{};
   final List<Entry> activities = <Entry>[];
   final List<Challenge> _challenges = seedChallenges();
   String _challengeWeek = challengeWeekKey(DateTime.now());
   final Map<String, DateTime> _challengeCheckins = <String, DateTime>{};
-  final List<Badge> badges = seedBadges();
+  final List<Achievement> badges = seedAchievements();
 
   // ---- UI state ----------------------------------------------------------
-  String route = 'welcome';
-  final List<String> _stack = <String>[];
+  AppRoute route = AppRoute.welcome;
+  final List<AppRoute> _stack = <AppRoute>[];
   int onboardSlide = 0;
   String authMode = 'login';
   int addStep = 0;
-  String? addCat;
+  CarbonCategory? addCat;
   String? addKey;
   String? addFoodType;
   double addAmount = 4;
-  String historyFilter = 'all';
+  CarbonCategory? historyFilter;
   String statsPeriod = 'week';
-  String tipFilter = 'all';
+  TipFilter tipFilter = TipFilter.all;
   final Map<String, bool> openTips = <String, bool>{};
   Entry? lastActivity;
   bool isDark = false;
@@ -116,6 +126,18 @@ class EcoStore extends ChangeNotifier {
   List<Entry> get sortedActivities =>
       activities.toList()..sort((Entry a, Entry b) => b.at.compareTo(a.at));
 
+  int get streak {
+    final Set<int> activeDays =
+        activities.map((Entry entry) => daysAgo(entry.at)).toSet();
+    int day = activeDays.contains(0) ? 0 : 1;
+    int count = 0;
+    while (activeDays.contains(day)) {
+      count++;
+      day++;
+    }
+    return count;
+  }
+
   List<Entry> inRange(int fromAgo, int toAgoInclusive) =>
       activities.where((Entry a) {
         final int i = daysAgo(a.at);
@@ -125,11 +147,9 @@ class EcoStore extends ChangeNotifier {
   double total(List<Entry> acts) =>
       acts.fold<double>(0, (double s, Entry a) => s + a.co2);
 
-  Map<String, double> catTotals(List<Entry> acts) {
-    final Map<String, double> t = <String, double>{
-      'transport': 0,
-      'electricity': 0,
-      'food': 0,
+  Map<CarbonCategory, double> catTotals(List<Entry> acts) {
+    final Map<CarbonCategory, double> t = <CarbonCategory, double>{
+      for (final CarbonCategory category in kCatOrder) category: 0,
     };
     for (final Entry a in acts) {
       t[a.cat] = (t[a.cat] ?? 0) + a.co2;
@@ -137,12 +157,10 @@ class EcoStore extends ChangeNotifier {
     return t;
   }
 
-  int get unlockedBadgeCount => badges.where((Badge b) => b.unlocked).length;
+  int get unlockedBadgeCount =>
+      badges.where((Achievement achievement) => achievement.unlocked).length;
 
-  List<Challenge> get challenges {
-    refreshChallengeWeek();
-    return _challenges;
-  }
+  List<Challenge> get challenges => _challenges;
 
   void refreshChallengeWeek({DateTime? now}) {
     final DateTime current = now ?? DateTime.now();
@@ -153,11 +171,12 @@ class EcoStore extends ChangeNotifier {
       ..addAll(seedChallenges(now: current));
     _challengeCheckins.clear();
     _challengeWeek = key;
+    _emit();
   }
 
   void openSocialProfile() {
     profileFocusSocial = true;
-    go('profile');
+    go(AppRoute.profile);
   }
 
   void clearSocialProfileFocus() {
@@ -173,9 +192,13 @@ class EcoStore extends ChangeNotifier {
     return 'Good evening';
   }
 
+  String get greetingName => playerName.trim().split(RegExp(r'\s+')).first;
+
   bool get showTabBar => !kHideTabBar.contains(route);
 
-  String get activeTab => kTabActiveFor[route] ?? route;
+  AppRoute get activeTab => kTabActiveFor[route] ?? route;
+
+  bool get canExit => route == AppRoute.home && _stack.isEmpty;
 
   /* ---- UI state ---------------------------------------------------------- */
 
@@ -184,57 +207,51 @@ class EcoStore extends ChangeNotifier {
     _emit();
   }
 
-  Color categoryColor(String id) => categoryColors[id] ?? catOf(id).color;
+  Color categoryColor(CarbonCategory category) =>
+      categoryColors[category] ?? catOf(category).color;
 
   ActivityDef? activityOf(String key) =>
       customActivityDefs[key] ?? activityDef(key);
 
-  void setCategoryColor(String id, Color color) {
-    if (!kCats.containsKey(id)) {
-      throw ArgumentError.value(id, 'id', 'Unknown carbon category');
-    }
-    categoryColors[id] = color;
+  void setCategoryColor(CarbonCategory category, Color color) {
+    categoryColors[category] = color;
     _emit();
   }
 
   /* ---- Celebrations ---------------------------------------------------- */
 
-  CelebrationKind? celebrationKind;
-  Map<String, dynamic> celebrationData = <String, dynamic>{};
+  CelebrationData? celebrationData;
 
   void showPoints(int amount, String reason) {
-    celebrationKind = CelebrationKind.points;
-    celebrationData = <String, dynamic>{'amount': amount, 'reason': reason};
+    celebrationData = PointsCelebration(amount: amount, reason: reason);
     _emit();
   }
 
-  void showBadgeUnlock(Badge badge) {
-    celebrationKind = CelebrationKind.badge;
-    celebrationData = <String, dynamic>{'badge': badge};
+  void showBadgeUnlock(Achievement badge) {
+    celebrationData = BadgeUnlockCelebration(badge: badge);
     _emit();
   }
 
   void showLevelUp(String name, int idx) {
-    celebrationKind = CelebrationKind.levelUp;
-    celebrationData = <String, dynamic>{'name': name, 'idx': idx};
+    celebrationData = LevelUpCelebration(name: name, idx: idx);
     _emit();
   }
 
   void showChallengeComplete(String title, int points) {
-    celebrationKind = CelebrationKind.challengeComplete;
-    celebrationData = <String, dynamic>{'title': title, 'points': points};
+    celebrationData =
+        ChallengeCompleteCelebration(title: title, points: points);
     _emit();
   }
 
   void clearCelebration() {
-    celebrationKind = null;
-    celebrationData = <String, dynamic>{};
+    celebrationData = null;
     _emit();
   }
 
   /* ---- Routing ---------------------------------------------------------- */
 
-  void go(String r) {
+  void go(AppRoute r) {
+    refreshChallengeWeek();
     if (r == route) {
       _emit();
       return;
@@ -248,11 +265,11 @@ class EcoStore extends ChangeNotifier {
   }
 
   void back() {
-    if (route == 'add' && addStep > 0) {
+    if (route == AppRoute.add && addStep > 0) {
       addBack();
       return;
     }
-    route = _stack.isNotEmpty ? _stack.removeLast() : 'home';
+    route = _stack.isNotEmpty ? _stack.removeLast() : AppRoute.home;
     _emit();
   }
 
@@ -281,7 +298,7 @@ class EcoStore extends ChangeNotifier {
     }
   }
 
-  List<Badge> checkBadges({bool award = true}) {
+  List<Achievement> checkBadges({bool award = true}) {
     final List<Entry> plants = activities
         .where(
             (Entry entry) => entry.key == 'vegan' || entry.key == 'vegetarian')
@@ -298,11 +315,11 @@ class EcoStore extends ChangeNotifier {
         .length
         .toDouble();
     final double electricityCount = activities
-        .where((Entry entry) => entry.cat == 'electricity')
+        .where((Entry entry) => entry.cat == CarbonCategory.electricity)
         .length
         .toDouble();
     final double foodCount = activities
-        .where((Entry entry) => entry.cat == 'food')
+        .where((Entry entry) => entry.cat == CarbonCategory.food)
         .length
         .toDouble();
     final double categoryCount =
@@ -316,8 +333,8 @@ class EcoStore extends ChangeNotifier {
             (Challenge challenge) => challenge.state == ChallengeState.claimed)
         .length
         .toDouble();
-    final List<Badge> newly = <Badge>[];
-    for (final Badge b in badges) {
+    final List<Achievement> newly = <Achievement>[];
+    for (final Achievement b in badges) {
       final double progress = switch (b.id) {
         'b1' => activities.isEmpty ? 0 : 1,
         'b2' => streak.toDouble(),
@@ -361,12 +378,12 @@ class EcoStore extends ChangeNotifier {
 
   void finishOnboard() {
     onboarded = true;
-    go('auth');
+    go(AppRoute.auth);
   }
 
   void setPlayerName(String n) {
     final String trimmed = n.trim();
-    if (trimmed.isNotEmpty) playerName = trimmed.split(' ').first;
+    if (trimmed.isNotEmpty) playerName = trimmed;
     _emit();
   }
 
@@ -384,11 +401,11 @@ class EcoStore extends ChangeNotifier {
     addKey = null;
     addFoodType = null;
     _emit();
-    go('add');
+    go(AppRoute.add);
   }
 
-  void pickCat(String cat) {
-    addCat = cat;
+  void pickCat(CarbonCategory category) {
+    addCat = category;
     addKey = null;
     addFoodType = null;
     _emit();
@@ -438,7 +455,7 @@ class EcoStore extends ChangeNotifier {
   bool isCustomActivity(String? key) =>
       key != null && customActivityDefs.containsKey(key);
 
-  bool get isFoodFlow => addCat == 'food';
+  bool get isFoodFlow => addCat == CarbonCategory.food;
   int get amountStep => isFoodFlow ? 3 : 2;
   int get stepCount => isFoodFlow ? 4 : 3;
 
@@ -478,12 +495,12 @@ class EcoStore extends ChangeNotifier {
   void addBack() {
     if (_returnToTipsOnAddBack) {
       _returnToTipsOnAddBack = false;
-      route = _stack.isNotEmpty ? _stack.removeLast() : 'tips';
+      route = _stack.isNotEmpty ? _stack.removeLast() : AppRoute.tips;
       _emit();
       return;
     }
     if (addStep == 0) {
-      go('home');
+      go(AppRoute.home);
       return;
     }
     addStep -= 1;
@@ -530,7 +547,7 @@ class EcoStore extends ChangeNotifier {
     }
     checkBadges();
     onboarded = true;
-    go('result');
+    go(AppRoute.result);
   }
 
   void logAnother() {
@@ -538,13 +555,13 @@ class EcoStore extends ChangeNotifier {
     addCat = null;
     addKey = null;
     addFoodType = null;
-    go('add');
+    go(AppRoute.add);
   }
 
   /* ---- History ---------------------------------------------------------- */
 
-  void setHistoryFilter(String cat) {
-    historyFilter = cat;
+  void setHistoryFilter(CarbonCategory? category) {
+    historyFilter = category;
     _emit();
   }
 
@@ -562,8 +579,8 @@ class EcoStore extends ChangeNotifier {
 
   /* ---- Tips ------------------------------------------------------------- */
 
-  void setTipFilter(String cat) {
-    tipFilter = cat;
+  void setTipFilter(TipFilter filter) {
+    tipFilter = filter;
     _emit();
   }
 
@@ -584,9 +601,9 @@ class EcoStore extends ChangeNotifier {
   }
 
   void openTipFromRail(String id) {
-    tipFilter = 'all';
+    tipFilter = TipFilter.all;
     openTips[id] = true;
-    go('tips');
+    go(AppRoute.tips);
   }
 
   void tryTip(String id) {
@@ -595,18 +612,20 @@ class EcoStore extends ChangeNotifier {
     final ActivityDef? a = activityOf(t.ctaKey);
     if (a == null) return;
     addCat = a.cat;
-    addKey = a.cat == 'food' ? foodPreparationsOf(a.key).first.key : a.key;
-    addFoodType = a.cat == 'food' ? a.key : null;
+    addKey = a.cat == CarbonCategory.food
+        ? foodPreparationsOf(a.key).first.key
+        : a.key;
+    addFoodType = a.cat == CarbonCategory.food ? a.key : null;
     addAmount = t.ctaAmount;
     addStep = amountStep;
     _returnToTipsOnAddBack = true;
-    go('add');
+    go(AppRoute.add);
   }
 
   /// Used by the Home breakdown and the Stats insight to jump to History.
-  void browseCategory(String cat) {
-    historyFilter = cat;
-    go('history');
+  void browseCategory(CarbonCategory category) {
+    historyFilter = category;
+    go(AppRoute.history);
   }
 
   /* ---- Challenges ------------------------------------------------------- */
@@ -685,12 +704,12 @@ class EcoStore extends ChangeNotifier {
     playerName = 'Aya';
     playerAvatar = 'image.png';
     points = 1520;
-    streak = 7;
     dailyTarget = 6;
     weeklyTarget = 42;
     distanceUnit = 'km';
     notifyOn = true;
     savedTips.clear();
+    categoryColors.clear();
     _returnToTipsOnAddBack = false;
     profileFocusSocial = false;
     openTips.clear();
@@ -705,9 +724,9 @@ class EcoStore extends ChangeNotifier {
     _challengeCheckins.clear();
     badges
       ..clear()
-      ..addAll(seedBadges());
+      ..addAll(seedAchievements());
     checkBadges(award: false);
-    route = 'welcome';
+    route = AppRoute.welcome;
     _stack.clear();
     onboardSlide = 0;
     authMode = 'login';
@@ -716,14 +735,13 @@ class EcoStore extends ChangeNotifier {
     addKey = null;
     addFoodType = null;
     addAmount = 4;
-    historyFilter = 'all';
+    historyFilter = null;
     statsPeriod = 'week';
-    tipFilter = 'all';
+    tipFilter = TipFilter.all;
     lastActivity = null;
     toastVisible = false;
     isDark = false;
-    celebrationKind = null;
-    celebrationData = <String, dynamic>{};
+    celebrationData = null;
     _emit();
   }
 

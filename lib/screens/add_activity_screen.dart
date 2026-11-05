@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../icons.dart';
 import '../models.dart';
+import '../responsive.dart';
 import '../store.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -94,7 +95,7 @@ class AddActivityScreen extends StatelessWidget {
   Widget _catStep(BuildContext context, EcoStore store) {
     final cs = Theme.of(context).colorScheme;
     final List<Widget> tiles = <Widget>[];
-    for (final String id in kCatOrder) {
+    for (final CarbonCategory id in kCatOrder) {
       final Cat c = catOf(id);
       final bool on = store.addCat == id;
       final int choiceCount = actsOf(id).length;
@@ -199,7 +200,15 @@ class AddActivityScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        EcoGrid(items: tiles, columns: 2, gap: 12),
+        EcoGrid(
+          items: tiles,
+          columns: switch (context.windowSize) {
+            WindowSize.compact => 2,
+            WindowSize.medium => 3,
+            WindowSize.expanded => 4,
+          },
+          gap: 12,
+        ),
         const SizedBox(height: 12),
         _customActivityOption(
           context,
@@ -214,7 +223,7 @@ class AddActivityScreen extends StatelessWidget {
     final ColorScheme cs = Theme.of(context).colorScheme;
     final String foodKey = store.addFoodType!;
     final ActivityDef food = store.activityOf(foodKey)!;
-    final Cat category = catOf('food');
+    final Cat category = catOf(CarbonCategory.food);
     final List<Widget> tiles = <Widget>[];
     for (final ActivityDef preparation in foodPreparationsOf(foodKey)) {
       final bool on = store.addKey == preparation.key;
@@ -294,7 +303,15 @@ class AddActivityScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        EcoGrid(items: tiles, columns: 2, gap: 12),
+        EcoGrid(
+          items: tiles,
+          columns: switch (context.windowSize) {
+            WindowSize.compact => 2,
+            WindowSize.medium => 3,
+            WindowSize.expanded => 4,
+          },
+          gap: 12,
+        ),
         const SizedBox(height: 12),
         _customActivityOption(
           context,
@@ -363,11 +380,14 @@ class AddActivityScreen extends StatelessWidget {
     final ActivityDef a = store.activityOf(store.addKey!)!;
     final bool custom = store.isCustomActivity(a.key);
     final Cat c = catOf(a.cat);
-    final double co2 =
-        custom ? a.factor : round1(a.factor * store.addAmount);
+    final double co2 = custom ? a.factor : round1(a.factor * store.addAmount);
     final double displayFactor = store.displayFactor(a);
     final String displayUnit = store.unitFor(a);
     final double displayAmount = store.displayAmount(a, store.addAmount);
+    final double minAmount =
+        a.unit == 'servings' || (a.unit == 'km' && a.factor == 0) ? 1 : 0;
+    final double maxAmount = store.displayMax(a);
+    final double amountStep = store.displayStep(a);
     final bool zeroEmission = a.key == 'walking' || a.key == 'bicycle';
 
     final String mascot = co2 <= 0.5
@@ -471,14 +491,14 @@ class AddActivityScreen extends StatelessWidget {
               _StepperBtn(icon: 'minus', onTap: () => store.amtStep(-1)),
               const SizedBox(width: 14),
               Expanded(
-                child: _AmountSlider(
+                child: Slider(
                   value: displayAmount,
-                  min: (a.unit == 'servings' ||
-                          (a.unit == 'km' && a.factor == 0))
-                      ? 1.0
-                      : 0.0,
-                  max: store.displayMax(a),
-                  step: store.displayStep(a),
+                  min: minAmount,
+                  max: maxAmount,
+                  divisions: ((maxAmount - minAmount) / amountStep)
+                      .round()
+                      .clamp(1, 1000)
+                      .toInt(),
                   onChanged: store.amtSet,
                 ),
               ),
@@ -758,100 +778,6 @@ class _StepperBtn extends StatelessWidget {
         ),
         child: EcoIcon(icon, size: 22, color: cs.leaf),
       ),
-    );
-  }
-}
-
-/// Range control built to the prototype's slider spec: a bordered track with a
-/// forest thumb ringed in white.
-class _AmountSlider extends StatelessWidget {
-  const _AmountSlider({
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.step,
-    required this.onChanged,
-  });
-
-  final double value;
-  final double min;
-  final double max;
-  final double step;
-  final ValueChanged<double> onChanged;
-
-  static const double _thumb = 28;
-
-  void _handle(double dx, double trackWidth) {
-    final double usable = trackWidth - _thumb;
-    if (usable <= 0) return;
-    final double frac = clampDouble((dx - _thumb / 2) / usable, 0, 1);
-    final double raw = min + frac * (max - min);
-    final double snapped = (raw / step).round() * step;
-    onChanged(clampDouble(snapped, min, max));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints c) {
-        final double trackW = c.maxWidth;
-        final double usable = trackW - _thumb;
-        final double frac =
-            max <= min ? 0 : clampDouble((value - min) / (max - min), 0, 1);
-        final double left = usable * frac;
-
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapDown: (TapDownDetails d) => _handle(d.localPosition.dx, trackW),
-          onHorizontalDragStart: (DragStartDetails d) =>
-              _handle(d.localPosition.dx, trackW),
-          onHorizontalDragUpdate: (DragUpdateDetails d) =>
-              _handle(d.localPosition.dx, trackW),
-          child: SizedBox(
-            height: 34,
-            child: Stack(
-              children: <Widget>[
-                Positioned(
-                  top: 12,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: cs.surface2,
-                      borderRadius: BorderRadius.circular(Eco.rPill),
-                      border: Border.all(color: cs.outline),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 3,
-                  left: left,
-                  child: Container(
-                    width: _thumb,
-                    height: _thumb,
-                    decoration: BoxDecoration(
-                      color: cs.leaf,
-                      shape: BoxShape.circle,
-                      border: Border.fromBorderSide(
-                        BorderSide(color: Colors.white, width: 4),
-                      ),
-                      boxShadow: const <BoxShadow>[
-                        BoxShadow(
-                          color: Color(0x590F3320),
-                          offset: Offset(0, 2),
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }
