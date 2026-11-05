@@ -109,14 +109,7 @@ class AppGate extends StatelessWidget {
             bottomNavigationBar: store.showTabBar && !useSideNavigation
                 ? const EcoTabBar()
                 : null,
-            floatingActionButton: store.route == AppRoute.home
-                ? FloatingActionButton(
-                    key: const ValueKey<String>('log-activity-fab'),
-                    tooltip: 'Log activity',
-                    onPressed: store.openAdd,
-                    child: const Icon(Icons.add),
-                  )
-                : null,
+            floatingActionButton: null,
             body: Stack(
               children: <Widget>[
                 Positioned.fill(

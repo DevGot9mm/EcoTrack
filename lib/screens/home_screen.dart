@@ -391,89 +391,99 @@ class HomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       const SectionHead(title: 'Your momentum'),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Expanded(
-                            child: EcoCard(
-                              flat: true,
-                              padding: const EdgeInsets.all(14),
-                              onTap: () => showLevelInfoSheet(context, store),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Row(
-                                    children: <Widget>[
-                                      EcoIcon(
-                                        'trophy',
-                                        size: 17,
-                                        color: cs.amber,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          'Eco Points',
-                                          style: F.b(12.5,
-                                              wght: 700, color: cs.muted),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            Expanded(
+                              child: EcoCard(
+                                flat: true,
+                                padding: const EdgeInsets.all(14),
+                                onTap: () => showLevelInfoSheet(context, store),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Row(
+                                      children: <Widget>[
+                                        EcoIcon(
+                                          'trophy',
+                                          size: 17,
+                                          color: cs.amber,
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    groupThousands(store.points),
-                                    style: F.d(25),
-                                    maxLines: 1,
-                                  ),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: Text(
-                                      'Level ${lvl.idx + 1} · ${lvl.name}',
-                                      style: F.b(13,
-                                          height: 1.45, color: cs.muted),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Eco Points',
+                                            style: F.b(12.5, wght: 700, color: cs.muted),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: EcoCard(
-                              flat: true,
-                              padding: const EdgeInsets.all(14),
-                              onTap: () => store.go(AppRoute.challenges),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Row(
-                                    children: <Widget>[
-                                      EcoIcon(
-                                        'flame',
-                                        size: 17,
-                                        color: cs.forest,
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      groupThousands(store.points),
+                                      style: F.d(25),
+                                      maxLines: 1,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: Text(
+                                        'Level ${lvl.idx + 1} · ${lvl.name}',
+                                        style: F.b(13, height: 1.45, color: cs.muted),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(width: 8),
-                                      Text('Streak',
-                                          style: F.b(12.5,
-                                              wght: 700, color: cs.muted)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '${store.streak} days',
-                                    style: F.d(25),
-                                    maxLines: 1,
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: EcoCard(
+                                flat: true,
+                                padding: const EdgeInsets.all(14),
+                                onTap: () => store.go(AppRoute.challenges),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Row(
+                                      children: <Widget>[
+                                        EcoIcon(
+                                          'flame',
+                                          size: 17,
+                                          color: cs.forest,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Streak',
+                                            style: F.b(12.5, wght: 700, color: cs.muted),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      '${store.streak} days',
+                                      style: F.d(25),
+                                      maxLines: 1,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 18),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

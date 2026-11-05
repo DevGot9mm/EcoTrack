@@ -1280,58 +1280,73 @@ class _UnitChoice extends StatelessWidget {
 void _showHelp(BuildContext context, EcoStore store) {
   showEcoSheet(
     context,
-    Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        const SheetTitle(title: 'Help & support'),
-        const SizedBox(height: 14),
-        _HelpItem(
-          title: 'How are emissions estimated?',
-          body:
-              'Each activity uses an illustrative emissions factor. Your logged amounts are converted before the estimate is calculated.',
-        ),
-        _HelpItem(
-          title: 'Where is my data stored?',
-          body:
-              'This demo keeps data in memory on this device session. It is not synced to an account or server.',
-        ),
-        _HelpItem(
-          title: 'Are the CO₂e values exact?',
-          body:
-              'No. The activity factors are educational estimates and can vary by location, provider, product, and individual habits.',
-        ),
-        _HelpItem(
-          title: 'How do daily challenge check-ins work?',
-          body:
-              'You can check in once per local calendar day. Challenges that ask for several days require consecutive daily check-ins; a missed day restarts that streak.',
-        ),
-        _HelpItem(
-          title: 'Can I add an activity that is not listed?',
-          body:
-              'Yes. Choose the final “Other” option and enter your own total CO₂e estimate. EcoTrack will not infer a factor for it.',
-        ),
-        const SizedBox(height: 12),
-        EcoButton(
-          label: 'Report an issue',
-          leading: 'mail',
-          tone: EcoButtonTone.ghost,
-          block: true,
-          onPressed: () {
-            Navigator.pop(context);
-            _showReportIssue(context, store);
-          },
-        ),
-        const SizedBox(height: 8),
-        EcoButton(
-          label: 'Browse Eco Tips',
-          leading: 'tips',
-          block: true,
-          onPressed: () {
-            Navigator.pop(context);
-            store.go(AppRoute.tips);
-          },
-        ),
-      ],
+    LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double maxWidth = constraints.maxWidth;
+        final List<_HelpItem> faqItems = <_HelpItem>[
+          const _HelpItem(
+            title: 'How are emissions estimated?',
+            body:
+                'Each activity uses an illustrative emissions factor. Your logged amounts are converted before the estimate is calculated.',
+          ),
+          const _HelpItem(
+            title: 'Where is my data stored?',
+            body:
+                'This demo keeps data in memory on this device session. It is not synced to an account or server.',
+          ),
+          const _HelpItem(
+            title: 'Are the CO₂e values exact?',
+            body:
+                'No. The activity factors are educational estimates and can vary by location, provider, product, and individual habits.',
+          ),
+          const _HelpItem(
+            title: 'How do daily challenge check-ins work?',
+            body:
+                'You can check in once per local calendar day. Challenges that ask for several days require consecutive daily check-ins; a missed day restarts that streak.',
+          ),
+          const _HelpItem(
+            title: 'Can I add an activity that is not listed?',
+            body:
+                'Yes. Choose the final “Other” option and enter your own total CO₂e estimate. EcoTrack will not infer a factor for it.',
+          ),
+        ];
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const SheetTitle(title: 'Help & support'),
+            const SizedBox(height: 14),
+            for (int i = 0; i < faqItems.length; i++) ...<Widget>[
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: faqItems[i],
+              ),
+              if (i < faqItems.length - 1) const SizedBox(height: 12),
+            ],
+            const SizedBox(height: 12),
+            EcoButton(
+              label: 'Report an issue',
+              leading: 'mail',
+              tone: EcoButtonTone.ghost,
+              block: true,
+              onPressed: () {
+                Navigator.pop(context);
+                _showReportIssue(context, store);
+              },
+            ),
+            const SizedBox(height: 8),
+            EcoButton(
+              label: 'Browse Eco Tips',
+              leading: 'tips',
+              block: true,
+              onPressed: () {
+                Navigator.pop(context);
+                store.go(AppRoute.tips);
+              },
+            ),
+          ],
+        );
+      },
     ),
   );
 }
@@ -1345,20 +1360,18 @@ class _HelpItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: EcoCard(
-        flat: true,
-        background: cs.surface2,
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(title, style: F.b(14, wght: 800)),
-            const SizedBox(height: 4),
-            Text(body, style: F.small.copyWith(color: cs.ink2)),
-          ],
-        ),
+    return EcoCard(
+      flat: true,
+      background: cs.surface2,
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        children: <Widget>[
+          Text(title, style: F.b(14, wght: 800)),
+          const SizedBox(height: 4),
+          Text(body, style: F.small.copyWith(color: cs.ink2)),
+        ],
       ),
     );
   }

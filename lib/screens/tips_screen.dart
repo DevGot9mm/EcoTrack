@@ -37,27 +37,17 @@ class TipsScreen extends StatelessWidget {
               body: 'Bookmark a tip and it will appear here for later.',
             )
           else
-            LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final int columns = switch (context.windowSize) {
-                  WindowSize.compact => 1,
-                  WindowSize.medium => 2,
-                  WindowSize.expanded => 3,
-                };
-                final double width =
-                    (constraints.maxWidth - 12 * (columns - 1)) / columns;
-                return Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: <Widget>[
-                    for (final Tip tip in filtered)
-                      SizedBox(
-                        width: width,
-                        child: _TipCard(tip: tip, store: store),
-                      ),
-                  ],
-                );
+            // EcoGrid stretches every card in a row to the tallest one.
+            EcoGrid(
+              columns: switch (context.windowSize) {
+                WindowSize.compact => 1,
+                WindowSize.medium => 2,
+                WindowSize.expanded => 3,
               },
+              items: <Widget>[
+                for (final Tip tip in filtered)
+                  _TipCard(tip: tip, store: store),
+              ],
             ),
         ],
       ),
@@ -159,79 +149,90 @@ class _TipCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => store.toggleTipWhy(tip.id),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color:
-                          c.resolve(cs, color: store.categoryColor(c.id)).tint,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: EcoIcon(
-                      tip.icon,
-                      size: 22,
-                      color:
-                          c.resolve(cs, color: store.categoryColor(c.id)).ink,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => store.toggleTipWhy(tip.id),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(tip.title, style: F.d(16.5)),
-                        const SizedBox(height: 4),
-                        Text(tip.action,
-                            style: F.b(14.5, height: 1.5, color: cs.ink2)),
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: c
+                                .resolve(cs, color: store.categoryColor(c.id))
+                                .tint,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: EcoIcon(
+                            tip.icon,
+                            size: 22,
+                            color: c
+                                .resolve(cs, color: store.categoryColor(c.id))
+                                .ink,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(tip.title, style: F.d(16.5)),
+                              const SizedBox(height: 4),
+                              Text(tip.action,
+                                  style:
+                                      F.b(14.5, height: 1.5, color: cs.ink2)),
+                            ],
+                          ),
+                        ),
+                        if (store.savedTips[tip.id] ?? false)
+                          EcoIcon('bookmark', size: 20, color: cs.amber),
                       ],
                     ),
                   ),
-                  if (store.savedTips[tip.id] ?? false)
-                    EcoIcon('bookmark', size: 20, color: cs.amber),
-                ],
-              ),
+                ),
+                AnimatedCrossFade(
+                  firstChild: const SizedBox.shrink(),
+                  secondChild: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          'Why it matters',
+                          style: F.b(13, wght: 800, color: cs.leaf),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          tip.why,
+                          style: F.small.copyWith(color: cs.ink2),
+                        ),
+                        const SizedBox(height: 12),
+                        EcoButton(
+                          label: 'Try this',
+                          leading: 'arrowRight',
+                          tone: EcoButtonTone.primary,
+                          radius: Eco.rPill,
+                          minHeight: 38,
+                          block: true,
+                          onPressed: () => store.tryTip(tip.id),
+                        ),
+                      ],
+                    ),
+                  ),
+                  crossFadeState: open
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  duration: Eco.dur2,
+                ),
+              ],
             ),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox.shrink(),
-            secondChild: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    'Why it matters',
-                    style: F.b(13, wght: 800, color: cs.leaf),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    tip.why,
-                    style: F.small.copyWith(color: cs.ink2),
-                  ),
-                  const SizedBox(height: 12),
-                  EcoButton(
-                    label: 'Try this',
-                    leading: 'arrowRight',
-                    tone: EcoButtonTone.primary,
-                    radius: Eco.rPill,
-                    minHeight: 38,
-                    block: true,
-                    onPressed: () => store.tryTip(tip.id),
-                  ),
-                ],
-              ),
-            ),
-            crossFadeState:
-                open ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-            duration: Eco.dur2,
           ),
           const Divider(height: 1),
           Row(
