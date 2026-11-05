@@ -106,6 +106,17 @@ class AppGate extends StatelessWidget {
           },
           child: Scaffold(
             backgroundColor: Theme.of(context).colorScheme.ground,
+            bottomNavigationBar: store.showTabBar && !useSideNavigation
+                ? const EcoTabBar()
+                : null,
+            floatingActionButton: store.route == AppRoute.home
+                ? FloatingActionButton(
+                    key: const ValueKey<String>('log-activity-fab'),
+                    tooltip: 'Log activity',
+                    onPressed: store.openAdd,
+                    child: const Icon(Icons.add),
+                  )
+                : null,
             body: Stack(
               children: <Widget>[
                 Positioned.fill(
@@ -148,8 +159,6 @@ class AppGate extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            if (store.showTabBar && !useSideNavigation)
-                              const EcoTabBar(),
                           ],
                         ),
                       ),

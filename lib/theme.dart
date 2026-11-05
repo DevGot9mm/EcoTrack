@@ -21,7 +21,6 @@ class Eco {
 
   // ---- Greens -------------------------------------------------------------
   static const Color forest = Color(0xFF1F5C34);
-  static const Color forestHover = Color(0xFF256B3D);
   static const Color forestDeep = Color(0xFF143F24);
   static const Color forestInk = Color(0xFF0F3320);
   static const Color leaf = Color(0xFF4E9A51);
@@ -31,7 +30,6 @@ class Eco {
 
   // ---- Amber --------------------------------------------------------------
   static const Color amber = Color(0xFFE8A33D);
-  static const Color amberHover = Color(0xFFF0AF4D);
   static const Color amberTint = Color(0xFFFBF0DA);
   static const Color amberInk = Color(0xFF7F5606);
 
@@ -52,12 +50,40 @@ class Eco {
   static const Color danger = Color(0xFFB8452F);
   static const Color dangerTint = Color(0xFFFBEAE5);
 
+  // ---- On-hero overlays (white/ink on dark green cards) ---------------------
+  static const Color onHero72 = Color(0xB8FFFFFF);
+  static const Color onHero66 = Color(0xA8FFFFFF);
+  static const Color onHero75 = Color(0xBFFFFFFF);
+  static const Color onHero85 = Color(0xD9FFFFFF);
+  static const Color onHero78 = Color(0xC7FFFFFF);
+  static const Color onHero80 = Color(0xCCFFFFFF);
+  static const Color onHero76 = Color(0xC2FFFFFF);
+  static const Color heroOverlay14 = Color(0x24FFFFFF);
+  static const Color heroOverlay18 = Color(0x2EFFFFFF);
+  static const Color heroTrack26 = Color(0x42FFFFFF);
+  static const Color heroDot32 = Color(0x52FFFFFF);
+  static const Color heroBorder10 = Color(0x1AFFFFFF);
+  static const Color heroBorder28 = Color(0x47FFFFFF);
+  static const Color heroMint = Color(0xFFDFF0D3);
+  static const Color heroInk = Color(0xFFF0F8EA);
+  static const Color heroInkSoft = Color(0xFFF2F9EC);
+  static const Color scrim = Color(0x6B0F2818);
+
   // ---- Radii --------------------------------------------------------------
   static const double rCard = 22;
   static const double rBtn = 16;
   static const double rSheet = 28;
   static const double rSm = 12;
   static const double rPill = 999;
+
+  // ---- Spacing scale ------------------------------------------------------
+  static const double s4 = 4;
+  static const double s8 = 8;
+  static const double s12 = 12;
+  static const double s16 = 16;
+  static const double s20 = 20;
+  static const double s24 = 24;
+  static const double s32 = 32;
 
   // ---- Elevation ----------------------------------------------------------
   static const List<BoxShadow> shadow1 = <BoxShadow>[
@@ -329,6 +355,13 @@ TextTheme _ecoTextTheme(ColorScheme scheme) {
   );
 }
 
+FloatingActionButtonThemeData _ecoFabTheme(ColorScheme scheme) =>
+    FloatingActionButtonThemeData(
+      backgroundColor: scheme.primary,
+      foregroundColor: scheme.onPrimary,
+      shape: const CircleBorder(),
+    );
+
 InputDecorationTheme _ecoInputDecorationTheme(ColorScheme scheme) {
   OutlineInputBorder border(Color color) => OutlineInputBorder(
         borderRadius: BorderRadius.circular(Eco.rBtn),
@@ -466,6 +499,7 @@ ThemeData ecoTheme() {
     navigationRailTheme: _ecoNavigationRailTheme(scheme),
     segmentedButtonTheme: _ecoSegmentedButtonTheme(scheme),
     sliderTheme: _ecoSliderTheme(scheme),
+    floatingActionButtonTheme: _ecoFabTheme(scheme),
     hintColor: Eco.muted,
   );
 }
@@ -512,6 +546,7 @@ ThemeData ecoDarkTheme() {
     navigationRailTheme: _ecoNavigationRailTheme(scheme),
     segmentedButtonTheme: _ecoSegmentedButtonTheme(scheme),
     sliderTheme: _ecoSliderTheme(scheme),
+    floatingActionButtonTheme: _ecoFabTheme(scheme),
     hintColor: EcoDark.muted,
   );
 }
@@ -622,12 +657,10 @@ class EcoDark {
   static const Color cream = Color(0xFF282A20);
   static const Color leaf = Color(0xFF9ACB91);
   static const Color forest = Color(0xFF225333);
-  static const Color forestHover = Color(0xFF2A6840);
   static const Color forestInk = Color(0xFFB8D4B8);
   static const Color sage = Color(0xFFB9D9A9);
   static const Color amberTint = Color(0xFF352B19);
   static const Color amberInk = Color(0xFFFFD783);
-  static const Color amberHover = Color(0xFFFFC96F);
   static const Color danger = Color(0xFFFF9B84);
   static const Color dangerTint = Color(0xFF3B2420);
   static const Color transportTint = Color(0xFF203438);

@@ -17,7 +17,7 @@ Future<void> showEcoSheet(
     context: context,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
-    barrierColor: const Color(0x6B0F2818),
+    barrierColor: Eco.scrim,
     isScrollControlled: true,
     constraints: BoxConstraints(maxWidth: maxWidth),
     builder: (BuildContext ctx) {
@@ -40,10 +40,10 @@ Future<void> showEcoSheet(
             child: SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
               padding: EdgeInsets.fromLTRB(
-                20,
-                10,
-                20,
-                20 + MediaQuery.of(ctx).padding.bottom,
+                Eco.s20,
+                Eco.s12 - 2,
+                Eco.s20,
+                Eco.s20 + MediaQuery.of(ctx).padding.bottom,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -59,7 +59,7 @@ Future<void> showEcoSheet(
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: Eco.s16),
                   child,
                 ],
               ),

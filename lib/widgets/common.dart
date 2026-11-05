@@ -394,7 +394,7 @@ List<Widget> _gapped(List<Widget> items, double gap) {
 
 /// Horizontal padding used by every screen block.
 class HPad extends StatelessWidget {
-  const HPad({super.key, required this.child, this.value = 20});
+  const HPad({super.key, required this.child, this.value = Eco.s20});
 
   final Widget child;
   final double value;
@@ -619,7 +619,7 @@ class EcoCard extends StatelessWidget {
     required this.child,
     this.tone = EcoCardTone.plain,
     this.flat = false,
-    this.padding = const EdgeInsets.all(18),
+    this.padding = const EdgeInsets.all(Eco.s16 + 2),
     this.radius = Eco.rCard,
     this.onTap,
     this.gradient,
@@ -660,7 +660,7 @@ class EcoCard extends StatelessWidget {
         break;
       case EcoCardTone.dark:
         grad = cs.heroCardGradient;
-        border = const Color(0x1AFFFFFF);
+        border = Eco.heroBorder10;
         shadows = Eco.shadowDarkCard;
         break;
     }
@@ -762,9 +762,9 @@ class EcoButton extends StatelessWidget {
         shadows = const <BoxShadow>[];
         break;
       case EcoButtonTone.onDark:
-        bg = const Color(0x24FFFFFF);
-        fg = const Color(0xFFF2F9EC);
-        border = const Color(0x47FFFFFF);
+        bg = Eco.heroOverlay14;
+        fg = Eco.heroInkSoft;
+        border = Eco.heroBorder28;
         shadows = const <BoxShadow>[];
         break;
     }

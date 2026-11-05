@@ -203,7 +203,7 @@ class WelcomeScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
             child: Text(
               'Skip',
-              style: F.b(14, wght: 700, color: const Color(0xC7FFFFFF)),
+              style: F.b(14, wght: 700, color: Eco.onHero78),
             ),
           ),
         ),
@@ -247,7 +247,7 @@ class WelcomeScreen extends StatelessWidget {
         Text(
           'Track your impact, change your future.',
           textAlign: align,
-          style: F.b(16 * scale, color: const Color(0xCCFFFFFF)),
+          style: F.b(16 * scale, color: Eco.onHero80),
         ),
         Padding(
           padding: EdgeInsets.only(top: compact ? 8 : 18),
@@ -266,7 +266,7 @@ class WelcomeScreen extends StatelessWidget {
                 style: F.b(
                   15 * scale,
                   height: 1.4,
-                  color: const Color(0xC2FFFFFF),
+                  color: Eco.onHero76,
                 ),
               ),
             ],
@@ -290,7 +290,7 @@ class WelcomeScreen extends StatelessWidget {
                     width: d == index ? 24 : 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: d == index ? Eco.sage : const Color(0x52FFFFFF),
+                      color: d == index ? Eco.sage : Eco.heroDot32,
                       borderRadius: BorderRadius.circular(Eco.rPill),
                     ),
                   ),

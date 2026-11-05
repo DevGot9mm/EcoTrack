@@ -252,7 +252,7 @@ class _LevelUpCelebration extends StatelessWidget {
           gradient: cs.heroCardGradient,
           borderRadius: BorderRadius.circular(Eco.rSheet),
           boxShadow: Eco.shadowToast,
-          border: Border.all(color: const Color(0x47FFFFFF)),
+          border: Border.all(color: Eco.heroBorder28),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -282,7 +282,7 @@ class _LevelUpCelebration extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   'New title unlocked!',
-                  style: F.b(14, wght: 700, color: const Color(0xD9FFFFFF)),
+                  style: F.b(14, wght: 700, color: Eco.onHero85),
                 ),
               ],
             ),

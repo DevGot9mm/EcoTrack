@@ -15,7 +15,6 @@ import '../widgets/sheets.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  static const Color _white72 = Color(0xB8FFFFFF);
 
   Widget _section({required Widget child}) =>
       Padding(padding: const EdgeInsets.only(top: 26), child: child);
@@ -140,7 +139,7 @@ class HomeScreen extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   'Daily goal ${fmt1(store.dailyTarget)} kg',
-                                  style: F.b(12, wght: 700, color: _white72),
+                                  style: F.b(12, wght: 700, color: Eco.onHero72),
                                 ),
                               ),
                               Text(
@@ -153,7 +152,7 @@ class HomeScreen extends StatelessWidget {
                           EcoBar(
                             value: targetPct / 100,
                             color: cs.leaf,
-                            track: const Color(0x2EFFFFFF),
+                            track: Eco.heroOverlay18,
                           ),
                         ],
                       ),
@@ -638,7 +637,7 @@ class _HomeBannerCarouselState extends State<_HomeBannerCarousel> {
     return Column(
       children: <Widget>[
         SizedBox(
-          height: widget.height - 22,
+          height: MediaQuery.textScalerOf(context).scale(widget.height) - 22,
           child: Listener(
             onPointerSignal: _handlePointerSignal,
             child: ScrollConfiguration(
@@ -735,8 +734,8 @@ class _HomeBannerCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          SizedBox(
-            height: 98,
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 98),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
@@ -755,7 +754,7 @@ class _HomeBannerCard extends StatelessWidget {
                         eyebrow.toUpperCase(),
                         style: F
                             .eyebrow(context)
-                            .copyWith(color: const Color(0xA8FFFFFF)),
+                            .copyWith(color: Eco.onHero66),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -772,7 +771,7 @@ class _HomeBannerCard extends StatelessWidget {
                         style: F.b(
                           11.5,
                           height: 1.3,
-                          color: const Color(0xB8FFFFFF),
+                          color: Eco.onHero72,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -784,8 +783,8 @@ class _HomeBannerCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            height: 32,
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 32),
             child: Align(
               alignment: Alignment.topLeft,
               child: detail,
@@ -818,18 +817,18 @@ class _BannerNote extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0x24FFFFFF),
+        color: Eco.heroOverlay14,
         borderRadius: BorderRadius.circular(Eco.rPill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          EcoIcon(icon, size: 15, color: const Color(0xFFDFF0D3)),
+          EcoIcon(icon, size: 15, color: Eco.heroMint),
           const SizedBox(width: 7),
           Flexible(
             child: Text(
               text,
-              style: F.b(11.5, wght: 700, color: const Color(0xFFDFF0D3)),
+              style: F.b(11.5, wght: 700, color: Eco.heroMint),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
