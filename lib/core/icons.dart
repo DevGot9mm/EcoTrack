@@ -84,6 +84,16 @@ const Map<String, IconData> kIcons = <String, IconData>{
   'book': Icons.menu_book_outlined,
 };
 
+/// Filled counterparts used only for the currently selected navigation tab.
+/// The clock keeps its closest filled Material history glyph.
+const Map<String, IconData> kSelectedIcons = <String, IconData>{
+  'house': Icons.home,
+  'clock': Icons.history_toggle_off,
+  'chart': Icons.bar_chart,
+  'flag': Icons.flag,
+  'user': Icons.person,
+};
+
 const Map<String, FaIconData> kBrandIcons = <String, FaIconData>{
   'google': FontAwesomeIcons.google,
 };

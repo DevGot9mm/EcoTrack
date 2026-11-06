@@ -126,7 +126,7 @@ class _FeaturedChallengeCard extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       "TODAY'S CHALLENGE",
-                      style: F.b(10, wght: 800, color: Eco.onHero75),
+                      style: F.b(10, wght: 800, color: Eco.onHeroMedium),
                     ),
                     const SizedBox(height: Eco.s4),
                     Text(
@@ -137,7 +137,7 @@ class _FeaturedChallengeCard extends StatelessWidget {
                     Text(
                       challenge.why,
                       style: F.role(context.type.bodySmall!,
-                          wght: 600, color: Eco.onHero85),
+                          wght: 600, color: Eco.onHeroHigh),
                     ),
                   ],
                 ),
@@ -163,7 +163,7 @@ class _FeaturedChallengeCard extends StatelessWidget {
                           '${challenge.progress.round()} of '
                           '${challenge.target.round()} daily check-ins',
                           style: F.role(context.type.labelSmall!,
-                              wght: 800, color: Eco.onHero85),
+                              wght: 800, color: Eco.onHeroHigh),
                         ),
                       ),
                       Text(

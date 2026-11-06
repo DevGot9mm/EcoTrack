@@ -284,7 +284,7 @@ class _LevelUpCelebration extends StatelessWidget {
                 Text(
                   'New title unlocked!',
                   style: F.role(context.type.labelLarge!,
-                      wght: 700, color: Eco.onHero85),
+                      wght: 700, color: Eco.onHeroHigh),
                 ),
               ],
             ),
