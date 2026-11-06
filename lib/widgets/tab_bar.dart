@@ -97,7 +97,8 @@ class EcoToast extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: F.b(14, wght: 700, color: Eco.heroInk),
+              style: F.role(context.type.labelLarge!,
+                  wght: 700, color: Eco.heroInk),
             ),
           ),
         ],

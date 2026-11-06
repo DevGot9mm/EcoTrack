@@ -23,11 +23,11 @@ class TipsScreen extends StatelessWidget {
 
     return EcoScreen(
       header: EcoTopBar(title: 'Eco Tips', noBack: false, onBack: store.back),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+      padding: const EdgeInsets.fromLTRB(Eco.s20, 0, Eco.s20, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          const SizedBox(height: 16),
+          const SizedBox(height: Eco.s16),
           _FilterBar(store: store),
           const SizedBox(height: 22),
           if (filtered.isEmpty)
@@ -65,11 +65,11 @@ class _FilterBar extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: Eco.s4),
       child: Row(
         children: <Widget>[
           _filterChip('All', TipFilter.all, store, cs),
-          const SizedBox(width: 8),
+          const SizedBox(width: Eco.s8),
           ...kCatOrder.map((CarbonCategory category) {
             final c = catOf(category);
             return _filterChip(
@@ -79,7 +79,7 @@ class _FilterBar extends StatelessWidget {
               cs,
             );
           }),
-          const SizedBox(width: 8),
+          const SizedBox(width: Eco.s8),
           _filterChip(
             'Saved',
             TipFilter.saved,
@@ -157,7 +157,7 @@ class _TipCard extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   onTap: () => store.toggleTipWhy(tip.id),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(Eco.s16),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
@@ -184,10 +184,10 @@ class _TipCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(tip.title, style: F.d(16.5)),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: Eco.s4),
                               Text(tip.action,
-                                  style:
-                                      F.b(14.5, height: 1.5, color: cs.ink2)),
+                                  style: F.role(context.type.bodyMedium!,
+                                      color: cs.ink2, height: 1.5)),
                             ],
                           ),
                         ),
@@ -200,20 +200,24 @@ class _TipCard extends StatelessWidget {
                 AnimatedCrossFade(
                   firstChild: const SizedBox.shrink(),
                   secondChild: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    padding:
+                        const EdgeInsets.fromLTRB(Eco.s16, 0, Eco.s16, Eco.s16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
                           'Why it matters',
-                          style: F.b(13, wght: 800, color: cs.leaf),
+                          style: F.role(context.type.bodySmall!,
+                              wght: 800, color: cs.leaf),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           tip.why,
-                          style: F.small.copyWith(color: cs.ink2),
+                          style: F
+                              .role(context.type.labelLarge!)
+                              .copyWith(color: cs.ink2),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: Eco.s12),
                         EcoButton(
                           label: 'Try this',
                           leading: 'arrowRight',

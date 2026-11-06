@@ -61,22 +61,21 @@ class Cat {
       return CatColors(tint: tint, ink: ink);
     }
 
-    final bool dark = cs.brightness == Brightness.dark;
     switch (id) {
       case CarbonCategory.transport:
         return CatColors(
-          tint: dark ? cs.transportTint : const Color(0xFFE3F0F1),
-          ink: dark ? cs.transportInk : const Color(0xFF2A5F68),
+          tint: cs.transportTint,
+          ink: cs.transportInk,
         );
       case CarbonCategory.electricity:
         return CatColors(
-          tint: dark ? cs.electricityTint : const Color(0xFFFBF0DA),
-          ink: dark ? cs.electricityInk : const Color(0xFF7F5606),
+          tint: cs.electricityTint,
+          ink: cs.electricityInk,
         );
       case CarbonCategory.food:
         return CatColors(
-          tint: dark ? cs.foodTint : const Color(0xFFEDF4DE),
-          ink: dark ? cs.foodInk : const Color(0xFF546D2C),
+          tint: cs.foodTint,
+          ink: cs.foodInk,
         );
     }
   }

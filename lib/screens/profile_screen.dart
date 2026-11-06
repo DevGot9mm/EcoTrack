@@ -66,7 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onPressed: store.toggleTheme,
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+      padding: const EdgeInsets.fromLTRB(Eco.s20, 0, Eco.s20, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -121,9 +121,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 22),
           _GoalsSection(store: store),
-          const SizedBox(height: 24),
+          const SizedBox(height: Eco.s24),
           _SettingsSection(store: store),
-          const SizedBox(height: 20),
+          const SizedBox(height: Eco.s20),
           _SocialSection(store: store),
         ],
       ),
@@ -173,24 +173,27 @@ class _ProfileIdentityCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: Eco.s12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(store.playerName, style: F.d(17)),
+                Text(store.playerName,
+                    style: F.role(context.type.titleMedium!,
+                        wght: 600, ls: -0.01)),
                 const SizedBox(height: 2),
                 Text(
                   'Climate action since ${store.joined} · '
                   'Level ${level.idx + 1} ${level.name}',
-                  style: F.b(12.5, wght: 600, color: cs.muted),
+                  style: F.role(context.type.labelMedium!,
+                      wght: 600, color: cs.muted),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: Eco.s4),
           EcoIcon('chevronR', size: 20, color: cs.muted),
         ],
       ),
@@ -214,7 +217,7 @@ class _GoalsSection extends StatelessWidget {
         const SectionHead(title: "This week's goal"),
         EcoCard(
           flat: true,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Eco.s16),
           child: Column(
             children: <Widget>[
               _GoalProgress(
@@ -223,7 +226,7 @@ class _GoalsSection extends StatelessWidget {
                 target: store.weeklyTarget,
                 categories: store.catTotals(store.inRange(0, 6)),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: Eco.s16),
               _GoalProgress(
                 label: 'Daily carbon goal',
                 value: todayTotal,
@@ -262,11 +265,15 @@ class _GoalProgress extends StatelessWidget {
       children: <Widget>[
         Row(
           children: <Widget>[
-            Expanded(child: Text(label, style: F.b(14, wght: 700))),
-            Text(targetText, style: F.b(13, wght: 800, color: cs.ink2)),
+            Expanded(
+                child: Text(label,
+                    style: F.role(context.type.labelLarge!, wght: 700))),
+            Text(targetText,
+                style:
+                    F.role(context.type.bodySmall!, wght: 800, color: cs.ink2)),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: Eco.s8),
         _CarbonMixBar(
           progress: progress,
           total: value,
@@ -362,7 +369,7 @@ void _showAvatarPicker(BuildContext context, EcoStore store) {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             const SheetTitle(title: 'Choose a profile picture'),
-            const SizedBox(height: 16),
+            const SizedBox(height: Eco.s16),
             Wrap(
               alignment: WrapAlignment.center,
               spacing: 12,
@@ -382,7 +389,7 @@ void _showAvatarPicker(BuildContext context, EcoStore store) {
                       },
                       scale: 0.95,
                       child: Container(
-                        padding: const EdgeInsets.all(4),
+                        padding: const EdgeInsets.all(Eco.s4),
                         decoration: BoxDecoration(
                           color: selected ? cs.mint : cs.surface,
                           border: Border.all(
@@ -434,7 +441,7 @@ class _BadgesSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         const SectionHead(title: 'Badges'),
-        const SizedBox(height: 12),
+        const SizedBox(height: Eco.s12),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -477,24 +484,26 @@ class _BadgesSection extends StatelessWidget {
                   size: 26, color: b.unlocked ? cs.leaf : cs.muted),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Eco.s12),
           Text(
             b.name,
             style: F.d(18),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: Eco.s4),
           Text(
             b.desc,
-            style: F.b(13, height: 1.45, color: cs.muted),
+            style:
+                F.role(context.type.bodySmall!, color: cs.muted, height: 1.45),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Eco.s12),
           Text(
             b.unlocked ? 'Unlocked' : 'Locked',
-            style: F.b(13, wght: 800, color: b.unlocked ? cs.leaf : cs.muted),
+            style: F.role(context.type.bodySmall!,
+                wght: 800, color: b.unlocked ? cs.leaf : cs.muted),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Eco.s12),
           EcoBar(
             value: b.progress / b.target,
             color: b.unlocked ? cs.leaf : cs.muted,
@@ -503,7 +512,8 @@ class _BadgesSection extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             '${b.progress.round()} of ${b.target.round()} complete',
-            style: F.b(13, height: 1.45, color: cs.muted),
+            style:
+                F.role(context.type.bodySmall!, color: cs.muted, height: 1.45),
           ),
           const SizedBox(height: 14),
           EcoButton(
@@ -611,7 +621,7 @@ class _BadgeItemState extends State<_BadgeItem> {
           '${b.progress.round()}/${b.target.round()}',
           style: F.b(12, height: 1.3, color: cs.muted),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: Eco.s4),
         SizedBox(
           height: 5,
           child: b.unlocked
@@ -715,7 +725,7 @@ class _SettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         const SectionHead(title: 'Account'),
-        const SizedBox(height: 8),
+        const SizedBox(height: Eco.s8),
         LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
             final bool tablet = context.windowSize != WindowSize.compact;
@@ -758,10 +768,10 @@ class _SocialSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         const SectionHead(title: 'Follow EcoTrack'),
-        const SizedBox(height: 4),
+        const SizedBox(height: Eco.s4),
         Text(
           'Social account links are placeholders until official URLs are set.',
-          style: F.b(12, color: cs.muted),
+          style: F.role(context.type.labelSmall!, color: cs.muted),
         ),
         const SizedBox(height: 66),
         Wrap(
@@ -772,9 +782,9 @@ class _SocialSection extends StatelessWidget {
             IsoSocialButton(
               icon: FontAwesomeIcons.instagram,
               label: 'Instagram',
-              hoverFace: const Color(0xFFE4405F),
-              hoverLeft: const Color(0xFFD81C3F),
-              hoverBottom: const Color(0xFFE46880),
+              hoverFace: EcoBrand.instagramFace,
+              hoverLeft: EcoBrand.instagramLeft,
+              hoverBottom: EcoBrand.instagramBottom,
               idleFace: cs.surface,
               idleSide: cs.lineStrong,
               idleContent: cs.ink,
@@ -786,9 +796,9 @@ class _SocialSection extends StatelessWidget {
             IsoSocialButton(
               icon: FontAwesomeIcons.tiktok,
               label: 'TikTok',
-              hoverFace: const Color(0xFF111111),
-              hoverLeft: const Color(0xFF2B2B2B),
-              hoverBottom: const Color(0xFF414141),
+              hoverFace: EcoBrand.blackFace,
+              hoverLeft: EcoBrand.blackLeft,
+              hoverBottom: EcoBrand.blackBottom,
               idleFace: cs.surface,
               idleSide: cs.lineStrong,
               idleContent: cs.ink,
@@ -800,9 +810,9 @@ class _SocialSection extends StatelessWidget {
             IsoSocialButton(
               icon: FontAwesomeIcons.xTwitter,
               label: 'X',
-              hoverFace: const Color(0xFF111111),
-              hoverLeft: const Color(0xFF2B2B2B),
-              hoverBottom: const Color(0xFF414141),
+              hoverFace: EcoBrand.blackFace,
+              hoverLeft: EcoBrand.blackLeft,
+              hoverBottom: EcoBrand.blackBottom,
               idleFace: cs.surface,
               idleSide: cs.lineStrong,
               idleContent: cs.ink,
@@ -849,7 +859,7 @@ class _SettingsRow extends StatelessWidget {
       child: Container(
         constraints: BoxConstraints(minHeight: roomy ? 72 : 0),
         padding: EdgeInsets.symmetric(
-          horizontal: 16,
+          horizontal: Eco.s16,
           vertical: roomy ? 18 : 14,
         ),
         decoration: BoxDecoration(
@@ -874,11 +884,12 @@ class _SettingsRow extends StatelessWidget {
             if (trailing != null) ...<Widget>[
               Text(
                 trailing!,
-                style: F.b(12, wght: 700, color: cs.muted),
+                style: F.role(context.type.labelSmall!,
+                    wght: 700, color: cs.muted),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: Eco.s4),
             ],
             EcoIcon(
               'chevronR',
@@ -902,13 +913,14 @@ void _showTargetPicker(BuildContext context, EcoStore store) {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             const SheetTitle(title: 'Daily carbon target'),
-            const SizedBox(height: 4),
+            const SizedBox(height: Eco.s4),
             Text(
               'Pick the number you want EcoTrack to measure you against.',
-              style: F.b(13, height: 1.45, color: cs.muted),
+              style: F.role(context.type.bodySmall!,
+                  color: cs.muted, height: 1.45),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Eco.s16),
             ...<double>[4, 6, 8].map((double value) {
               final bool selected = value == store.dailyTarget;
               return Pressable(
@@ -917,9 +929,9 @@ void _showTargetPicker(BuildContext context, EcoStore store) {
                   store.setDailyTarget(value);
                 },
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Eco.s16, vertical: 14),
+                  margin: const EdgeInsets.only(bottom: Eco.s8),
                   decoration: BoxDecoration(
                     color: selected ? cs.mint : cs.surface,
                     border: Border.all(
@@ -944,7 +956,8 @@ void _showTargetPicker(BuildContext context, EcoStore store) {
                                   : value == 6
                                       ? 'Balanced — the average for a mindful urban household.'
                                       : 'Forgiving — a gentle first step.',
-                              style: F.b(13, height: 1.45, color: cs.muted),
+                              style: F.role(context.type.bodySmall!,
+                                  color: cs.muted, height: 1.45),
                             ),
                           ],
                         ),
@@ -1017,23 +1030,24 @@ class _AccountSettingsFormState extends State<_AccountSettingsForm> {
           'Profile changes stay in this demo session. Email verification, '
           'password changes, and account recovery need a backend and are '
           'not available yet.',
-          style: F.b(13, height: 1.45, color: cs.muted),
+          style: F.role(context.type.bodySmall!, color: cs.muted, height: 1.45),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: Eco.s16),
         Row(
           children: <Widget>[
             const MascotArt('face-curious', width: 58),
-            const SizedBox(width: 12),
+            const SizedBox(width: Eco.s12),
             Expanded(
               child: Text(
                 'Personalize your profile and choose how your activity categories look.',
-                style: F.b(13, height: 1.4, color: cs.ink2),
+                style: F.role(context.type.bodySmall!,
+                    color: cs.ink2, height: 1.4),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: Eco.s12),
         TextField(
           controller: _name,
           textCapitalization: TextCapitalization.words,
@@ -1055,7 +1069,7 @@ class _AccountSettingsFormState extends State<_AccountSettingsForm> {
             Navigator.pop(context);
           },
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: Eco.s8),
         EcoButton(
           label: 'Change profile picture',
           leading: 'user',
@@ -1081,13 +1095,14 @@ void _showUnitSettings(BuildContext context, EcoStore store) {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             const SheetTitle(title: 'Units & category colors'),
-            const SizedBox(height: 4),
+            const SizedBox(height: Eco.s4),
             Text(
               'Used for transport activity input and history.',
-              style: F.b(13, height: 1.45, color: cs.muted),
+              style: F.role(context.type.bodySmall!,
+                  color: cs.muted, height: 1.45),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Eco.s12),
             _UnitChoice(
               value: 'km',
               label: 'Kilometres',
@@ -1109,14 +1124,17 @@ void _showUnitSettings(BuildContext context, EcoStore store) {
             const SizedBox(height: 22),
             Align(
               alignment: Alignment.centerLeft,
-              child: Text('Carbon source colors', style: F.d(17)),
+              child: Text('Carbon source colors',
+                  style:
+                      F.role(context.type.titleMedium!, wght: 600, ls: -0.01)),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: Eco.s4),
             Text(
               'Choose a color for each category. Your selection updates charts, bars, and category indicators.',
-              style: F.b(13, height: 1.45, color: cs.muted),
+              style: F.role(context.type.bodySmall!,
+                  color: cs.muted, height: 1.45),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Eco.s12),
             _CategoryColorPicker(store: store),
           ],
         );
@@ -1135,16 +1153,7 @@ class _CategoryColorPicker extends StatefulWidget {
 }
 
 class _CategoryColorPickerState extends State<_CategoryColorPicker> {
-  static const List<Color> _palette = <Color>[
-    Eco.transport,
-    Eco.electricity,
-    Eco.food,
-    Color(0xFF8E44AD),
-    Color(0xFFE53935),
-    Color(0xFFE91E63),
-    Color(0xFF1976D2),
-    Color(0xFF00897B),
-  ];
+  static const List<Color> _palette = Eco.categoryPalette;
 
   @override
   Widget build(BuildContext context) {
@@ -1154,7 +1163,8 @@ class _CategoryColorPickerState extends State<_CategoryColorPicker> {
         for (final CarbonCategory id in kCatOrder) ...<Widget>[
           EcoCard(
             flat: true,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: Eco.s12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -1168,8 +1178,9 @@ class _CategoryColorPickerState extends State<_CategoryColorPicker> {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(catOf(id).name, style: F.b(14, wght: 800)),
+                    const SizedBox(width: Eco.s8),
+                    Text(catOf(id).name,
+                        style: F.role(context.type.labelLarge!, wght: 800)),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -1252,7 +1263,7 @@ class _UnitChoice extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: Eco.s4),
         child: Row(
           children: <Widget>[
             Expanded(
@@ -1321,9 +1332,9 @@ void _showHelp(BuildContext context, EcoStore store) {
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 child: faqItems[i],
               ),
-              if (i < faqItems.length - 1) const SizedBox(height: 12),
+              if (i < faqItems.length - 1) const SizedBox(height: Eco.s12),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: Eco.s12),
             EcoButton(
               label: 'Report an issue',
               leading: 'mail',
@@ -1334,7 +1345,7 @@ void _showHelp(BuildContext context, EcoStore store) {
                 _showReportIssue(context, store);
               },
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Eco.s8),
             EcoButton(
               label: 'Browse Eco Tips',
               leading: 'tips',
@@ -1368,9 +1379,10 @@ class _HelpItem extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
         children: <Widget>[
-          Text(title, style: F.b(14, wght: 800)),
-          const SizedBox(height: 4),
-          Text(body, style: F.small.copyWith(color: cs.ink2)),
+          Text(title, style: F.role(context.type.labelLarge!, wght: 800)),
+          const SizedBox(height: Eco.s4),
+          Text(body,
+              style: F.role(context.type.labelLarge!).copyWith(color: cs.ink2)),
         ],
       ),
     );
@@ -1388,13 +1400,14 @@ void _showAbout(BuildContext context) {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             const SheetTitle(title: 'About EcoTrack'),
-            const SizedBox(height: 8),
+            const SizedBox(height: Eco.s8),
             Text(
               'EcoTrack makes the climate impact of everyday choices easier '
               'to see. It helps people record transport, household energy, '
               'and food activities, then build lower-impact habits through '
               'tips and weekly challenges.',
-              style: F.b(14, height: 1.5, color: cs.ink2),
+              style:
+                  F.role(context.type.labelLarge!, color: cs.ink2, height: 1.5),
             ),
             const SizedBox(height: 14),
             EcoCard(
@@ -1412,7 +1425,8 @@ void _showAbout(BuildContext context) {
                     'impacts. EcoTrack supports climate awareness and '
                     'individual habit changes; it is an educational project, '
                     'not an official UN product or emissions certification.',
-                    style: F.b(13, height: 1.45, color: cs.ink2),
+                    style: F.role(context.type.bodySmall!,
+                        color: cs.ink2, height: 1.45),
                   ),
                 ],
               ),
@@ -1430,18 +1444,19 @@ void _showAbout(BuildContext context) {
                 child: Row(
                   children: <Widget>[
                     EcoIcon('user', size: 17, color: cs.leaf),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: Eco.s8),
                     Text(member, style: F.b(13.5, wght: 700)),
                   ],
                 ),
               ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Eco.s8),
             Text(
               'All footprint values are illustrative estimates for learning '
               'and comparison, not audited measurements.',
-              style: F.b(12.5, height: 1.4, color: cs.muted),
+              style: F.role(context.type.labelMedium!,
+                  color: cs.muted, height: 1.4),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Eco.s16),
             EcoButton(
               label: 'Close',
               tone: EcoButtonTone.ghost,
@@ -1495,7 +1510,7 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
         Text(
           'Choose an app from your device’s share sheet to send or save your '
           'report. EcoTrack will not upload it directly.',
-          style: F.b(13, height: 1.45, color: cs.muted),
+          style: F.role(context.type.bodySmall!, color: cs.muted, height: 1.45),
         ),
         const SizedBox(height: 14),
         TextField(

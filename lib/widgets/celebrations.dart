@@ -197,7 +197,7 @@ class _BadgeCelebration extends StatelessWidget {
                 child: EcoIcon(badge.icon, size: 40, color: cs.leaf),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Eco.s16),
             Text('Badge Unlocked!',
                 style: F.eyebrow(context).copyWith(color: cs.leaf)),
             const SizedBox(height: 6),
@@ -206,13 +206,13 @@ class _BadgeCelebration extends StatelessWidget {
               style: F.d(22, color: cs.ink),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: Eco.s4),
             Text(
               badge.desc,
               style: F.caption(context),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Eco.s12),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -220,7 +220,8 @@ class _BadgeCelebration extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   '+50 Eco Points',
-                  style: F.b(14, wght: 800, color: cs.amberInk),
+                  style: F.role(context.type.labelLarge!,
+                      wght: 800, color: cs.amberInk),
                 ),
               ],
             ),
@@ -260,7 +261,7 @@ class _LevelUpCelebration extends StatelessWidget {
             Text(
               'LEVEL UP',
               style: F.eyebrow(context).copyWith(
-                    color: const Color(0xB3FFFFFF),
+                    color: Eco.heroTextSoft,
                     letterSpacing: 2,
                   ),
             ),
@@ -269,12 +270,12 @@ class _LevelUpCelebration extends StatelessWidget {
               'Level ${idx + 1}',
               style: F.d(32, color: Colors.white),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: Eco.s4),
             Text(
               name,
               style: F.d(22, color: cs.sage),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Eco.s12),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
@@ -282,7 +283,8 @@ class _LevelUpCelebration extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   'New title unlocked!',
-                  style: F.b(14, wght: 700, color: Eco.onHero85),
+                  style: F.role(context.type.labelLarge!,
+                      wght: 700, color: Eco.onHero85),
                 ),
               ],
             ),
@@ -308,8 +310,8 @@ class _ChallengeCelebration extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Center(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 24),
-        padding: const EdgeInsets.fromLTRB(22, 18, 22, 20),
+        margin: const EdgeInsets.symmetric(horizontal: Eco.s24),
+        padding: const EdgeInsets.fromLTRB(22, 18, 22, Eco.s20),
         constraints: const BoxConstraints(maxWidth: 320),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -344,7 +346,7 @@ class _ChallengeCelebration extends StatelessWidget {
                     child: EcoIcon(
                       'trophy',
                       size: 23,
-                      color: Color(0xFFFFD978),
+                      color: Eco.gold,
                     ),
                   ),
                 ),
@@ -361,13 +363,15 @@ class _ChallengeCelebration extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               title,
-              style: F.b(14, wght: 700, color: const Color(0xE6FFFFFF)),
+              style: F.role(context.type.labelLarge!,
+                  wght: 700, color: Eco.heroText),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 14),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: Eco.s12, vertical: Eco.s8),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(Eco.rPill),
@@ -379,9 +383,9 @@ class _ChallengeCelebration extends StatelessWidget {
                   const EcoIcon(
                     'sparkles',
                     size: 17,
-                    color: Color(0xFFFFD978),
+                    color: Eco.gold,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Eco.s8),
                   Flexible(
                     child: Text(
                       '+$points Eco Points',
@@ -418,7 +422,8 @@ class _PointsPopup extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Center(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding:
+            const EdgeInsets.symmetric(horizontal: Eco.s20, vertical: Eco.s12),
         decoration: BoxDecoration(
           color: cs.forest,
           borderRadius: BorderRadius.circular(Eco.rPill),
@@ -438,14 +443,14 @@ class _PointsPopup extends StatelessWidget {
               Container(
                 width: 1,
                 height: 16,
-                color: const Color(0x4DFFFFFF),
+                color: Eco.heroLine,
               ),
               const SizedBox(width: 10),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 120),
                 child: Text(
                   reason,
-                  style: F.b(13, color: cs.sage),
+                  style: F.role(context.type.bodySmall!, color: cs.sage),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

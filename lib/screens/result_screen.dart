@@ -35,7 +35,8 @@ class ResultScreen extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                padding: const EdgeInsets.fromLTRB(
+                    Eco.s24, Eco.s8, Eco.s24, Eco.s16),
                 child: Column(
                   children: <Widget>[
                     SizedBox(
@@ -65,10 +66,11 @@ class ResultScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     const Eyebrow('Activity saved'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Eco.s8),
                     Text(
                       zero ? 'Beautifully clean' : 'Nice work',
-                      style: F.h1,
+                      style: F.role(context.type.headlineMedium!,
+                          wght: 600, ls: -0.01, height: 1.16),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 6),
@@ -76,13 +78,14 @@ class ResultScreen extends StatelessWidget {
                       constraints: const BoxConstraints(maxWidth: 260),
                       child: Text(
                         '${def.name} · ${store.amountLabel(def, a.amount)}',
-                        style: F.b(14.5, height: 1.5, color: cs.ink2),
+                        style: F.role(context.type.bodyMedium!,
+                            color: cs.ink2, height: 1.5),
                         textAlign: TextAlign.center,
                       ),
                     ),
                     const SizedBox(height: 22),
                     const Eyebrow('Estimated impact'),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: Eco.s4),
                     Text.rich(
                       TextSpan(
                         children: <InlineSpan>[
@@ -114,10 +117,11 @@ class ResultScreen extends StatelessWidget {
                             ? 'That is a journey with no emissions at all — the best kind of number.'
                             : 'About the same as driving ${equiv.round()} km in a petrol car.',
                         textAlign: TextAlign.center,
-                        style: F.b(14, wght: 700, color: cs.ink2),
+                        style: F.role(context.type.labelLarge!,
+                            wght: 700, color: cs.ink2),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: Eco.s16),
                     Wrap(
                       alignment: WrapAlignment.center,
                       spacing: 8,
@@ -234,10 +238,10 @@ class ConfettiOverlay extends StatefulWidget {
 class _ConfettiOverlayState extends State<ConfettiOverlay>
     with SingleTickerProviderStateMixin {
   static const List<Color> _colors = <Color>[
-    Color(0xFF4E9A51),
-    Color(0xFFA9C79A),
-    Color(0xFFE8A33D),
-    Color(0xFFE4F1DC),
+    Eco.leaf,
+    Eco.sage,
+    Eco.amber,
+    Eco.mint,
   ];
 
   late final AnimationController _c;

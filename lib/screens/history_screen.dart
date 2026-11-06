@@ -52,7 +52,7 @@ class HistoryScreen extends StatelessWidget {
     } else {
       body = ListView.builder(
         physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+        padding: const EdgeInsets.fromLTRB(Eco.s20, Eco.s4, Eco.s20, 28),
         itemCount: historyItems.length,
         itemBuilder: (BuildContext context, int index) {
           final ({int? day, Entry? entry}) item = historyItems[index];
@@ -67,7 +67,8 @@ class HistoryScreen extends StatelessWidget {
                   Expanded(child: Text(dayLabel(day), style: F.d(16))),
                   Text(
                     '${kgText(store.total(groups[day]!))} CO₂e',
-                    style: F.b(13, wght: 800, color: cs.muted),
+                    style: F.role(context.type.bodySmall!,
+                        wght: 800, color: cs.muted),
                   ),
                 ],
               ),
@@ -75,7 +76,7 @@ class HistoryScreen extends StatelessWidget {
           }
           final bool firstInDay = historyItems[index - 1].entry == null;
           return Padding(
-            padding: EdgeInsets.only(top: firstInDay ? 0 : 8),
+            padding: EdgeInsets.only(top: firstInDay ? 0 : Eco.s8),
             child: _HistRow(entry: item.entry!, store: store),
           );
         },
@@ -105,7 +106,8 @@ class HistoryScreen extends StatelessWidget {
                         Text(kgText(weekTotal), style: F.statNum),
                         const SizedBox(height: 2),
                         Text('logged in the last 7 days',
-                            style: F.b(12.5, wght: 700, color: cs.muted)),
+                            style: F.role(context.type.labelMedium!,
+                                wght: 700, color: cs.muted)),
                       ],
                     ),
                   ),
@@ -116,7 +118,7 @@ class HistoryScreen extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.only(bottom: Eco.s12),
           child: EcoRail(
             children: <Widget>[
               EcoChip(
@@ -138,7 +140,8 @@ class HistoryScreen extends StatelessWidget {
           child: keys.isEmpty
               ? SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+                  padding:
+                      const EdgeInsets.fromLTRB(Eco.s20, Eco.s4, Eco.s20, 28),
                   child: body,
                 )
               : body,
@@ -179,7 +182,7 @@ class _HistRow extends StatelessWidget {
               background: c.resolve(cs, color: store.categoryColor(c.id)).tint,
               foreground: c.resolve(cs, color: store.categoryColor(c.id)).ink,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: Eco.s12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,7 +192,8 @@ class _HistRow extends StatelessWidget {
                   Text(
                     '${store.amountLabel(def, entry.amount)} · '
                     '${timeLabel(entry.at)}',
-                    style: F.b(12.5, wght: 600, color: cs.muted),
+                    style: F.role(context.type.labelMedium!,
+                        wght: 600, color: cs.muted),
                   ),
                 ],
               ),

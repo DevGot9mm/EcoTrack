@@ -47,8 +47,8 @@ class _PressableState extends State<Pressable> {
       child = HolographicCard(
         borderRadius: widget.borderRadius.topLeft.x,
         backgroundColor: Colors.transparent,
-        sweepColor: const Color(0xFF7BC96F),
-        glowColor: const Color(0xFF4CAF50),
+        sweepColor: Eco.holoSweep,
+        glowColor: Eco.holoGlow,
         hoverScale: 1.01,
         width: widget.fillWidth ? double.infinity : null,
         height: null,
@@ -84,9 +84,9 @@ class HolographicCard extends StatefulWidget {
     this.width,
     this.height,
     this.borderRadius = 15,
-    this.backgroundColor = const Color(0xFF0F3D24),
-    this.sweepColor = const Color(0xFF7BC96F),
-    this.glowColor = const Color(0xFF4CAF50),
+    this.backgroundColor = Eco.holoBase,
+    this.sweepColor = Eco.holoSweep,
+    this.glowColor = Eco.holoGlow,
     this.hoverScale = 1.015,
     this.duration = const Duration(milliseconds: 500),
   });
@@ -773,7 +773,7 @@ class EcoButton extends StatelessWidget {
                   fontSize: 16,
                   color: fg,
                 ) ??
-            F.b(16, wght: 800, color: fg);
+            F.role(context.type.bodyLarge!, wght: 800, color: fg);
 
     final bool enabled = onPressed != null && !loading;
 
@@ -800,7 +800,7 @@ class EcoButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       child: Container(
         constraints: BoxConstraints(minHeight: minHeight),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: Eco.s20),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(radius),
@@ -878,7 +878,7 @@ class SectionLink extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: Eco.s4),
         child: Text(label, style: F.b(13.5, wght: 800, color: cs.leaf)),
       ),
     );
@@ -910,7 +910,7 @@ class MiniBtn extends StatelessWidget {
       Flexible(
         child: Text(
           label,
-          style: F.b(13, wght: 800, color: fg),
+          style: F.role(context.type.bodySmall!, wght: 800, color: fg),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -1137,7 +1137,8 @@ class StatePill extends StatelessWidget {
             EcoIcon(icon!, size: 14, color: fg),
             const SizedBox(width: 6),
           ],
-          Text(label, style: F.b(12.5, wght: 800, color: fg)),
+          Text(label,
+              style: F.role(context.type.labelMedium!, wght: 800, color: fg)),
         ],
       ),
     );
@@ -1182,7 +1183,7 @@ class EcoTopBar extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
+      padding: const EdgeInsets.fromLTRB(Eco.s20, 6, Eco.s20, 14),
       child: Row(
         children: <Widget>[
           if (!noBack) ...<Widget>[left, const SizedBox(width: 10)],
@@ -1205,7 +1206,7 @@ class SectionHead extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: Eco.s12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
@@ -1226,7 +1227,7 @@ class EcoScreen extends StatelessWidget {
     this.child,
     this.children,
     this.footer,
-    this.padding = const EdgeInsets.fromLTRB(20, 0, 20, 28),
+    this.padding = const EdgeInsets.fromLTRB(Eco.s20, 0, Eco.s20, 28),
     this.scrollController,
   }) : assert(child != null || children != null);
 
@@ -1271,7 +1272,7 @@ class FlowFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
+      padding: const EdgeInsets.fromLTRB(Eco.s20, Eco.s12, Eco.s20, 18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
@@ -1345,7 +1346,7 @@ class StatTile extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return EcoCard(
       flat: true,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: Eco.s12, vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -1399,7 +1400,8 @@ class EcoListRow extends StatelessWidget {
       scale: 0.99,
       child: Container(
         constraints: const BoxConstraints(minHeight: 58),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding:
+            const EdgeInsets.symmetric(horizontal: Eco.s16, vertical: Eco.s12),
         color: cs.surface,
         child: Row(
           children: <Widget>[
@@ -1409,7 +1411,7 @@ class EcoListRow extends StatelessWidget {
                 size: 19,
                 color: danger ? cs.danger : cs.leaf,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: Eco.s12),
             ],
             Expanded(
               child: Text(
@@ -1418,12 +1420,15 @@ class EcoListRow extends StatelessWidget {
               ),
             ),
             if (valueText != null)
-              Text(valueText!, style: F.b(13, height: 1.45, color: cs.muted))
+              Text(valueText!,
+                  style: F.role(context.type.bodySmall!,
+                      color: cs.muted, height: 1.45))
             else if (trailingText != null)
               Text(trailingText!,
-                  style: F.b(13, height: 1.45, color: cs.muted)),
+                  style: F.role(context.type.bodySmall!,
+                      color: cs.muted, height: 1.45)),
             if (showChevron) ...<Widget>[
-              const SizedBox(width: 8),
+              const SizedBox(width: Eco.s8),
               Icon(
                 Icons.chevron_right,
                 size: 17,
@@ -1480,17 +1485,21 @@ class EcoEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+      padding: const EdgeInsets.symmetric(horizontal: Eco.s20, vertical: 30),
       child: Column(
         children: <Widget>[
           MascotArt(mascot, width: 118),
           const SizedBox(height: 10),
-          Text(title, style: F.h3, textAlign: TextAlign.center),
+          Text(title,
+              style: F.role(context.type.titleMedium!,
+                  wght: 600, ls: -0.01, height: 1.25),
+              textAlign: TextAlign.center),
           const SizedBox(height: 10),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 250),
             child: Text(body,
-                style: F.small.copyWith(color: cs.muted),
+                style:
+                    F.role(context.type.labelLarge!).copyWith(color: cs.muted),
                 textAlign: TextAlign.center),
           ),
           if (action != null) ...<Widget>[
@@ -1526,8 +1535,8 @@ class EcoFab extends StatelessWidget {
       borderRadius: BorderRadius.circular(Eco.rPill),
       child: Container(
         constraints: BoxConstraints(minHeight: tablet ? 58 : 54),
-        padding:
-            EdgeInsets.only(left: tablet ? 20 : 17, right: tablet ? 23 : 20),
+        padding: EdgeInsets.only(
+            left: tablet ? 20 : 17, right: tablet ? 23 : Eco.s20),
         decoration: BoxDecoration(
           color: cs.amber,
           borderRadius: BorderRadius.circular(Eco.rPill),

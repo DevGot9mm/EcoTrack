@@ -31,32 +31,32 @@ class ChallengesScreen extends StatelessWidget {
         title: 'Challenges',
         right: _StreakPill(days: store.streak),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+      padding: const EdgeInsets.fromLTRB(Eco.s20, 0, Eco.s20, 28),
       children: <Widget>[
-        const SizedBox(height: 8),
+        const SizedBox(height: Eco.s8),
         _FeaturedChallengeCard(challenge: featured, store: store),
         Padding(
           padding: const EdgeInsets.only(top: 10),
           child: Text(
             'Five challenges rotate each week. Multi-day goals need one '
             'check-in per day; missing a day restarts that challenge streak.',
-            style: F.b(12,
-                height: 1.4, color: Theme.of(context).colorScheme.muted),
+            style: F.role(context.type.labelSmall!,
+                color: Theme.of(context).colorScheme.muted, height: 1.4),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 24, bottom: 12),
+          padding: const EdgeInsets.only(top: Eco.s24, bottom: Eco.s12),
           child: SectionHead(
             title: 'This week',
             action: Text(
               '$completed of ${store.challenges.length} complete',
-              style: F.b(12,
+              style: F.role(context.type.labelSmall!,
                   wght: 800, color: Theme.of(context).colorScheme.muted),
             ),
           ),
         ),
         for (int i = 0; i < weekly.length; i++) ...<Widget>[
-          if (i > 0) const SizedBox(height: 12),
+          if (i > 0) const SizedBox(height: Eco.s12),
           _ChallengeCard(challenge: weekly[i], store: store),
         ],
       ],
@@ -85,7 +85,9 @@ class _StreakPill extends StatelessWidget {
           children: <Widget>[
             EcoIcon('flame', size: 15, color: cs.amberInk),
             const SizedBox(width: 5),
-            Text('$days days', style: F.b(12, wght: 800, color: cs.amberInk)),
+            Text('$days days',
+                style: F.role(context.type.labelSmall!,
+                    wght: 800, color: cs.amberInk)),
           ],
         ),
       ),
@@ -104,7 +106,7 @@ class _FeaturedChallengeCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return EcoCard(
       tone: EcoCardTone.dark,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Eco.s16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -117,7 +119,7 @@ class _FeaturedChallengeCard extends StatelessWidget {
                 radius: 17,
                 background: cs.leaf,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: Eco.s12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,22 +128,23 @@ class _FeaturedChallengeCard extends StatelessWidget {
                       "TODAY'S CHALLENGE",
                       style: F.b(10, wght: 800, color: Eco.onHero75),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: Eco.s4),
                     Text(
                       challenge.title,
                       style: F.d(18, color: Colors.white),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: Eco.s4),
                     Text(
                       challenge.why,
-                      style: F.b(13, wght: 600, color: Eco.onHero85),
+                      style: F.role(context.type.bodySmall!,
+                          wght: 600, color: Eco.onHero85),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Eco.s16),
           ListenableBuilder(
             listenable: store,
             builder: (BuildContext context, Widget? child) {
@@ -159,16 +162,18 @@ class _FeaturedChallengeCard extends StatelessWidget {
                         child: Text(
                           '${challenge.progress.round()} of '
                           '${challenge.target.round()} daily check-ins',
-                          style: F.b(12, wght: 800, color: Eco.onHero85),
+                          style: F.role(context.type.labelSmall!,
+                              wght: 800, color: Eco.onHero85),
                         ),
                       ),
                       Text(
                         '+${challenge.reward} pts',
-                        style: F.b(13, wght: 800, color: Colors.white),
+                        style: F.role(context.type.bodySmall!,
+                            wght: 800, color: Colors.white),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Eco.s8),
                   EcoBar(
                     value: challenge.progress / challenge.target,
                     color: cs.leaf,
@@ -258,7 +263,7 @@ class _ChallengeCard extends StatelessWidget {
       onTap: () => _showDetail(context),
       scale: 0.99,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Eco.s16),
         decoration: BoxDecoration(
           color: challenge.state == ChallengeState.claimed
               ? cs.surface2
@@ -311,12 +316,13 @@ class _ChallengeCard extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         challenge.why,
-                        style: F.b(13, height: 1.45, color: cs.muted),
+                        style: F.role(context.type.bodySmall!,
+                            color: cs.muted, height: 1.45),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: Eco.s12),
                 Container(
                   width: 42,
                   height: 42,
@@ -336,7 +342,7 @@ class _ChallengeCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Eco.s12),
             Row(
               children: <Widget>[
                 Expanded(
@@ -349,11 +355,12 @@ class _ChallengeCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   '${challenge.progress.round()} / ${challenge.target.round()}',
-                  style: F.b(12, wght: 800, color: cs.muted),
+                  style: F.role(context.type.labelSmall!,
+                      wght: 800, color: cs.muted),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Eco.s12),
             ListenableBuilder(
               listenable: store,
               builder: (BuildContext context, Widget? child) {
@@ -415,13 +422,14 @@ class _ChallengeCard extends StatelessWidget {
             style: F.d(20),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Eco.s12),
           Text(
             challenge.why,
-            style: F.b(14.5, height: 1.5, color: cs.ink2),
+            style:
+                F.role(context.type.bodyMedium!, color: cs.ink2, height: 1.5),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Eco.s16),
           _StatePill(
             label: _stateLabel(challenge.state),
             background: challenge.state == ChallengeState.claimed
@@ -431,7 +439,7 @@ class _ChallengeCard extends StatelessWidget {
                 ? cs.forestInk
                 : cs.amberInk,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Eco.s16),
           EcoButton(
             label: challenge.state == ChallengeState.claimed
                 ? 'Close'
@@ -478,14 +486,14 @@ class _StatePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: Eco.s12, vertical: 6),
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(Eco.rPill),
       ),
       child: Text(
         label,
-        style: F.b(13, wght: 800, color: foreground),
+        style: F.role(context.type.bodySmall!, wght: 800, color: foreground),
       ),
     );
   }

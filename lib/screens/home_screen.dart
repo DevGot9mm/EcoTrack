@@ -68,7 +68,7 @@ class HomeScreen extends StatelessWidget {
               // ---- Greeting -------------------------------------------------
               HPad(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 4, 0, 18),
+                  padding: const EdgeInsets.fromLTRB(0, Eco.s4, 0, 18),
                   child: Row(
                     children: <Widget>[
                       Semantics(
@@ -87,7 +87,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: Eco.s12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,7 +217,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                       EcoCard(
                         flat: true,
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(Eco.s20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
@@ -229,7 +229,7 @@ class HomeScreen extends StatelessWidget {
                                   id: store.categoryColor(id),
                               },
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: Eco.s12),
                             Text(
                               improved
                                   ? 'You are ${delta.abs()}% below last week — about '
@@ -402,7 +402,8 @@ class HomeScreen extends StatelessWidget {
                                 onTap: () => showLevelInfoSheet(context, store),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: <Widget>[
                                     Row(
                                       children: <Widget>[
@@ -411,29 +412,31 @@ class HomeScreen extends StatelessWidget {
                                           size: 17,
                                           color: cs.amber,
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: Eco.s8),
                                         Expanded(
                                           child: Text(
                                             'Eco Points',
-                                            style: F.b(12.5, wght: 700, color: cs.muted),
+                                            style: F.b(12.5,
+                                                wght: 700, color: cs.muted),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: Eco.s8),
                                     Text(
                                       groupThousands(store.points),
                                       style: F.d(25),
                                       maxLines: 1,
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: Eco.s4),
                                     SizedBox(
                                       width: double.infinity,
                                       child: Text(
                                         'Level ${lvl.idx + 1} · ${lvl.name}',
-                                        style: F.b(13, height: 1.45, color: cs.muted),
+                                        style: F.b(13,
+                                            height: 1.45, color: cs.muted),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -442,7 +445,7 @@ class HomeScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: Eco.s12),
                             Expanded(
                               child: EcoCard(
                                 flat: true,
@@ -450,7 +453,8 @@ class HomeScreen extends StatelessWidget {
                                 onTap: () => store.go(AppRoute.challenges),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: <Widget>[
                                     Row(
                                       children: <Widget>[
@@ -459,24 +463,25 @@ class HomeScreen extends StatelessWidget {
                                           size: 17,
                                           color: cs.forest,
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: Eco.s8),
                                         Expanded(
                                           child: Text(
                                             'Streak',
-                                            style: F.b(12.5, wght: 700, color: cs.muted),
+                                            style: F.b(12.5,
+                                                wght: 700, color: cs.muted),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: Eco.s8),
                                     Text(
                                       '${store.streak} days',
                                       style: F.d(25),
                                       maxLines: 1,
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: Eco.s4),
                                     const SizedBox(height: 18),
                                   ],
                                 ),
@@ -511,7 +516,7 @@ class HomeScreen extends StatelessWidget {
                       height: tablet ? 166 : 142,
                       child: EcoCard(
                         flat: true,
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(Eco.s12),
                         onTap: () => store.openTipFromRail(tp.id),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -534,14 +539,14 @@ class HomeScreen extends StatelessWidget {
                               iconSize: tablet ? 19 : 17,
                               radius: 11,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Eco.s4),
                             Text(
                               tp.title,
                               style: F.d(tablet ? 16 : 14.5, height: 1.2),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Eco.s4),
                             Text(
                               tp.action,
                               style: F.b(
@@ -558,7 +563,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Eco.s8),
             ],
           ),
         ),
@@ -668,7 +673,7 @@ class _HomeBannerCarouselState extends State<_HomeBannerCarousel> {
                 children: <Widget>[
                   for (final Widget card in widget.cards)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: Eco.s8),
                       child: card,
                     ),
                 ],
@@ -694,7 +699,7 @@ class _HomeBannerCarouselState extends State<_HomeBannerCarousel> {
                     ),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      margin: const EdgeInsets.symmetric(horizontal: Eco.s4),
                       width: i == _index ? 18 : 7,
                       height: 7,
                       decoration: BoxDecoration(
@@ -754,7 +759,7 @@ class _HomeBannerCard extends StatelessWidget {
                   height: 82,
                   child: MascotArt(mascot, width: 78, height: 82),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: Eco.s12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -773,7 +778,7 @@ class _HomeBannerCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: Eco.s4),
                       Text(
                         subtitle,
                         style: F.b(
@@ -798,7 +803,7 @@ class _HomeBannerCard extends StatelessWidget {
               child: detail,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Eco.s8),
           EcoButton(
             key: buttonKey,
             label: buttonLabel,
@@ -823,7 +828,7 @@ class _BannerNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: Eco.s8),
       decoration: BoxDecoration(
         color: Eco.heroOverlay14,
         borderRadius: BorderRadius.circular(Eco.rPill),
@@ -869,7 +874,7 @@ class _BreakdownRow extends StatelessWidget {
       onTap: onTap,
       scale: 0.99,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 11),
+        padding: const EdgeInsets.symmetric(horizontal: Eco.s4, vertical: 11),
         child: Row(
           children: <Widget>[
             CatBadge(
@@ -877,7 +882,7 @@ class _BreakdownRow extends StatelessWidget {
               background: cat.resolve(cs, color: categoryColor).tint,
               foreground: cat.resolve(cs, color: categoryColor).ink,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: Eco.s12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -888,12 +893,13 @@ class _BreakdownRow extends StatelessWidget {
                   const SizedBox(height: 5),
                   Text(
                     '$pct% of your week',
-                    style: F.b(12.5, wght: 600, color: cs.muted),
+                    style: F.role(context.type.labelMedium!,
+                        wght: 600, color: cs.muted),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: Eco.s12),
             Text.rich(
               TextSpan(
                 children: <InlineSpan>[

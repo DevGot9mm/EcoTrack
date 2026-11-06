@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ecotrack/main.dart';
 import 'package:ecotrack/store.dart';
 import 'package:ecotrack/theme.dart';
+import 'package:ecotrack/widgets/common.dart';
 import 'package:ecotrack/widgets/tab_bar.dart';
 import 'package:ecotrack/widgets/celebrations.dart';
 import 'package:ecotrack/widgets/sheets.dart';
@@ -123,7 +124,7 @@ void main() {
     expect(find.byType(EcoTabBar), findsOneWidget);
   });
 
-  testWidgets('home uses Scaffold bottomNavigationBar and floatingActionButton',
+  testWidgets('home uses Scaffold bottomNavigationBar and the Log activity button',
       (WidgetTester tester) async {
     debugDisableCelebrationAnimations = true;
     addTearDown(() => debugDisableCelebrationAnimations = false);
@@ -144,11 +145,11 @@ void main() {
 
     final Scaffold scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
     expect(scaffold.bottomNavigationBar, isA<EcoTabBar>());
-    expect(find.byType(FloatingActionButton), findsOneWidget);
+    expect(find.byType(EcoFab), findsOneWidget);
 
-    await tester.tap(find.byType(FloatingActionButton));
+    await tester.tap(find.byType(EcoFab));
     await tester.pumpAndSettle();
     expect(store.route, AppRoute.add);
-    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(find.byType(EcoFab), findsNothing);
   });
 }

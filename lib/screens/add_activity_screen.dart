@@ -53,7 +53,7 @@ class AddActivityScreen extends StatelessWidget {
         stepCount: store.stepCount,
         onBack: store.addBack,
       ),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+      padding: const EdgeInsets.fromLTRB(Eco.s20, 0, Eco.s20, 28),
       footer: FlowFooter(
         children: <Widget>[
           if (amountStep)
@@ -75,9 +75,13 @@ class AddActivityScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text(title, style: F.h2),
-          const SizedBox(height: 4),
-          Text(sub, style: F.b(13, height: 1.45, color: cs.muted)),
+          Text(title,
+              style: F.role(context.type.titleLarge!,
+                  wght: 600, ls: -0.01, height: 1.2)),
+          const SizedBox(height: Eco.s4),
+          Text(sub,
+              style: F.role(context.type.bodySmall!,
+                  color: cs.muted, height: 1.45)),
           const SizedBox(height: 18),
           if (step == 0)
             _catStep(context, store)
@@ -115,7 +119,7 @@ class AddActivityScreen extends StatelessWidget {
                 iconSize: 24,
                 radius: 16,
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: Eco.s16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +130,8 @@ class AddActivityScreen extends StatelessWidget {
                       '${c.blurb} · '
                       '$choiceCount '
                       '${id == CarbonCategory.food ? 'meal types' : 'activities'}',
-                      style: F.b(13, wght: 600, color: cs.muted),
+                      style: F.role(context.type.bodySmall!,
+                          wght: 600, color: cs.muted),
                     ),
                   ],
                 ),
@@ -169,19 +174,21 @@ class AddActivityScreen extends StatelessWidget {
                 iconSize: 22,
                 radius: 15,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Eco.s8),
               Text(
                 a.name,
-                style: F.b(14.5, wght: 800, height: 1.25),
+                style:
+                    F.role(context.type.bodyMedium!, wght: 800, height: 1.25),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Eco.s8),
               Text(
                 a.factor == 0
                     ? 'Zero emission'
                     : food
                         ? 'From ${fmt2(a.factor)} kg CO₂e per serving'
                         : '${fmt2(store.displayFactor(a))} kg / ${store.unitFor(a)}',
-                style: F.b(12, wght: 700, color: cs.muted),
+                style: F.role(context.type.labelSmall!,
+                    wght: 700, color: cs.muted),
               ),
               if (a.detail != null) ...<Widget>[
                 const SizedBox(height: 5),
@@ -209,7 +216,7 @@ class AddActivityScreen extends StatelessWidget {
           },
           gap: 12,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: Eco.s12),
         _customActivityOption(
           context,
           store,
@@ -249,15 +256,17 @@ class AddActivityScreen extends StatelessWidget {
                 iconSize: 22,
                 radius: 15,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Eco.s8),
               Text(
                 preparation.name,
-                style: F.b(14.5, wght: 800, height: 1.25),
+                style:
+                    F.role(context.type.bodyMedium!, wght: 800, height: 1.25),
               ),
               const SizedBox(height: 5),
               Text(
                 '${fmt2(preparation.factor)} kg CO₂e per serving',
-                style: F.b(12, wght: 700, color: cs.muted),
+                style: F.role(context.type.labelSmall!,
+                    wght: 700, color: cs.muted),
               ),
               const SizedBox(height: 5),
               Text(
@@ -277,7 +286,8 @@ class AddActivityScreen extends StatelessWidget {
         EcoCard(
           tone: EcoCardTone.mint,
           flat: true,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: Eco.s12),
           child: Row(
             children: <Widget>[
               CatBadge(
@@ -296,13 +306,14 @@ class AddActivityScreen extends StatelessWidget {
               Expanded(
                 child: Text(
                   '${food.name}: cooking method adjusts the estimate modestly.',
-                  style: F.b(12.5, height: 1.4, color: cs.ink2),
+                  style: F.role(context.type.labelMedium!,
+                      color: cs.ink2, height: 1.4),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: Eco.s12),
         EcoGrid(
           items: tiles,
           columns: switch (context.windowSize) {
@@ -312,7 +323,7 @@ class AddActivityScreen extends StatelessWidget {
           },
           gap: 12,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: Eco.s12),
         _customActivityOption(
           context,
           store,
@@ -356,16 +367,17 @@ class AddActivityScreen extends StatelessWidget {
             iconSize: 20,
             radius: 14,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: Eco.s12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(title, style: F.b(14, wght: 800)),
+                Text(title, style: F.role(context.type.labelLarge!, wght: 800)),
                 const SizedBox(height: 2),
                 Text(
                   'Enter the activity and its total CO₂e estimate',
-                  style: F.b(12, height: 1.35, color: cs.muted),
+                  style: F.role(context.type.labelSmall!,
+                      color: cs.muted, height: 1.35),
                 ),
               ],
             ),
@@ -453,14 +465,14 @@ class AddActivityScreen extends StatelessWidget {
                     fmtAmount(displayAmount),
                     style: F.d(54, height: 1, ls: -0.03),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Eco.s8),
                   Text(
                     displayUnit,
                     style: F.b(16, wght: 800, color: cs.muted),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Eco.s8),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 280),
                 child: Text(
@@ -525,7 +537,8 @@ class AddActivityScreen extends StatelessWidget {
         EcoCard(
           tone: EcoCardTone.mint,
           flat: true,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          padding:
+              const EdgeInsets.symmetric(horizontal: Eco.s16, vertical: 15),
           child: Row(
             children: <Widget>[
               Expanded(
@@ -622,7 +635,7 @@ class _CustomActivityFormState extends State<_CustomActivityForm> {
         Text(
           'We will not guess an emission factor. Enter the total CO₂e '
           'estimate for one occurrence.',
-          style: F.b(13, height: 1.45, color: cs.muted),
+          style: F.role(context.type.bodySmall!, color: cs.muted, height: 1.45),
         ),
         const SizedBox(height: 14),
         TextField(
@@ -641,14 +654,15 @@ class _CustomActivityFormState extends State<_CustomActivityForm> {
           ),
         ),
         if (_error != null) ...<Widget>[
-          const SizedBox(height: 8),
-          Text(_error!, style: F.b(12.5, color: cs.danger)),
+          const SizedBox(height: Eco.s8),
+          Text(_error!,
+              style: F.role(context.type.labelMedium!, color: cs.danger)),
         ],
         const SizedBox(height: 14),
         EcoCard(
           flat: true,
           tone: EcoCardTone.mint,
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(Eco.s12),
           child: Row(
             children: <Widget>[
               CatBadge(
@@ -667,7 +681,8 @@ class _CustomActivityFormState extends State<_CustomActivityForm> {
               Expanded(
                 child: Text(
                   'Category: ${category.name} · one activity',
-                  style: F.b(12.5, wght: 700, color: cs.ink2),
+                  style: F.role(context.type.labelMedium!,
+                      wght: 700, color: cs.ink2),
                 ),
               ),
             ],
@@ -709,7 +724,7 @@ class _StepHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 6, 20, 12),
+      padding: const EdgeInsets.fromLTRB(Eco.s20, 6, Eco.s20, Eco.s12),
       child: Column(
         children: <Widget>[
           Row(
@@ -722,14 +737,15 @@ class _StepHeader extends StatelessWidget {
                 child: Center(
                   child: Text(
                     'Step ${step + 1} of $stepCount',
-                    style: F.b(13, wght: 800, color: cs.muted),
+                    style: F.role(context.type.bodySmall!,
+                        wght: 800, color: cs.muted),
                   ),
                 ),
               ),
               const SizedBox(width: 40),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Eco.s12),
           Row(
             children: <Widget>[
               for (int i = 0; i < stepCount; i++) ...<Widget>[

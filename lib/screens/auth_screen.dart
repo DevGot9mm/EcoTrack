@@ -100,7 +100,7 @@ class _AuthScreenState extends State<AuthScreen> {
     required ColorScheme cs,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: Eco.s16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -153,8 +153,8 @@ class _AuthScreenState extends State<AuthScreen> {
     final bool isLogin = store.authMode == 'login';
 
     final Widget alert = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: Eco.s12),
+      margin: const EdgeInsets.only(bottom: Eco.s16),
       decoration: BoxDecoration(
         color: cs.dangerTint,
         borderRadius: BorderRadius.circular(Eco.rSm),
@@ -166,7 +166,7 @@ class _AuthScreenState extends State<AuthScreen> {
             padding: const EdgeInsets.only(top: 1),
             child: EcoIcon('info', size: 17, color: cs.danger),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: Eco.s8),
           Expanded(
             child: Text(
               _alertText,
@@ -189,7 +189,7 @@ class _AuthScreenState extends State<AuthScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+              padding: const EdgeInsets.fromLTRB(Eco.s20, Eco.s8, Eco.s20, 0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: EcoIconButton(
@@ -202,7 +202,7 @@ class _AuthScreenState extends State<AuthScreen> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 28),
+                padding: const EdgeInsets.fromLTRB(Eco.s20, 10, Eco.s20, 28),
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: ConstrainedBox(
@@ -220,21 +220,23 @@ class _AuthScreenState extends State<AuthScreen> {
                                 children: <Widget>[
                                   Text(
                                     isLogin ? 'Welcome back' : 'Join EcoTrack',
-                                    style: F.h1,
+                                    style: F.role(context.type.headlineMedium!,
+                                        wght: 600, ls: -0.01, height: 1.16),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: Eco.s4),
                                   Text(
                                     isLogin
                                         ? 'Pick up where you left off.'
                                         : 'Your first activity takes about 20 seconds.',
-                                    style: F.b(14, color: cs.muted),
+                                    style: F.role(context.type.labelLarge!,
+                                        color: cs.muted),
                                   ),
                                 ],
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: Eco.s20),
                         EcoSegmented(
                           items: const <String>['Log in', 'Sign up'],
                           index: isLogin ? 0 : 1,
@@ -296,22 +298,23 @@ class _AuthScreenState extends State<AuthScreen> {
                           loadingLabel: 'Signing you in…',
                           onPressed: () => _submit(store),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: Eco.s20),
                         Row(
                           children: <Widget>[
                             Expanded(
                               child: Divider(color: cs.outline, height: 1),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: Eco.s12),
                             Text('or',
-                                style: F.b(13, height: 1.45, color: cs.muted)),
-                            const SizedBox(width: 12),
+                                style: F.role(context.type.bodySmall!,
+                                    color: cs.muted, height: 1.45)),
+                            const SizedBox(width: Eco.s12),
                             Expanded(
                               child: Divider(color: cs.outline, height: 1),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: Eco.s16),
                         EcoButton(
                           label: 'Continue with Google account',
                           leading: 'google',
@@ -334,7 +337,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         Text(
                           'Prototype only — no account is created and nothing leaves this device.',
                           textAlign: TextAlign.center,
-                          style: F.b(13, height: 1.45, color: cs.muted),
+                          style: F.role(context.type.bodySmall!,
+                              color: cs.muted, height: 1.45),
                         ),
                       ],
                     ),

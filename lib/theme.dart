@@ -26,6 +26,29 @@ class Eco {
   static const Color leaf = Color(0xFF4E9A51);
   static const Color sage = Color(0xFFA9C79A);
   static const Color mint = Color(0xFFE4F1DC);
+
+  // ---- Accents used on fixed (always dark) hero surfaces ------------------
+  static const Color gold = Color(0xFFFFD978);
+  static const Color heroText = Color(0xE6FFFFFF);
+  static const Color heroTextSoft = Color(0xB3FFFFFF);
+  static const Color heroLine = Color(0x4DFFFFFF);
+
+  // ---- Holographic card ---------------------------------------------------
+  static const Color holoBase = Color(0xFF0F3D24);
+  static const Color holoSweep = Color(0xFF7BC96F);
+  static const Color holoGlow = Color(0xFF4CAF50);
+
+  /// Colours a user can pick for a category (profile -> category colour).
+  static const List<Color> categoryPalette = <Color>[
+    transport,
+    electricity,
+    food,
+    Color(0xFF8E44AD),
+    Color(0xFFE53935),
+    Color(0xFFE91E63),
+    Color(0xFF1976D2),
+    Color(0xFF00897B),
+  ];
   static const Color cream = Color(0xFFFBF9F0);
 
   // ---- Amber --------------------------------------------------------------
@@ -242,6 +265,20 @@ FontWeight _weight(double w) {
 ///
 /// When [color] is omitted, the surrounding theme supplies the text color so
 /// styles remain readable when the app switches between light and dark modes.
+/// Third-party brand colours. They stay fixed in light and dark mode because
+/// they identify the brand, not the app theme.
+class EcoBrand {
+  EcoBrand._();
+
+  static const Color instagramFace = Color(0xFFE4405F);
+  static const Color instagramLeft = Color(0xFFD81C3F);
+  static const Color instagramBottom = Color(0xFFE46880);
+
+  static const Color blackFace = Color(0xFF111111);
+  static const Color blackLeft = Color(0xFF2B2B2B);
+  static const Color blackBottom = Color(0xFF414141);
+}
+
 class F {
   F._();
 
@@ -283,20 +320,46 @@ class F {
     );
   }
 
+  /// Builds a style whose family and size come from a [TextTheme] role, so
+  /// the type scale lives in one place ([_ecoTextTheme]) while call sites
+  /// only choose weight, colour and spacing.
+  static TextStyle role(
+    TextStyle? base, {
+    double wght = 400,
+    double ls = 0,
+    Color? color,
+    double? height,
+  }) {
+    return TextStyle(
+      fontFamily: base?.fontFamily,
+      fontSize: base?.fontSize,
+      color: color,
+      height: height,
+      letterSpacing: ls,
+      fontWeight: _weight(wght),
+      fontVariations: <FontVariation>[FontVariation('wght', wght)],
+    );
+  }
+
   static TextStyle get h1 => d(27, height: 1.16);
   static TextStyle get h2 => d(21, height: 1.2);
   static TextStyle get h3 => d(17, height: 1.25);
   static TextStyle get display20 => d(20);
   static TextStyle eyebrow(BuildContext ctx) =>
-      b(12, wght: 800, ls: 1.2, color: cs(ctx).muted);
+      role(ctx.type.labelSmall, wght: 800, ls: 1.2, color: cs(ctx).muted);
   static TextStyle get small => b(14);
   static TextStyle caption(BuildContext ctx) =>
-      b(13, height: 1.45, color: cs(ctx).muted);
+      role(ctx.type.bodySmall, height: 1.45, color: cs(ctx).muted);
   static TextStyle body2(BuildContext ctx) =>
-      b(14.5, height: 1.5, color: cs(ctx).ink2);
+      role(ctx.type.bodyMedium, height: 1.5, color: cs(ctx).ink2);
   static TextStyle get statNum => d(20);
   static TextStyle statCap(BuildContext ctx) =>
-      b(12.5, wght: 700, color: cs(ctx).muted);
+      role(ctx.type.labelMedium, wght: 700, color: cs(ctx).muted);
+}
+
+/// Shorthand for `Theme.of(context).textTheme`.
+extension EcoTypeX on BuildContext {
+  TextTheme get type => Theme.of(this).textTheme;
 }
 
 TextTheme _ecoTextTheme(ColorScheme scheme) {
@@ -306,6 +369,13 @@ TextTheme _ecoTextTheme(ColorScheme scheme) {
     displayColor: scheme.onSurface,
   );
   return text.copyWith(
+    headlineMedium: TextStyle(
+      fontFamily: EcoFont.display,
+      fontSize: 27,
+      height: 1.16,
+      fontWeight: FontWeight.w600,
+      color: scheme.onSurface,
+    ),
     headlineSmall: TextStyle(
       fontFamily: EcoFont.display,
       fontSize: 24,
@@ -337,6 +407,18 @@ TextTheme _ecoTextTheme(ColorScheme scheme) {
       fontFamily: EcoFont.body,
       fontSize: 14.5,
       height: 1.45,
+      color: scheme.onSurface,
+    ),
+    bodySmall: TextStyle(
+      fontFamily: EcoFont.body,
+      fontSize: 13,
+      height: 1.45,
+      color: scheme.onSurface,
+    ),
+    labelMedium: TextStyle(
+      fontFamily: EcoFont.body,
+      fontSize: 12.5,
+      fontWeight: FontWeight.w700,
       color: scheme.onSurface,
     ),
     labelLarge: TextStyle(

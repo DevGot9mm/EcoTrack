@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../theme.dart';
+
 class IsoSocialButton extends StatefulWidget {
   const IsoSocialButton({
     super.key,
@@ -124,14 +126,14 @@ class _IsoSocialButtonState extends State<IsoSocialButton> {
                           ),
                         Positioned.fill(
                           child: Padding(
-                            padding: const EdgeInsets.only(left: 12),
+                            padding: const EdgeInsets.only(left: Eco.s12),
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
                                   FaIcon(widget.icon, size: 24, color: content),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: Eco.s8),
                                   Flexible(
                                     child: Text(
                                       widget.label,

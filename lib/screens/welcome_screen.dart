@@ -91,14 +91,14 @@ class WelcomeScreen extends StatelessWidget {
     return Stack(
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 36, 24, 12),
+          padding: const EdgeInsets.fromLTRB(Eco.s24, 36, Eco.s24, Eco.s12),
           child: Row(
             children: <Widget>[
               Expanded(
                 flex: 4,
                 child: Center(child: _mascot(slide.img, mascotSize)),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: Eco.s24),
               Expanded(
                 flex: 6,
                 child: SingleChildScrollView(
@@ -142,7 +142,7 @@ class WelcomeScreen extends StatelessWidget {
     final double heroHeight = (constraints.maxHeight * (tablet ? 0.38 : 0.32))
         .clamp(tablet ? 300.0 : 210.0, tablet ? 430.0 : 290.0);
     final Widget content = Padding(
-      padding: const EdgeInsets.fromLTRB(24, 4, 24, 20),
+      padding: const EdgeInsets.fromLTRB(Eco.s24, Eco.s4, Eco.s24, Eco.s20),
       child: ConstrainedBox(
         constraints: BoxConstraints(minHeight: constraints.maxHeight - 24),
         child: Column(
@@ -200,7 +200,8 @@ class WelcomeScreen extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           onTap: store.finishOnboard,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+                horizontal: Eco.s4, vertical: Eco.s8),
             child: Text(
               'Skip',
               style: F.b(14, wght: 700, color: Eco.onHero78),
@@ -273,7 +274,7 @@ class WelcomeScreen extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: EdgeInsets.only(top: compact ? 8 : 16, bottom: 12),
+          padding: EdgeInsets.only(top: compact ? 8 : Eco.s16, bottom: Eco.s12),
           child: Row(
             mainAxisAlignment: alignCenter
                 ? MainAxisAlignment.center
@@ -308,7 +309,7 @@ class WelcomeScreen extends StatelessWidget {
               ? store.finishOnboard
               : () => store.setOnboardSlide(index + 1),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: Eco.s8),
         EcoButton(
           label: 'I already have an account',
           tone: EcoButtonTone.onDark,

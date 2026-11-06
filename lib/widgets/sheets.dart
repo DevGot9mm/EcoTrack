@@ -79,14 +79,14 @@ Future<void> showLevelInfoSheet(BuildContext context, EcoStore store) {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         _sheetTitle('Eco Points & levels'),
-        const SizedBox(height: 8),
+        const SizedBox(height: Eco.s8),
         Text(
           'Levels are milestones that show your Eco Points progress. '
           'They are profile ranks and do not unlock app features.',
-          style:
-              F.b(13, height: 1.45, color: Theme.of(context).colorScheme.muted),
+          style: F.role(context.type.bodySmall!,
+              color: Theme.of(context).colorScheme.muted, height: 1.45),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: Eco.s16),
         EcoCard(
           flat: true,
           tone: EcoCardTone.mint,
@@ -101,36 +101,31 @@ Future<void> showLevelInfoSheet(BuildContext context, EcoStore store) {
                   children: <Widget>[
                     Text(
                       'Level ${level.idx + 1} · ${level.name}',
-                      style: F.d(17),
+                      style: F.role(context.type.titleMedium!,
+                          wght: 600, ls: -0.01),
                     ),
                     const SizedBox(height: 3),
                     Text(
                       '${groupThousands(store.points)} Eco Points',
-                      style: F.b(
-                        13,
-                        wght: 800,
-                        color: Theme.of(context).colorScheme.muted,
-                      ),
+                      style: F.role(context.type.bodySmall!,
+                          wght: 800,
+                          color: Theme.of(context).colorScheme.muted),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Eco.s8),
                     if (level.nextName != null)
                       Text(
                         '${groupThousands(level.toNext)} points to '
                         'Level ${level.idx + 2} · ${level.nextName}',
-                        style: F.b(
-                          12,
-                          wght: 700,
-                          color: Theme.of(context).colorScheme.ink2,
-                        ),
+                        style: F.role(context.type.labelSmall!,
+                            wght: 700,
+                            color: Theme.of(context).colorScheme.ink2),
                       )
                     else
                       Text(
                         'Highest current level reached',
-                        style: F.b(
-                          12,
-                          wght: 700,
-                          color: Theme.of(context).colorScheme.ink2,
-                        ),
+                        style: F.role(context.type.labelSmall!,
+                            wght: 700,
+                            color: Theme.of(context).colorScheme.ink2),
                       ),
                   ],
                 ),
@@ -154,15 +149,15 @@ Future<void> showLevelInfoSheet(BuildContext context, EcoStore store) {
         Text(
           'Log an activity to earn 15 Eco Points. Complete and claim '
           'challenges to earn their displayed reward.',
-          style:
-              F.b(13, height: 1.45, color: Theme.of(context).colorScheme.muted),
+          style: F.role(context.type.bodySmall!,
+              color: Theme.of(context).colorScheme.muted, height: 1.45),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: Eco.s16),
         Text('Level milestones', style: F.d(16)),
-        const SizedBox(height: 8),
+        const SizedBox(height: Eco.s8),
         for (int i = 0; i < kLevels.length; i++)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: Eco.s8),
             child: Row(
               children: <Widget>[
                 Container(
@@ -177,29 +172,24 @@ Future<void> showLevelInfoSheet(BuildContext context, EcoStore store) {
                   ),
                   child: Text(
                     '${i + 1}',
-                    style: F.b(
-                      12,
-                      wght: 900,
-                      color: i == level.idx
-                          ? Theme.of(context).colorScheme.onPrimary
-                          : Theme.of(context).colorScheme.muted,
-                    ),
+                    style: F.role(context.type.labelSmall!,
+                        wght: 900,
+                        color: i == level.idx
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.muted),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     kLevels[i].name,
-                    style: F.b(13, wght: 800),
+                    style: F.role(context.type.bodySmall!, wght: 800),
                   ),
                 ),
                 Text(
                   '${groupThousands(kLevels[i].min)} pts',
-                  style: F.b(
-                    12,
-                    wght: 700,
-                    color: Theme.of(context).colorScheme.muted,
-                  ),
+                  style: F.role(context.type.labelSmall!,
+                      wght: 700, color: Theme.of(context).colorScheme.muted),
                 ),
               ],
             ),
@@ -287,12 +277,12 @@ Future<void> showActivitySheet(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         _sheetTitle(def.name),
-        const SizedBox(height: 4),
+        const SizedBox(height: Eco.s4),
         Text(
           '${dayLabel(daysAgo(a.at))} · ${timeLabel(a.at)}',
-          style: F.b(13, height: 1.45, color: cs.muted),
+          style: F.role(context.type.bodySmall!, color: cs.muted, height: 1.45),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: Eco.s16),
         EcoCard(
           flat: true,
           child: _twoCol(<Widget>[
@@ -307,7 +297,7 @@ Future<void> showActivitySheet(
             ),
           ]),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: Eco.s16),
         EcoButton(
           label: 'Delete this entry',
           leading: 'trash',

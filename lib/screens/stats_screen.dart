@@ -80,7 +80,7 @@ class StatsScreen extends StatelessWidget {
           const SectionHead(title: 'Your trend'),
           EcoCard(
             flat: true,
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
+            padding: const EdgeInsets.fromLTRB(Eco.s16, 18, Eco.s16, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -95,7 +95,7 @@ class StatsScreen extends StatelessWidget {
                       id: store.categoryColor(id),
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Eco.s12),
                 trendLegend,
               ],
             ),
@@ -153,7 +153,8 @@ class StatsScreen extends StatelessWidget {
                         children: <Widget>[
                           for (int i = 0; i < kCatOrder.length; i++)
                             Padding(
-                              padding: EdgeInsets.only(top: i == 0 ? 0 : 12),
+                              padding:
+                                  EdgeInsets.only(top: i == 0 ? 0 : Eco.s12),
                               child: _catLegend(
                                 catOf(kCatOrder[i]),
                                 t[kCatOrder[i]] ?? 0,
@@ -178,7 +179,7 @@ class StatsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Expanded(child: trendSection),
-              const SizedBox(width: 16),
+              const SizedBox(width: Eco.s16),
               Expanded(child: categorySection),
             ],
           )
@@ -202,7 +203,7 @@ class StatsScreen extends StatelessWidget {
         Expanded(
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+            padding: const EdgeInsets.fromLTRB(Eco.s20, 0, Eco.s20, 28),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -231,7 +232,8 @@ class StatsScreen extends StatelessWidget {
                           children: <Widget>[
                             for (int i = 0; i < top.length; i++)
                               Padding(
-                                padding: EdgeInsets.only(top: i == 0 ? 0 : 12),
+                                padding:
+                                    EdgeInsets.only(top: i == 0 ? 0 : Eco.s12),
                                 child: _rankRow(top[i], rankMax, cs, store),
                               ),
                           ],
@@ -255,14 +257,17 @@ class StatsScreen extends StatelessWidget {
                             children: <Widget>[
                               Text(
                                 '${catOf(biggest).name} leads your footprint',
-                                style: F.h3,
+                                style: F.role(context.type.titleMedium!,
+                                    wght: 600, ls: -0.01, height: 1.25),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: Eco.s4),
                               Text(
                                 'It is ${((t[biggest] ?? 0) / tot * 100).round()}% of '
                                 'the last $days days. Small changes here move '
                                 'your number the most.',
-                                style: F.small.copyWith(color: cs.ink2),
+                                style: F
+                                    .role(context.type.labelLarge!)
+                                    .copyWith(color: cs.ink2),
                               ),
                               const SizedBox(height: 10),
                               MiniBtn(
@@ -308,7 +313,7 @@ class StatsScreen extends StatelessWidget {
           ),
           const SizedBox(width: 7),
           Text(label, style: F.b(13, wght: 700, color: cs.ink2)),
-          const SizedBox(width: 4),
+          const SizedBox(width: Eco.s4),
           Text(value, style: F.b(13, wght: 700, color: cs.ink)),
         ],
       ),
@@ -336,7 +341,7 @@ class StatsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(Eco.rPill),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: Eco.s8),
             Expanded(
               child: Text(
                 c.name,
@@ -459,7 +464,8 @@ class _ImpactCenterState extends State<_ImpactCenter> {
                           child: Text(
                             status,
                             textAlign: TextAlign.center,
-                            style: F.b(14, wght: 900, color: statusColor),
+                            style: F.role(context.type.labelLarge!,
+                                wght: 900, color: statusColor),
                           ),
                         ),
                         const SizedBox(height: 3),
