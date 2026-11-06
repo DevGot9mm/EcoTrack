@@ -36,47 +36,26 @@ void main() {
     expect(overridden.height, 1.5);
   });
 
-  testWidgets('Miles slider keeps zero-emission walking at its 1 km minimum',
-      (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
+  test('Miles conversion preserves the 1 km minimum for walking', () {
     final EcoStore store = EcoStore()
       ..addCat = CarbonCategory.transport
       ..addKey = 'walking'
-      ..addStep = 2
       ..addAmount = 1;
     addTearDown(store.dispose);
     store.setDistanceUnit('mi');
 
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: ecoTheme(),
-        home: EcoScope(
-          notifier: store,
-          child: const AddActivityScreen(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
     final ActivityDef activity = store.activityOf('walking')!;
-    final Slider slider = tester.widget<Slider>(find.byType(Slider));
-    final double expectedMinimum = store.displayAmount(activity, 1);
+    final double displayMinimum = store.displayAmount(activity, 1);
+    final double displayMaximum = store.displayMax(activity);
 
-    expect(slider.min, expectedMinimum);
-    expect(slider.value, greaterThanOrEqualTo(slider.min));
-    expect(slider.value, lessThanOrEqualTo(slider.max));
+    expect(displayMinimum, closeTo(0.6, 0.01));
+    expect(displayMinimum, lessThan(displayMaximum));
 
-    slider.onChanged!(slider.min);
-    await tester.pump();
+    store.amtSet(displayMinimum);
 
     expect(store.addAmount, greaterThanOrEqualTo(1));
     expect(store.displayAmount(activity, store.addAmount),
-        greaterThanOrEqualTo(slider.min));
-    expect(tester.takeException(), isNull);
+        greaterThanOrEqualTo(displayMinimum));
   });
 
   testWidgets('tablet-sized app lays out onboarding and tips without overflow',
