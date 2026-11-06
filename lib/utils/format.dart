@@ -3,6 +3,8 @@
 /// Kept separate from domain models so formatting rules can be maintained and
 /// tested without mixing them with seed data and model declarations.
 
+library;
+
 const List<String> _weekdayLong = <String>[
   'Monday',
   'Tuesday',
