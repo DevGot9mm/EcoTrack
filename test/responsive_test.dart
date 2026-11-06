@@ -10,6 +10,30 @@ import 'package:ecotrack/widgets/celebrations.dart';
 import 'package:ecotrack/widgets/sheets.dart';
 
 void main() {
+  test('F.role preserves base TextTheme metrics by default', () {
+    const TextStyle base = TextStyle(
+      fontFamily: 'NunitoSans',
+      fontSize: 14,
+      height: 1.45,
+      fontWeight: FontWeight.w800,
+      letterSpacing: 1.2,
+    );
+
+    final TextStyle preserved = F.role(base);
+    expect(preserved.fontFamily, base.fontFamily);
+    expect(preserved.fontSize, base.fontSize);
+    expect(preserved.height, base.height);
+    expect(preserved.fontWeight, base.fontWeight);
+
+    final TextStyle overridden = F.role(
+      base,
+      wght: 600,
+      height: 1.5,
+    );
+    expect(overridden.fontWeight, FontWeight.w600);
+    expect(overridden.height, 1.5);
+  });
+
   testWidgets('tablet-sized app lays out onboarding and tips without overflow',
       (WidgetTester tester) async {
     tester.view.physicalSize = const Size(768, 1024);
@@ -152,6 +176,38 @@ void main() {
     await tester.pumpAndSettle();
     expect(store.route, AppRoute.add);
     expect(find.byType(EcoFab), findsNothing);
+  });
+
+  testWidgets('tips renders at 360x800 with text scale 1.3 without overflow',
+      (WidgetTester tester) async {
+    debugDisableCelebrationAnimations = true;
+    addTearDown(() => debugDisableCelebrationAnimations = false);
+    final EcoStore store = EcoStore()..go(AppRoute.tips);
+    addTearDown(store.dispose);
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ecoTheme(),
+        builder: (BuildContext context, Widget? child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.3),
+          ),
+          child: child!,
+        ),
+        home: EcoScope(notifier: store, child: const AppGate()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Eco Tips'), findsOneWidget);
+    // Traverse the full Tips list so cards below the initial viewport are laid out.
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -2400));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('home renders at 360x800 with text scale 1.3 without overflow',
