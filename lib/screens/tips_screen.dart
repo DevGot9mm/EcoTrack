@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../icons.dart';
-import '../models.dart';
-import '../responsive.dart';
-import '../store.dart';
-import '../theme.dart';
+import '../core/icons.dart';
+import '../models/models.dart';
+import '../core/responsive.dart';
+import '../state/store.dart';
+import '../core/theme.dart';
 import '../widgets/common.dart';
 
 class TipsScreen extends StatelessWidget {

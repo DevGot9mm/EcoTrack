@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'celebration_data.dart';
-import 'icons.dart';
-import 'models.dart';
+import '../core/icons.dart';
+import '../models/models.dart';
 
 /* ==========================================================================
    Routes

@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../icons.dart';
-import '../models.dart';
-import '../responsive.dart';
-import '../store.dart';
-import '../theme.dart';
+import '../core/icons.dart';
+import '../models/models.dart';
+import '../core/responsive.dart';
+import '../state/store.dart';
+import '../core/theme.dart';
 import '../widgets/common.dart';
 import '../widgets/iso_social_button.dart';
 import '../widgets/sheets.dart';
@@ -1492,6 +1492,10 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
   String? _titleError;
   String? _detailsError;
 
+  /// Feedback shown inside the sheet (toasts are hidden behind the modal).
+  String? _statusMessage;
+  bool _copied = false;
+
   @override
   void dispose() {
     _title.dispose();
@@ -1539,6 +1543,18 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
           ),
         ),
         const SizedBox(height: 14),
+        if (_statusMessage != null) ...<Widget>[
+          Text(
+            _statusMessage!,
+            key: const ValueKey<String>('report-status'),
+            style: F.role(
+              context.type.bodySmall!,
+              color: _copied ? cs.primary : cs.error,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
         Builder(
           builder: (BuildContext context) => EcoButton(
             label: 'Share report',
@@ -1547,11 +1563,22 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
             onPressed: () => _shareReport(context),
           ),
         ),
+        if (_statusMessage != null) ...<Widget>[
+          const SizedBox(height: 10),
+          EcoButton(
+            label: 'Copy report to clipboard',
+            leading: 'info',
+            tone: EcoButtonTone.ghost,
+            block: true,
+            onPressed: _copyReport,
+          ),
+        ],
       ],
     );
   }
 
-  Future<void> _shareReport(BuildContext shareContext) async {
+  /// Validates the form; returns the report text or null when invalid.
+  String? _validatedReport() {
     final String title = _title.text.trim();
     final String details = _details.text.trim();
     if (title.length < 3 || details.length < 10) {
@@ -1560,8 +1587,33 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
         _detailsError =
             details.length < 10 ? 'Add at least 10 characters of detail' : null;
       });
-      return;
+      return null;
     }
+    return 'EcoTrack issue report\n\n$title\n\n$details';
+  }
+
+  Future<void> _copyReport() async {
+    final String? report = _validatedReport();
+    if (report == null) return;
+    await Clipboard.setData(ClipboardData(text: report));
+    if (!mounted) return;
+    setState(() {
+      _copied = true;
+      _statusMessage = 'Report copied. Paste it into an email or chat.';
+    });
+  }
+
+  void _showFailure(String message) {
+    setState(() {
+      _copied = false;
+      _statusMessage = message;
+    });
+  }
+
+  Future<void> _shareReport(BuildContext shareContext) async {
+    final String? report = _validatedReport();
+    if (report == null) return;
+    final String title = _title.text.trim();
 
     try {
       final RenderObject? renderObject = shareContext.findRenderObject();
@@ -1570,25 +1622,31 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
               ? renderObject.localToGlobal(Offset.zero) & renderObject.size
               : null;
       final ShareResult result = await Share.shareWithResult(
-        'EcoTrack issue report\n\n$title\n\n$details',
+        report,
         subject: 'EcoTrack issue report: $title',
         sharePositionOrigin: sharePositionOrigin,
       );
       if (!mounted) return;
-      if (result.status == ShareResultStatus.success) {
-        Navigator.pop(context);
-        widget.store.toast('Report shared');
+      switch (result.status) {
+        case ShareResultStatus.success:
+          Navigator.pop(context);
+          widget.store.toast('Report shared');
+        case ShareResultStatus.dismissed:
+          _showFailure('Sharing was cancelled. Try again or copy the report.');
+        case ShareResultStatus.unavailable:
+          _showFailure(
+            'Sharing is not available in this browser. '
+            'Copy the report instead.',
+          );
       }
     } on PlatformException catch (error) {
       if (!mounted) return;
-      widget.store.toast(
+      _showFailure(
         'Could not open the share sheet: ${error.message ?? error.code}',
-        kIcons['info'],
       );
     } on MissingPluginException {
       if (!mounted) return;
-      widget.store
-          .toast('Sharing is unavailable on this device', kIcons['info']);
+      _showFailure('Sharing is unavailable on this device. Copy the report.');
     }
   }
 }

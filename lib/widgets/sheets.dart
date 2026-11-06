@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../models.dart';
-import '../store.dart';
-import '../theme.dart';
+import '../models/models.dart';
+import '../state/store.dart';
+import '../core/theme.dart';
 import 'charts.dart';
 import 'common.dart';
 

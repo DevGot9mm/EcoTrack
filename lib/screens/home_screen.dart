@@ -3,11 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../icons.dart';
-import '../models.dart';
-import '../responsive.dart';
-import '../store.dart';
-import '../theme.dart';
+import '../core/icons.dart';
+import '../models/models.dart';
+import '../core/responsive.dart';
+import '../state/store.dart';
+import '../core/theme.dart';
 import '../widgets/charts.dart';
 import '../widgets/common.dart';
 import '../widgets/sheets.dart';
@@ -58,525 +58,513 @@ class HomeScreen extends StatelessWidget {
     );
     final LevelInfo lvl = levelOf(store.points);
 
-    return Stack(
-      children: <Widget>[
-        EcoScreen(
-          padding: const EdgeInsets.only(bottom: 104),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              // ---- Greeting -------------------------------------------------
-              HPad(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, Eco.s4, 0, 18),
-                  child: Row(
+    return EcoScreen(
+      padding: const EdgeInsets.only(bottom: 96),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          // ---- Greeting -------------------------------------------------
+          HPad(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, Eco.s4, 0, 18),
+              child: Row(
+                children: <Widget>[
+                  Semantics(
+                    button: true,
+                    label: 'Open profile',
+                    child: Tooltip(
+                      message: 'Profile',
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => store.go(AppRoute.profile),
+                        child: MascotCrop(
+                          store.playerAvatar,
+                          size: 46,
+                          radius: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: Eco.s12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          '${store.greeting}, ${store.greetingName}',
+                          style: F.d(20, height: 1.15),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          longDate(DateTime.now()),
+                          style: F.b(13, wght: 600, color: cs.muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Tooltip(
+                    message: 'Eco tips',
+                    child: EcoIconButton(
+                      'tips',
+                      onPressed: () => store.go(AppRoute.tips),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ---- Hero -----------------------------------------------------
+          HPad(
+            child: _HomeBannerCarousel(
+              height: 268,
+              cards: <Widget>[
+                _HomeBannerCard(
+                  key: const ValueKey<String>('home-banner-today-card'),
+                  mascot: 'face-curious',
+                  eyebrow: 'TODAY SO FAR',
+                  title: '${fmt1(todayTotal)} kg CO₂e',
+                  subtitle:
+                      '${improved ? 'Down' : 'Up'} ${delta.abs()}% vs last '
+                      'week. Small steps still add up.',
+                  detail: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      Semantics(
-                        button: true,
-                        label: 'Open profile',
-                        child: Tooltip(
-                          message: 'Profile',
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => store.go(AppRoute.profile),
-                            child: MascotCrop(
-                              store.playerAvatar,
-                              size: 46,
-                              radius: 16,
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              'Daily goal ${fmt1(store.dailyTarget)} kg',
+                              style: F.b(12, wght: 700, color: Eco.onHero72),
                             ),
                           ),
-                        ),
+                          Text(
+                            '$targetPct%',
+                            style: F.b(12, wght: 800, color: Colors.white),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: Eco.s12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              '${store.greeting}, ${store.greetingName}',
-                              style: F.d(20, height: 1.15),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              longDate(DateTime.now()),
-                              style: F.b(13, wght: 600, color: cs.muted),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Tooltip(
-                        message: 'Eco tips',
-                        child: EcoIconButton(
-                          'tips',
-                          onPressed: () => store.go(AppRoute.tips),
-                        ),
+                      const SizedBox(height: 7),
+                      EcoBar(
+                        value: targetPct / 100,
+                        color: cs.leaf,
+                        track: Eco.heroOverlay18,
                       ),
                     ],
                   ),
+                  buttonLabel: 'Log activity',
+                  buttonIcon: 'plus',
+                  buttonKey: const ValueKey<String>(
+                    'home-banner-log-button',
+                  ),
+                  onPressed: store.openAdd,
                 ),
-              ),
+                _HomeBannerCard(
+                  mascot: 'face-excited',
+                  eyebrow: 'A QUICK WIN',
+                  title: 'Make your next choice count',
+                  subtitle: 'Find easy ideas for lighter trips, meals, and '
+                      'home energy.',
+                  detail: _BannerNote(
+                    icon: 'tips',
+                    text: 'One practical idea at a time',
+                  ),
+                  buttonLabel: 'Explore Eco Tips',
+                  buttonIcon: 'arrowRight',
+                  buttonKey: const ValueKey<String>(
+                    'home-banner-tips-button',
+                  ),
+                  onPressed: () => store.openTipFromRail('t1'),
+                ),
+                _HomeBannerCard(
+                  mascot: 'face-happy',
+                  eyebrow: 'KEEP YOUR MOMENTUM',
+                  title: '${store.streak}-day streak',
+                  subtitle: 'Your small daily actions are building a greener '
+                      'routine.',
+                  detail: _BannerNote(
+                    icon: 'trophy',
+                    text: 'Check in on this week’s challenges',
+                  ),
+                  buttonLabel: 'View challenges',
+                  buttonIcon: 'flag',
+                  buttonKey: const ValueKey<String>(
+                    'home-banner-challenges-button',
+                  ),
+                  onPressed: () => store.go(AppRoute.challenges),
+                ),
+              ],
+            ),
+          ),
 
-              // ---- Hero -----------------------------------------------------
-              HPad(
-                child: _HomeBannerCarousel(
-                  height: 268,
-                  cards: <Widget>[
-                    _HomeBannerCard(
-                      key: const ValueKey<String>('home-banner-today-card'),
-                      mascot: 'face-curious',
-                      eyebrow: 'TODAY SO FAR',
-                      title: '${fmt1(todayTotal)} kg CO₂e',
-                      subtitle:
-                          '${improved ? 'Down' : 'Up'} ${delta.abs()}% vs last '
-                          'week. Small steps still add up.',
-                      detail: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          Row(
+          // ---- This week ------------------------------------------------
+          _section(
+            child: HPad(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  SectionHead(
+                    title: 'This week',
+                    action: Text(
+                      '${fmt1(tw)} kg of ${fmt1(store.weeklyTarget)} kg goal',
+                      textAlign: TextAlign.end,
+                      style: F.b(13, wght: 800, color: cs.ink2),
+                    ),
+                  ),
+                  EcoCard(
+                    flat: true,
+                    padding: const EdgeInsets.all(Eco.s20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        WeekBars(
+                          days: days,
+                          maxDay: maxDay,
+                          categoryColors: <CarbonCategory, Color>{
+                            for (final CarbonCategory id in kCatOrder)
+                              id: store.categoryColor(id),
+                          },
+                        ),
+                        const SizedBox(height: Eco.s12),
+                        Text(
+                          improved
+                              ? 'You are ${delta.abs()}% below last week — about '
+                                  '${fmt1((lw - tw).abs())} kg kept out of the air.'
+                              : 'You are $delta% above last week. One swapped trip usually closes the gap.',
+                          style: F.b(13, height: 1.45, color: cs.muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ---- Breakdown ------------------------------------------------
+          _section(
+            child: HPad(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  const SectionHead(title: 'Where it comes from'),
+                  Column(
+                    children: <Widget>[
+                      for (final CarbonCategory id in kCatOrder)
+                        _BreakdownRow(
+                          cat: catOf(id),
+                          categoryColor: store.categoryColor(id),
+                          value: t[id] ?? 0,
+                          pct: ((t[id] ?? 0) / weekTotal * 100).round(),
+                          onTap: () => store.browseCategory(id),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ---- Today's challenge ----------------------------------------
+          _section(
+            child: HPad(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  SectionHead(
+                    title: 'Today’s challenge',
+                    action: SectionLink(
+                      label: 'All',
+                      onTap: () => store.go(AppRoute.challenges),
+                    ),
+                  ),
+                  EcoCard(
+                    tone: EcoCardTone.amber,
+                    child: Row(
+                      children: <Widget>[
+                        MascotArt(featured.mascot, width: 78),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              Expanded(
-                                child: Text(
-                                  'Daily goal ${fmt1(store.dailyTarget)} kg',
-                                  style:
-                                      F.b(12, wght: 700, color: Eco.onHero72),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 11,
+                                  vertical: 5,
                                 ),
-                              ),
-                              Text(
-                                '$targetPct%',
-                                style: F.b(12, wght: 800, color: Colors.white),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 7),
-                          EcoBar(
-                            value: targetPct / 100,
-                            color: cs.leaf,
-                            track: Eco.heroOverlay18,
-                          ),
-                        ],
-                      ),
-                      buttonLabel: 'Log activity',
-                      buttonIcon: 'plus',
-                      buttonKey: const ValueKey<String>(
-                        'home-banner-log-button',
-                      ),
-                      onPressed: store.openAdd,
-                    ),
-                    _HomeBannerCard(
-                      mascot: 'face-excited',
-                      eyebrow: 'A QUICK WIN',
-                      title: 'Make your next choice count',
-                      subtitle: 'Find easy ideas for lighter trips, meals, and '
-                          'home energy.',
-                      detail: _BannerNote(
-                        icon: 'tips',
-                        text: 'One practical idea at a time',
-                      ),
-                      buttonLabel: 'Explore Eco Tips',
-                      buttonIcon: 'arrowRight',
-                      buttonKey: const ValueKey<String>(
-                        'home-banner-tips-button',
-                      ),
-                      onPressed: () => store.openTipFromRail('t1'),
-                    ),
-                    _HomeBannerCard(
-                      mascot: 'face-happy',
-                      eyebrow: 'KEEP YOUR MOMENTUM',
-                      title: '${store.streak}-day streak',
-                      subtitle:
-                          'Your small daily actions are building a greener '
-                          'routine.',
-                      detail: _BannerNote(
-                        icon: 'trophy',
-                        text: 'Check in on this week’s challenges',
-                      ),
-                      buttonLabel: 'View challenges',
-                      buttonIcon: 'flag',
-                      buttonKey: const ValueKey<String>(
-                        'home-banner-challenges-button',
-                      ),
-                      onPressed: () => store.go(AppRoute.challenges),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ---- This week ------------------------------------------------
-              _section(
-                child: HPad(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      SectionHead(
-                        title: 'This week',
-                        action: Text(
-                          '${fmt1(tw)} kg of ${fmt1(store.weeklyTarget)} kg goal',
-                          style: F.b(13, wght: 800, color: cs.ink2),
-                        ),
-                      ),
-                      EcoCard(
-                        flat: true,
-                        padding: const EdgeInsets.all(Eco.s20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            WeekBars(
-                              days: days,
-                              maxDay: maxDay,
-                              categoryColors: <CarbonCategory, Color>{
-                                for (final CarbonCategory id in kCatOrder)
-                                  id: store.categoryColor(id),
-                              },
-                            ),
-                            const SizedBox(height: Eco.s12),
-                            Text(
-                              improved
-                                  ? 'You are ${delta.abs()}% below last week — about '
-                                      '${fmt1((lw - tw).abs())} kg kept out of the air.'
-                                  : 'You are $delta% above last week. One swapped trip usually closes the gap.',
-                              style: F.b(13, height: 1.45, color: cs.muted),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ---- Breakdown ------------------------------------------------
-              _section(
-                child: HPad(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      const SectionHead(title: 'Where it comes from'),
-                      Column(
-                        children: <Widget>[
-                          for (final CarbonCategory id in kCatOrder)
-                            _BreakdownRow(
-                              cat: catOf(id),
-                              categoryColor: store.categoryColor(id),
-                              value: t[id] ?? 0,
-                              pct: ((t[id] ?? 0) / weekTotal * 100).round(),
-                              onTap: () => store.browseCategory(id),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ---- Today's challenge ----------------------------------------
-              _section(
-                child: HPad(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      SectionHead(
-                        title: 'Today’s challenge',
-                        action: SectionLink(
-                          label: 'All',
-                          onTap: () => store.go(AppRoute.challenges),
-                        ),
-                      ),
-                      EcoCard(
-                        tone: EcoCardTone.amber,
-                        child: Row(
-                          children: <Widget>[
-                            MascotArt(featured.mascot, width: 78),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 11,
-                                      vertical: 5,
+                                decoration: BoxDecoration(
+                                  color: cs.amberTint,
+                                  borderRadius: BorderRadius.circular(
+                                    Eco.rPill,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    EcoIcon(
+                                      'sparkles',
+                                      size: 14,
+                                      color: cs.amberInk,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: cs.amberTint,
-                                      borderRadius: BorderRadius.circular(
-                                        Eco.rPill,
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      '+${featured.reward} pts',
+                                      style: F.b(
+                                        12.5,
+                                        wght: 800,
+                                        color: cs.amberInk,
                                       ),
                                     ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        EcoIcon(
-                                          'sparkles',
-                                          size: 14,
-                                          color: cs.amberInk,
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          '+${featured.reward} pts',
-                                          style: F.b(
-                                            12.5,
-                                            wght: 800,
-                                            color: cs.amberInk,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    featured.title,
-                                    style: F.d(16.5),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(featured.why,
-                                      style: F.b(13,
-                                          height: 1.45, color: cs.muted)),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 6),
+                              Text(
+                                featured.title,
+                                style: F.d(16.5),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(featured.why,
+                                  style:
+                                      F.b(13, height: 1.45, color: cs.muted)),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      ListenableBuilder(
-                        listenable: store,
-                        builder: (BuildContext context, Widget? child) {
-                          final bool claimable =
-                              featured.state == ChallengeState.claimable;
-                          final bool completed =
-                              featured.state == ChallengeState.claimed;
-                          final bool checkedInToday =
-                              store.challengeCheckedInToday(featured.id);
-                          return EcoButton(
-                            label: completed
-                                ? 'Challenge complete'
-                                : claimable
-                                    ? 'Claim ${featured.reward} pts'
-                                    : checkedInToday
-                                        ? 'Checked in today'
-                                        : 'I did this today',
-                            leading: completed
-                                ? 'check'
-                                : claimable
-                                    ? 'sparkles'
-                                    : 'check',
-                            tone: completed
-                                ? EcoButtonTone.ghost
-                                : checkedInToday
-                                    ? EcoButtonTone.ghost
-                                    : EcoButtonTone.primary,
-                            block: true,
-                            onPressed: completed || checkedInToday
-                                ? null
-                                : () {
-                                    if (claimable) {
-                                      store.claim(featured.id);
-                                    } else {
-                                      store.challengeDone(featured.id);
-                                    }
-                                  },
-                          );
-                        },
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  ListenableBuilder(
+                    listenable: store,
+                    builder: (BuildContext context, Widget? child) {
+                      final bool claimable =
+                          featured.state == ChallengeState.claimable;
+                      final bool completed =
+                          featured.state == ChallengeState.claimed;
+                      final bool checkedInToday =
+                          store.challengeCheckedInToday(featured.id);
+                      return EcoButton(
+                        label: completed
+                            ? 'Challenge complete'
+                            : claimable
+                                ? 'Claim ${featured.reward} pts'
+                                : checkedInToday
+                                    ? 'Checked in today'
+                                    : 'I did this today',
+                        leading: completed
+                            ? 'check'
+                            : claimable
+                                ? 'sparkles'
+                                : 'check',
+                        tone: completed
+                            ? EcoButtonTone.ghost
+                            : checkedInToday
+                                ? EcoButtonTone.ghost
+                                : EcoButtonTone.primary,
+                        block: true,
+                        onPressed: completed || checkedInToday
+                            ? null
+                            : () {
+                                if (claimable) {
+                                  store.claim(featured.id);
+                                } else {
+                                  store.challengeDone(featured.id);
+                                }
+                              },
+                      );
+                    },
+                  ),
+                ],
               ),
+            ),
+          ),
 
-              // ---- Momentum -------------------------------------------------
-              _section(
-                child: HPad(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      const SectionHead(title: 'Your momentum'),
-                      IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            Expanded(
-                              child: EcoCard(
-                                flat: true,
-                                padding: const EdgeInsets.all(14),
-                                onTap: () => showLevelInfoSheet(context, store),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+          // ---- Momentum -------------------------------------------------
+          _section(
+            child: HPad(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  const SectionHead(title: 'Your momentum'),
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Expanded(
+                          child: EcoCard(
+                            flat: true,
+                            padding: const EdgeInsets.all(14),
+                            onTap: () => showLevelInfoSheet(context, store),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                Row(
                                   children: <Widget>[
-                                    Row(
-                                      children: <Widget>[
-                                        EcoIcon(
-                                          'trophy',
-                                          size: 17,
-                                          color: cs.amber,
-                                        ),
-                                        const SizedBox(width: Eco.s8),
-                                        Expanded(
-                                          child: Text(
-                                            'Eco Points',
-                                            style: F.b(12.5,
-                                                wght: 700, color: cs.muted),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
+                                    EcoIcon(
+                                      'trophy',
+                                      size: 17,
+                                      color: cs.amber,
                                     ),
-                                    const SizedBox(height: Eco.s8),
-                                    Text(
-                                      groupThousands(store.points),
-                                      style: F.d(25),
-                                      maxLines: 1,
-                                    ),
-                                    const SizedBox(height: Eco.s4),
-                                    SizedBox(
-                                      width: double.infinity,
+                                    const SizedBox(width: Eco.s8),
+                                    Expanded(
                                       child: Text(
-                                        'Level ${lvl.idx + 1} · ${lvl.name}',
-                                        style: F.b(13,
-                                            height: 1.45, color: cs.muted),
+                                        'Eco Points',
+                                        style: F.b(12.5,
+                                            wght: 700, color: cs.muted),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
+                                const SizedBox(height: Eco.s8),
+                                Text(
+                                  groupThousands(store.points),
+                                  style: F.d(25),
+                                  maxLines: 1,
+                                ),
+                                const SizedBox(height: Eco.s4),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: Text(
+                                    'Level ${lvl.idx + 1} · ${lvl.name}',
+                                    style:
+                                        F.b(13, height: 1.45, color: cs.muted),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: Eco.s12),
-                            Expanded(
-                              child: EcoCard(
-                                flat: true,
-                                padding: const EdgeInsets.all(14),
-                                onTap: () => store.go(AppRoute.challenges),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                          ),
+                        ),
+                        const SizedBox(width: Eco.s12),
+                        Expanded(
+                          child: EcoCard(
+                            flat: true,
+                            padding: const EdgeInsets.all(14),
+                            onTap: () => store.go(AppRoute.challenges),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                Row(
                                   children: <Widget>[
-                                    Row(
-                                      children: <Widget>[
-                                        EcoIcon(
-                                          'flame',
-                                          size: 17,
-                                          color: cs.forest,
-                                        ),
-                                        const SizedBox(width: Eco.s8),
-                                        Expanded(
-                                          child: Text(
-                                            'Streak',
-                                            style: F.b(12.5,
-                                                wght: 700, color: cs.muted),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
+                                    EcoIcon(
+                                      'flame',
+                                      size: 17,
+                                      color: cs.forest,
                                     ),
-                                    const SizedBox(height: Eco.s8),
-                                    Text(
-                                      '${store.streak} days',
-                                      style: F.d(25),
-                                      maxLines: 1,
+                                    const SizedBox(width: Eco.s8),
+                                    Expanded(
+                                      child: Text(
+                                        'Streak',
+                                        style: F.b(12.5,
+                                            wght: 700, color: cs.muted),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                    const SizedBox(height: Eco.s4),
-                                    const SizedBox(height: 18),
                                   ],
                                 ),
-                              ),
+                                const SizedBox(height: Eco.s8),
+                                Text(
+                                  '${store.streak} days',
+                                  style: F.d(25),
+                                  maxLines: 1,
+                                ),
+                                const SizedBox(height: Eco.s4),
+                                const SizedBox(height: 18),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ---- Tips rail ------------------------------------------------
-              _section(
-                child: HPad(
-                  child: SectionHead(
-                    title: 'Small wins for today',
-                    action: SectionLink(
-                      label: 'All tips',
-                      onTap: () => store.go(AppRoute.tips),
+                      ],
                     ),
                   ),
-                ),
-              ),
-              EcoRail(
-                gap: 12,
-                children: <Widget>[
-                  for (final Tip tp in kTips.take(4))
-                    SizedBox(
-                      width: tablet ? 246 : 214,
-                      height: tablet ? 166 : 142,
-                      child: EcoCard(
-                        flat: true,
-                        padding: const EdgeInsets.all(Eco.s12),
-                        onTap: () => store.openTipFromRail(tp.id),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            CatBadge(
-                              icon: tp.icon,
-                              background: catOf(tp.cat)
-                                  .resolve(
-                                    cs,
-                                    color: store.categoryColor(tp.cat),
-                                  )
-                                  .tint,
-                              foreground: catOf(tp.cat)
-                                  .resolve(
-                                    cs,
-                                    color: store.categoryColor(tp.cat),
-                                  )
-                                  .ink,
-                              size: tablet ? 36 : 32,
-                              iconSize: tablet ? 19 : 17,
-                              radius: 11,
-                            ),
-                            const SizedBox(height: Eco.s4),
-                            Text(
-                              tp.title,
-                              style: F.d(tablet ? 16 : 14.5, height: 1.2),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: Eco.s4),
-                            Text(
-                              tp.action,
-                              style: F.b(
-                                tablet ? 13 : 12,
-                                height: 1.35,
-                                color: cs.muted,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                 ],
               ),
-              const SizedBox(height: Eco.s8),
+            ),
+          ),
+
+          // ---- Tips rail ------------------------------------------------
+          _section(
+            child: HPad(
+              child: SectionHead(
+                title: 'Small wins for today',
+                action: SectionLink(
+                  label: 'All tips',
+                  onTap: () => store.go(AppRoute.tips),
+                ),
+              ),
+            ),
+          ),
+          EcoRail(
+            gap: 12,
+            children: <Widget>[
+              for (final Tip tp in kTips.take(4))
+                SizedBox(
+                  width: tablet ? 246 : 214,
+                  // Grow with the text scale so the card never clips its text.
+                  height: (tablet ? 166 : 142) *
+                      (1 +
+                          (MediaQuery.textScalerOf(context).scale(1) - 1) *
+                              0.8),
+                  child: EcoCard(
+                    flat: true,
+                    padding: const EdgeInsets.all(Eco.s12),
+                    onTap: () => store.openTipFromRail(tp.id),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        CatBadge(
+                          icon: tp.icon,
+                          background: catOf(tp.cat)
+                              .resolve(
+                                cs,
+                                color: store.categoryColor(tp.cat),
+                              )
+                              .tint,
+                          foreground: catOf(tp.cat)
+                              .resolve(
+                                cs,
+                                color: store.categoryColor(tp.cat),
+                              )
+                              .ink,
+                          size: tablet ? 36 : 32,
+                          iconSize: tablet ? 19 : 17,
+                          radius: 11,
+                        ),
+                        const SizedBox(height: Eco.s4),
+                        Text(
+                          tp.title,
+                          style: F.d(tablet ? 16 : 14.5, height: 1.2),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: Eco.s4),
+                        Text(
+                          tp.action,
+                          style: F.b(
+                            tablet ? 13 : 12,
+                            height: 1.35,
+                            color: cs.muted,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
-        ),
-        Positioned(
-          right: 18,
-          bottom: 18,
-          child: EcoFab(
-            label: 'Log activity',
-            onTap: store.openAdd,
-            tablet: tablet,
-          ),
-        ),
-      ],
+          const SizedBox(height: Eco.s8),
+        ],
+      ),
     );
   }
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../icons.dart';
-import '../models.dart';
-import '../responsive.dart';
-import '../store.dart';
-import '../theme.dart';
+import '../core/icons.dart';
+import '../models/models.dart';
+import '../core/responsive.dart';
+import '../state/store.dart';
+import '../core/theme.dart';
 import '../widgets/common.dart';
 import '../widgets/sheets.dart';
 
@@ -396,8 +396,11 @@ class AddActivityScreen extends StatelessWidget {
     final double displayFactor = store.displayFactor(a);
     final String displayUnit = store.unitFor(a);
     final double displayAmount = store.displayAmount(a, store.addAmount);
-    final double minAmount =
-        a.unit == 'servings' || (a.unit == 'km' && a.factor == 0) ? 1 : 0;
+    // The canonical minimum is 1 (serving / km). Convert it to the display
+    // unit so the slider bounds stay valid when the user picks miles.
+    final bool hasUnitMinimum =
+        a.unit == 'servings' || (a.unit == 'km' && a.factor == 0);
+    final double minAmount = hasUnitMinimum ? store.displayAmount(a, 1) : 0;
     final double maxAmount = store.displayMax(a);
     final double amountStep = store.displayStep(a);
     final bool zeroEmission = a.key == 'walking' || a.key == 'bicycle';
@@ -504,7 +507,7 @@ class AddActivityScreen extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Slider(
-                  value: displayAmount,
+                  value: displayAmount.clamp(minAmount, maxAmount).toDouble(),
                   min: minAmount,
                   max: maxAmount,
                   divisions: ((maxAmount - minAmount) / amountStep)

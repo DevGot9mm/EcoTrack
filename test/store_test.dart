@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ecotrack/celebration_data.dart';
-import 'package:ecotrack/models.dart';
-import 'package:ecotrack/store.dart';
+import 'package:ecotrack/state/celebration_data.dart';
+import 'package:ecotrack/models/models.dart';
+import 'package:ecotrack/state/store.dart';
 
 void main() {
   test('streak uses consecutive days with activity', () {

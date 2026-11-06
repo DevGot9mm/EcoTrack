@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ecotrack/main.dart';
-import 'package:ecotrack/store.dart';
-import 'package:ecotrack/theme.dart';
+import 'package:ecotrack/state/store.dart';
+import 'package:ecotrack/core/theme.dart';
 import 'package:ecotrack/widgets/common.dart';
 import 'package:ecotrack/widgets/tab_bar.dart';
 import 'package:ecotrack/widgets/celebrations.dart';
@@ -124,7 +124,8 @@ void main() {
     expect(find.byType(EcoTabBar), findsOneWidget);
   });
 
-  testWidgets('home uses Scaffold bottomNavigationBar and the Log activity button',
+  testWidgets(
+      'home uses Scaffold bottomNavigationBar and the Log activity button',
       (WidgetTester tester) async {
     debugDisableCelebrationAnimations = true;
     addTearDown(() => debugDisableCelebrationAnimations = false);
@@ -151,5 +152,37 @@ void main() {
     await tester.pumpAndSettle();
     expect(store.route, AppRoute.add);
     expect(find.byType(EcoFab), findsNothing);
+  });
+
+  testWidgets('home renders at 360x800 with text scale 1.3 without overflow',
+      (WidgetTester tester) async {
+    debugDisableCelebrationAnimations = true;
+    addTearDown(() => debugDisableCelebrationAnimations = false);
+    final EcoStore store = EcoStore()..go(AppRoute.home);
+    addTearDown(store.dispose);
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ecoTheme(),
+        builder: (BuildContext context, Widget? child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.3),
+          ),
+          child: child!,
+        ),
+        home: EcoScope(notifier: store, child: const AppGate()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EcoFab), findsOneWidget);
+    // Scroll the whole Home screen so every fixed-height block is laid out.
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 }

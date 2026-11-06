@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../icons.dart';
-import '../store.dart';
-import '../theme.dart';
+import '../core/icons.dart';
+import '../state/store.dart';
+import '../core/theme.dart';
 
 /// Primary bottom navigation. Hidden on the onboarding, auth, add and result
 /// routes, exactly like the prototype's tab bar.

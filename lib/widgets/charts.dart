@@ -2,9 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../models.dart';
-import '../responsive.dart';
-import '../theme.dart';
+import '../models/models.dart';
+import '../core/responsive.dart';
+import '../core/theme.dart';
 
 /* ==========================================================================
    Week bars (Home)
@@ -41,7 +41,10 @@ class WeekBars extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final bool tablet = context.windowSize != WindowSize.compact;
     final double barMaxHeight = tablet ? 82 : 62;
-    final double chartHeight = tablet ? 110 : 88;
+    // The day label scales with the system text size; give it extra room.
+    final double labelExtra =
+        ((MediaQuery.textScalerOf(context).scale(11) - 11) * 1.6).ceilToDouble();
+    final double chartHeight = (tablet ? 110 : 88) + labelExtra;
     final List<Widget> cols = <Widget>[];
     for (int i = 0; i < days.length; i++) {
       final DayBar d = days[i];

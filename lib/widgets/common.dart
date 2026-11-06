@@ -3,10 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../icons.dart';
-import '../models.dart';
-import '../store.dart';
-import '../theme.dart';
+import '../core/icons.dart';
+import '../models/models.dart';
+import '../state/store.dart';
+import '../core/theme.dart';
 
 /* ==========================================================================
    Primitives
@@ -1210,9 +1210,21 @@ class SectionHead extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Expanded(child: Text(title, style: textTheme.titleLarge)),
-          if (action != null) action!,
+          // Both sides are flexible so a long action wraps instead of
+          // overflowing at large text scales.
+          Flexible(child: Text(title, style: textTheme.titleLarge)),
+          if (action != null) ...<Widget>[
+            const SizedBox(width: Eco.s12),
+            Flexible(
+              flex: 2,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: action!,
+              ),
+            ),
+          ],
         ],
       ),
     );

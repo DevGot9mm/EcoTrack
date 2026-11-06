@@ -1,0 +1,1724 @@
+diff --git a/lib/icons.dart b/lib/core/icons.dart
+similarity index 100%
+rename from lib/icons.dart
+rename to lib/core/icons.dart
+diff --git a/lib/responsive.dart b/lib/core/responsive.dart
+similarity index 100%
+rename from lib/responsive.dart
+rename to lib/core/responsive.dart
+diff --git a/lib/theme.dart b/lib/core/theme.dart
+similarity index 98%
+rename from lib/theme.dart
+rename to lib/core/theme.dart
+index db6e407..8636144 100644
+--- a/lib/theme.dart
++++ b/lib/core/theme.dart
+@@ -437,13 +437,6 @@ TextTheme _ecoTextTheme(ColorScheme scheme) {
+   );
+ }
+ 
+-FloatingActionButtonThemeData _ecoFabTheme(ColorScheme scheme) =>
+-    FloatingActionButtonThemeData(
+-      backgroundColor: scheme.primary,
+-      foregroundColor: scheme.onPrimary,
+-      shape: const CircleBorder(),
+-    );
+-
+ InputDecorationTheme _ecoInputDecorationTheme(ColorScheme scheme) {
+   OutlineInputBorder border(Color color) => OutlineInputBorder(
+         borderRadius: BorderRadius.circular(Eco.rBtn),
+@@ -581,7 +574,6 @@ ThemeData ecoTheme() {
+     navigationRailTheme: _ecoNavigationRailTheme(scheme),
+     segmentedButtonTheme: _ecoSegmentedButtonTheme(scheme),
+     sliderTheme: _ecoSliderTheme(scheme),
+-    floatingActionButtonTheme: _ecoFabTheme(scheme),
+     hintColor: Eco.muted,
+   );
+ }
+@@ -628,7 +620,6 @@ ThemeData ecoDarkTheme() {
+     navigationRailTheme: _ecoNavigationRailTheme(scheme),
+     segmentedButtonTheme: _ecoSegmentedButtonTheme(scheme),
+     sliderTheme: _ecoSliderTheme(scheme),
+-    floatingActionButtonTheme: _ecoFabTheme(scheme),
+     hintColor: EcoDark.muted,
+   );
+ }
+diff --git a/lib/main.dart b/lib/main.dart
+index 10bdef4..2fe2f4d 100644
+--- a/lib/main.dart
++++ b/lib/main.dart
+@@ -10,9 +10,10 @@ import 'screens/stats_screen.dart';
+ import 'screens/challenges_screen.dart';
+ import 'screens/tips_screen.dart';
+ import 'screens/profile_screen.dart';
+-import 'responsive.dart';
+-import 'store.dart';
+-import 'theme.dart';
++import 'core/responsive.dart';
++import 'state/store.dart';
++import 'core/theme.dart';
++import 'widgets/common.dart';
+ import 'widgets/tab_bar.dart';
+ import 'widgets/celebrations.dart';
+ 
+@@ -109,7 +110,13 @@ class AppGate extends StatelessWidget {
+             bottomNavigationBar: store.showTabBar && !useSideNavigation
+                 ? const EcoTabBar()
+                 : null,
+-            floatingActionButton: null,
++            floatingActionButton: store.route == AppRoute.home
++                ? EcoFab(
++                    label: 'Log activity',
++                    onTap: store.openAdd,
++                    tablet: context.windowSize != WindowSize.compact,
++                  )
++                : null,
+             body: Stack(
+               children: <Widget>[
+                 Positioned.fill(
+diff --git a/lib/models.dart b/lib/models/models.dart
+similarity index 99%
+rename from lib/models.dart
+rename to lib/models/models.dart
+index 7a7af76..d4857f8 100644
+--- a/lib/models.dart
++++ b/lib/models/models.dart
+@@ -2,7 +2,7 @@ import 'dart:math' as math;
+ 
+ import 'package:flutter/material.dart';
+ 
+-import 'theme.dart';
++import '../core/theme.dart';
+ 
+ /* ==========================================================================
+    Domain data — honest, plausible illustrative estimates.
+diff --git a/lib/screens/add_activity_screen.dart b/lib/screens/add_activity_screen.dart
+index 77720f5..3b200e2 100644
+--- a/lib/screens/add_activity_screen.dart
++++ b/lib/screens/add_activity_screen.dart
+@@ -1,10 +1,10 @@
+ import 'package:flutter/material.dart';
+ 
+-import '../icons.dart';
+-import '../models.dart';
+-import '../responsive.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../core/icons.dart';
++import '../models/models.dart';
++import '../core/responsive.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import '../widgets/common.dart';
+ import '../widgets/sheets.dart';
+ 
+@@ -396,8 +396,11 @@ class AddActivityScreen extends StatelessWidget {
+     final double displayFactor = store.displayFactor(a);
+     final String displayUnit = store.unitFor(a);
+     final double displayAmount = store.displayAmount(a, store.addAmount);
+-    final double minAmount =
+-        a.unit == 'servings' || (a.unit == 'km' && a.factor == 0) ? 1 : 0;
++    // The canonical minimum is 1 (serving / km). Convert it to the display
++    // unit so the slider bounds stay valid when the user picks miles.
++    final bool hasUnitMinimum =
++        a.unit == 'servings' || (a.unit == 'km' && a.factor == 0);
++    final double minAmount = hasUnitMinimum ? store.displayAmount(a, 1) : 0;
+     final double maxAmount = store.displayMax(a);
+     final double amountStep = store.displayStep(a);
+     final bool zeroEmission = a.key == 'walking' || a.key == 'bicycle';
+@@ -504,7 +507,7 @@ class AddActivityScreen extends StatelessWidget {
+               const SizedBox(width: 14),
+               Expanded(
+                 child: Slider(
+-                  value: displayAmount,
++                  value: displayAmount.clamp(minAmount, maxAmount).toDouble(),
+                   min: minAmount,
+                   max: maxAmount,
+                   divisions: ((maxAmount - minAmount) / amountStep)
+diff --git a/lib/screens/auth_screen.dart b/lib/screens/auth_screen.dart
+index 1ec9bf9..13def62 100644
+--- a/lib/screens/auth_screen.dart
++++ b/lib/screens/auth_screen.dart
+@@ -1,8 +1,8 @@
+ import 'package:flutter/material.dart';
+ 
+-import '../icons.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../core/icons.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import '../widgets/common.dart';
+ 
+ class AuthScreen extends StatefulWidget {
+diff --git a/lib/screens/challenges_screen.dart b/lib/screens/challenges_screen.dart
+index c2d1f05..6b3d633 100644
+--- a/lib/screens/challenges_screen.dart
++++ b/lib/screens/challenges_screen.dart
+@@ -1,9 +1,9 @@
+ import 'package:flutter/material.dart';
+ 
+-import '../icons.dart';
+-import '../models.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../core/icons.dart';
++import '../models/models.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import '../widgets/celebrations.dart';
+ import '../widgets/common.dart';
+ import '../widgets/sheets.dart';
+diff --git a/lib/screens/history_screen.dart b/lib/screens/history_screen.dart
+index b9ad4cd..f21dd9a 100644
+--- a/lib/screens/history_screen.dart
++++ b/lib/screens/history_screen.dart
+@@ -1,8 +1,8 @@
+ import 'package:flutter/material.dart';
+ 
+-import '../models.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../models/models.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import '../widgets/common.dart';
+ import '../widgets/sheets.dart';
+ 
+@@ -202,8 +202,12 @@ class _HistRow extends StatelessWidget {
+               textScaler: MediaQuery.textScalerOf(context),
+               textAlign: TextAlign.end,
+               text: TextSpan(
++                style: DefaultTextStyle.of(context).style,
+                 children: <InlineSpan>[
+-                  TextSpan(text: fmt2(entry.co2), style: F.d(16)),
++                  TextSpan(
++                    text: fmt2(entry.co2),
++                    style: F.d(16, color: cs.ink),
++                  ),
+                   TextSpan(
+                     text: ' kg',
+                     style: F.b(11, wght: 800, color: cs.muted),
+diff --git a/lib/screens/home_screen.dart b/lib/screens/home_screen.dart
+index cfe8d2b..a551df0 100644
+--- a/lib/screens/home_screen.dart
++++ b/lib/screens/home_screen.dart
+@@ -3,11 +3,11 @@ import 'dart:math' as math;
+ import 'package:flutter/gestures.dart';
+ import 'package:flutter/material.dart';
+ 
+-import '../icons.dart';
+-import '../models.dart';
+-import '../responsive.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../core/icons.dart';
++import '../models/models.dart';
++import '../core/responsive.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import '../widgets/charts.dart';
+ import '../widgets/common.dart';
+ import '../widgets/sheets.dart';
+@@ -58,525 +58,512 @@ class HomeScreen extends StatelessWidget {
+     );
+     final LevelInfo lvl = levelOf(store.points);
+ 
+-    return Stack(
+-      children: <Widget>[
+-        EcoScreen(
+-          padding: const EdgeInsets.only(bottom: 104),
+-          child: Column(
+-            crossAxisAlignment: CrossAxisAlignment.stretch,
+-            children: <Widget>[
+-              // ---- Greeting -------------------------------------------------
+-              HPad(
+-                child: Padding(
+-                  padding: const EdgeInsets.fromLTRB(0, Eco.s4, 0, 18),
+-                  child: Row(
+-                    children: <Widget>[
+-                      Semantics(
+-                        button: true,
+-                        label: 'Open profile',
+-                        child: Tooltip(
+-                          message: 'Profile',
+-                          child: GestureDetector(
+-                            behavior: HitTestBehavior.opaque,
+-                            onTap: () => store.go(AppRoute.profile),
+-                            child: MascotCrop(
+-                              store.playerAvatar,
+-                              size: 46,
+-                              radius: 16,
+-                            ),
+-                          ),
++    return EcoScreen(
++      padding: const EdgeInsets.only(bottom: 96),
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.stretch,
++        children: <Widget>[
++          // ---- Greeting -------------------------------------------------
++          HPad(
++            child: Padding(
++              padding: const EdgeInsets.fromLTRB(0, Eco.s4, 0, 18),
++              child: Row(
++                children: <Widget>[
++                  Semantics(
++                    button: true,
++                    label: 'Open profile',
++                    child: Tooltip(
++                      message: 'Profile',
++                      child: GestureDetector(
++                        behavior: HitTestBehavior.opaque,
++                        onTap: () => store.go(AppRoute.profile),
++                        child: MascotCrop(
++                          store.playerAvatar,
++                          size: 46,
++                          radius: 16,
+                         ),
+                       ),
+-                      const SizedBox(width: Eco.s12),
+-                      Expanded(
+-                        child: Column(
+-                          crossAxisAlignment: CrossAxisAlignment.start,
+-                          children: <Widget>[
+-                            Text(
+-                              '${store.greeting}, ${store.greetingName}',
+-                              style: F.d(20, height: 1.15),
+-                              maxLines: 1,
+-                              overflow: TextOverflow.ellipsis,
+-                            ),
+-                            Text(
+-                              longDate(DateTime.now()),
+-                              style: F.b(13, wght: 600, color: cs.muted),
+-                            ),
+-                          ],
++                    ),
++                  ),
++                  const SizedBox(width: Eco.s12),
++                  Expanded(
++                    child: Column(
++                      crossAxisAlignment: CrossAxisAlignment.start,
++                      children: <Widget>[
++                        Text(
++                          '${store.greeting}, ${store.greetingName}',
++                          style: F.d(20, height: 1.15),
++                          maxLines: 1,
++                          overflow: TextOverflow.ellipsis,
+                         ),
+-                      ),
+-                      Tooltip(
+-                        message: 'Eco tips',
+-                        child: EcoIconButton(
+-                          'tips',
+-                          onPressed: () => store.go(AppRoute.tips),
++                        Text(
++                          longDate(DateTime.now()),
++                          style: F.b(13, wght: 600, color: cs.muted),
+                         ),
+-                      ),
+-                    ],
++                      ],
++                    ),
+                   ),
+-                ),
++                  Tooltip(
++                    message: 'Eco tips',
++                    child: EcoIconButton(
++                      'tips',
++                      onPressed: () => store.go(AppRoute.tips),
++                    ),
++                  ),
++                ],
+               ),
++            ),
++          ),
+ 
+-              // ---- Hero -----------------------------------------------------
+-              HPad(
+-                child: _HomeBannerCarousel(
+-                  height: 268,
+-                  cards: <Widget>[
+-                    _HomeBannerCard(
+-                      key: const ValueKey<String>('home-banner-today-card'),
+-                      mascot: 'face-curious',
+-                      eyebrow: 'TODAY SO FAR',
+-                      title: '${fmt1(todayTotal)} kg CO₂e',
+-                      subtitle:
+-                          '${improved ? 'Down' : 'Up'} ${delta.abs()}% vs last '
+-                          'week. Small steps still add up.',
+-                      detail: Column(
+-                        crossAxisAlignment: CrossAxisAlignment.stretch,
++          // ---- Hero -----------------------------------------------------
++          HPad(
++            child: _HomeBannerCarousel(
++              height: 268,
++              cards: <Widget>[
++                _HomeBannerCard(
++                  key: const ValueKey<String>('home-banner-today-card'),
++                  mascot: 'face-curious',
++                  eyebrow: 'TODAY SO FAR',
++                  title: '${fmt1(todayTotal)} kg CO₂e',
++                  subtitle:
++                      '${improved ? 'Down' : 'Up'} ${delta.abs()}% vs last '
++                      'week. Small steps still add up.',
++                  detail: Column(
++                    crossAxisAlignment: CrossAxisAlignment.stretch,
++                    children: <Widget>[
++                      Row(
+                         children: <Widget>[
+-                          Row(
+-                            children: <Widget>[
+-                              Expanded(
+-                                child: Text(
+-                                  'Daily goal ${fmt1(store.dailyTarget)} kg',
+-                                  style:
+-                                      F.b(12, wght: 700, color: Eco.onHero72),
+-                                ),
+-                              ),
+-                              Text(
+-                                '$targetPct%',
+-                                style: F.b(12, wght: 800, color: Colors.white),
+-                              ),
+-                            ],
++                          Expanded(
++                            child: Text(
++                              'Daily goal ${fmt1(store.dailyTarget)} kg',
++                              style:
++                                  F.b(12, wght: 700, color: Eco.onHero72),
++                            ),
+                           ),
+-                          const SizedBox(height: 7),
+-                          EcoBar(
+-                            value: targetPct / 100,
+-                            color: cs.leaf,
+-                            track: Eco.heroOverlay18,
++                          Text(
++                            '$targetPct%',
++                            style: F.b(12, wght: 800, color: Colors.white),
+                           ),
+                         ],
+                       ),
+-                      buttonLabel: 'Log activity',
+-                      buttonIcon: 'plus',
+-                      buttonKey: const ValueKey<String>(
+-                        'home-banner-log-button',
+-                      ),
+-                      onPressed: store.openAdd,
+-                    ),
+-                    _HomeBannerCard(
+-                      mascot: 'face-excited',
+-                      eyebrow: 'A QUICK WIN',
+-                      title: 'Make your next choice count',
+-                      subtitle: 'Find easy ideas for lighter trips, meals, and '
+-                          'home energy.',
+-                      detail: _BannerNote(
+-                        icon: 'tips',
+-                        text: 'One practical idea at a time',
+-                      ),
+-                      buttonLabel: 'Explore Eco Tips',
+-                      buttonIcon: 'arrowRight',
+-                      buttonKey: const ValueKey<String>(
+-                        'home-banner-tips-button',
+-                      ),
+-                      onPressed: () => store.openTipFromRail('t1'),
+-                    ),
+-                    _HomeBannerCard(
+-                      mascot: 'face-happy',
+-                      eyebrow: 'KEEP YOUR MOMENTUM',
+-                      title: '${store.streak}-day streak',
+-                      subtitle:
+-                          'Your small daily actions are building a greener '
+-                          'routine.',
+-                      detail: _BannerNote(
+-                        icon: 'trophy',
+-                        text: 'Check in on this week’s challenges',
+-                      ),
+-                      buttonLabel: 'View challenges',
+-                      buttonIcon: 'flag',
+-                      buttonKey: const ValueKey<String>(
+-                        'home-banner-challenges-button',
++                      const SizedBox(height: 7),
++                      EcoBar(
++                        value: targetPct / 100,
++                        color: cs.leaf,
++                        track: Eco.heroOverlay18,
+                       ),
+-                      onPressed: () => store.go(AppRoute.challenges),
+-                    ),
+-                  ],
++                    ],
++                  ),
++                  buttonLabel: 'Log activity',
++                  buttonIcon: 'plus',
++                  buttonKey: const ValueKey<String>(
++                    'home-banner-log-button',
++                  ),
++                  onPressed: store.openAdd,
+                 ),
+-              ),
++                _HomeBannerCard(
++                  mascot: 'face-excited',
++                  eyebrow: 'A QUICK WIN',
++                  title: 'Make your next choice count',
++                  subtitle: 'Find easy ideas for lighter trips, meals, and '
++                      'home energy.',
++                  detail: _BannerNote(
++                    icon: 'tips',
++                    text: 'One practical idea at a time',
++                  ),
++                  buttonLabel: 'Explore Eco Tips',
++                  buttonIcon: 'arrowRight',
++                  buttonKey: const ValueKey<String>(
++                    'home-banner-tips-button',
++                  ),
++                  onPressed: () => store.openTipFromRail('t1'),
++                ),
++                _HomeBannerCard(
++                  mascot: 'face-happy',
++                  eyebrow: 'KEEP YOUR MOMENTUM',
++                  title: '${store.streak}-day streak',
++                  subtitle:
++                      'Your small daily actions are building a greener '
++                      'routine.',
++                  detail: _BannerNote(
++                    icon: 'trophy',
++                    text: 'Check in on this week’s challenges',
++                  ),
++                  buttonLabel: 'View challenges',
++                  buttonIcon: 'flag',
++                  buttonKey: const ValueKey<String>(
++                    'home-banner-challenges-button',
++                  ),
++                  onPressed: () => store.go(AppRoute.challenges),
++                ),
++              ],
++            ),
++          ),
+ 
+-              // ---- This week ------------------------------------------------
+-              _section(
+-                child: HPad(
+-                  child: Column(
+-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+-                    children: <Widget>[
+-                      SectionHead(
+-                        title: 'This week',
+-                        action: Text(
+-                          '${fmt1(tw)} kg of ${fmt1(store.weeklyTarget)} kg goal',
+-                          style: F.b(13, wght: 800, color: cs.ink2),
++          // ---- This week ------------------------------------------------
++          _section(
++            child: HPad(
++              child: Column(
++                crossAxisAlignment: CrossAxisAlignment.stretch,
++                children: <Widget>[
++                  SectionHead(
++                    title: 'This week',
++                    action: Text(
++                      '${fmt1(tw)} kg of ${fmt1(store.weeklyTarget)} kg goal',
++                      style: F.b(13, wght: 800, color: cs.ink2),
++                    ),
++                  ),
++                  EcoCard(
++                    flat: true,
++                    padding: const EdgeInsets.all(Eco.s20),
++                    child: Column(
++                      crossAxisAlignment: CrossAxisAlignment.stretch,
++                      children: <Widget>[
++                        WeekBars(
++                          days: days,
++                          maxDay: maxDay,
++                          categoryColors: <CarbonCategory, Color>{
++                            for (final CarbonCategory id in kCatOrder)
++                              id: store.categoryColor(id),
++                          },
+                         ),
+-                      ),
+-                      EcoCard(
+-                        flat: true,
+-                        padding: const EdgeInsets.all(Eco.s20),
+-                        child: Column(
+-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+-                          children: <Widget>[
+-                            WeekBars(
+-                              days: days,
+-                              maxDay: maxDay,
+-                              categoryColors: <CarbonCategory, Color>{
+-                                for (final CarbonCategory id in kCatOrder)
+-                                  id: store.categoryColor(id),
+-                              },
+-                            ),
+-                            const SizedBox(height: Eco.s12),
+-                            Text(
+-                              improved
+-                                  ? 'You are ${delta.abs()}% below last week — about '
+-                                      '${fmt1((lw - tw).abs())} kg kept out of the air.'
+-                                  : 'You are $delta% above last week. One swapped trip usually closes the gap.',
+-                              style: F.b(13, height: 1.45, color: cs.muted),
+-                            ),
+-                          ],
++                        const SizedBox(height: Eco.s12),
++                        Text(
++                          improved
++                              ? 'You are ${delta.abs()}% below last week — about '
++                                  '${fmt1((lw - tw).abs())} kg kept out of the air.'
++                              : 'You are $delta% above last week. One swapped trip usually closes the gap.',
++                          style: F.b(13, height: 1.45, color: cs.muted),
+                         ),
+-                      ),
+-                    ],
++                      ],
++                    ),
+                   ),
+-                ),
++                ],
+               ),
++            ),
++          ),
+ 
+-              // ---- Breakdown ------------------------------------------------
+-              _section(
+-                child: HPad(
+-                  child: Column(
+-                    crossAxisAlignment: CrossAxisAlignment.stretch,
++          // ---- Breakdown ------------------------------------------------
++          _section(
++            child: HPad(
++              child: Column(
++                crossAxisAlignment: CrossAxisAlignment.stretch,
++                children: <Widget>[
++                  const SectionHead(title: 'Where it comes from'),
++                  Column(
+                     children: <Widget>[
+-                      const SectionHead(title: 'Where it comes from'),
+-                      Column(
+-                        children: <Widget>[
+-                          for (final CarbonCategory id in kCatOrder)
+-                            _BreakdownRow(
+-                              cat: catOf(id),
+-                              categoryColor: store.categoryColor(id),
+-                              value: t[id] ?? 0,
+-                              pct: ((t[id] ?? 0) / weekTotal * 100).round(),
+-                              onTap: () => store.browseCategory(id),
+-                            ),
+-                        ],
+-                      ),
++                      for (final CarbonCategory id in kCatOrder)
++                        _BreakdownRow(
++                          cat: catOf(id),
++                          categoryColor: store.categoryColor(id),
++                          value: t[id] ?? 0,
++                          pct: ((t[id] ?? 0) / weekTotal * 100).round(),
++                          onTap: () => store.browseCategory(id),
++                        ),
+                     ],
+                   ),
+-                ),
++                ],
+               ),
++            ),
++          ),
+ 
+-              // ---- Today's challenge ----------------------------------------
+-              _section(
+-                child: HPad(
+-                  child: Column(
+-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+-                    children: <Widget>[
+-                      SectionHead(
+-                        title: 'Today’s challenge',
+-                        action: SectionLink(
+-                          label: 'All',
+-                          onTap: () => store.go(AppRoute.challenges),
+-                        ),
+-                      ),
+-                      EcoCard(
+-                        tone: EcoCardTone.amber,
+-                        child: Row(
+-                          children: <Widget>[
+-                            MascotArt(featured.mascot, width: 78),
+-                            const SizedBox(width: 14),
+-                            Expanded(
+-                              child: Column(
+-                                crossAxisAlignment: CrossAxisAlignment.start,
+-                                children: <Widget>[
+-                                  Container(
+-                                    padding: const EdgeInsets.symmetric(
+-                                      horizontal: 11,
+-                                      vertical: 5,
++          // ---- Today's challenge ----------------------------------------
++          _section(
++            child: HPad(
++              child: Column(
++                crossAxisAlignment: CrossAxisAlignment.stretch,
++                children: <Widget>[
++                  SectionHead(
++                    title: 'Today’s challenge',
++                    action: SectionLink(
++                      label: 'All',
++                      onTap: () => store.go(AppRoute.challenges),
++                    ),
++                  ),
++                  EcoCard(
++                    tone: EcoCardTone.amber,
++                    child: Row(
++                      children: <Widget>[
++                        MascotArt(featured.mascot, width: 78),
++                        const SizedBox(width: 14),
++                        Expanded(
++                          child: Column(
++                            crossAxisAlignment: CrossAxisAlignment.start,
++                            children: <Widget>[
++                              Container(
++                                padding: const EdgeInsets.symmetric(
++                                  horizontal: 11,
++                                  vertical: 5,
++                                ),
++                                decoration: BoxDecoration(
++                                  color: cs.amberTint,
++                                  borderRadius: BorderRadius.circular(
++                                    Eco.rPill,
++                                  ),
++                                ),
++                                child: Row(
++                                  mainAxisSize: MainAxisSize.min,
++                                  children: <Widget>[
++                                    EcoIcon(
++                                      'sparkles',
++                                      size: 14,
++                                      color: cs.amberInk,
+                                     ),
+-                                    decoration: BoxDecoration(
+-                                      color: cs.amberTint,
+-                                      borderRadius: BorderRadius.circular(
+-                                        Eco.rPill,
++                                    const SizedBox(width: 5),
++                                    Text(
++                                      '+${featured.reward} pts',
++                                      style: F.b(
++                                        12.5,
++                                        wght: 800,
++                                        color: cs.amberInk,
+                                       ),
+                                     ),
+-                                    child: Row(
+-                                      mainAxisSize: MainAxisSize.min,
+-                                      children: <Widget>[
+-                                        EcoIcon(
+-                                          'sparkles',
+-                                          size: 14,
+-                                          color: cs.amberInk,
+-                                        ),
+-                                        const SizedBox(width: 5),
+-                                        Text(
+-                                          '+${featured.reward} pts',
+-                                          style: F.b(
+-                                            12.5,
+-                                            wght: 800,
+-                                            color: cs.amberInk,
+-                                          ),
+-                                        ),
+-                                      ],
+-                                    ),
+-                                  ),
+-                                  const SizedBox(height: 6),
+-                                  Text(
+-                                    featured.title,
+-                                    style: F.d(16.5),
+-                                  ),
+-                                  const SizedBox(height: 6),
+-                                  Text(featured.why,
+-                                      style: F.b(13,
+-                                          height: 1.45, color: cs.muted)),
+-                                ],
++                                  ],
++                                ),
+                               ),
+-                            ),
+-                          ],
++                              const SizedBox(height: 6),
++                              Text(
++                                featured.title,
++                                style: F.d(16.5),
++                              ),
++                              const SizedBox(height: 6),
++                              Text(featured.why,
++                                  style: F.b(13,
++                                      height: 1.45, color: cs.muted)),
++                            ],
++                          ),
+                         ),
+-                      ),
+-                      const SizedBox(height: 10),
+-                      ListenableBuilder(
+-                        listenable: store,
+-                        builder: (BuildContext context, Widget? child) {
+-                          final bool claimable =
+-                              featured.state == ChallengeState.claimable;
+-                          final bool completed =
+-                              featured.state == ChallengeState.claimed;
+-                          final bool checkedInToday =
+-                              store.challengeCheckedInToday(featured.id);
+-                          return EcoButton(
+-                            label: completed
+-                                ? 'Challenge complete'
+-                                : claimable
+-                                    ? 'Claim ${featured.reward} pts'
+-                                    : checkedInToday
+-                                        ? 'Checked in today'
+-                                        : 'I did this today',
+-                            leading: completed
+-                                ? 'check'
+-                                : claimable
+-                                    ? 'sparkles'
+-                                    : 'check',
+-                            tone: completed
+-                                ? EcoButtonTone.ghost
++                      ],
++                    ),
++                  ),
++                  const SizedBox(height: 10),
++                  ListenableBuilder(
++                    listenable: store,
++                    builder: (BuildContext context, Widget? child) {
++                      final bool claimable =
++                          featured.state == ChallengeState.claimable;
++                      final bool completed =
++                          featured.state == ChallengeState.claimed;
++                      final bool checkedInToday =
++                          store.challengeCheckedInToday(featured.id);
++                      return EcoButton(
++                        label: completed
++                            ? 'Challenge complete'
++                            : claimable
++                                ? 'Claim ${featured.reward} pts'
+                                 : checkedInToday
+-                                    ? EcoButtonTone.ghost
+-                                    : EcoButtonTone.primary,
+-                            block: true,
+-                            onPressed: completed || checkedInToday
+-                                ? null
+-                                : () {
+-                                    if (claimable) {
+-                                      store.claim(featured.id);
+-                                    } else {
+-                                      store.challengeDone(featured.id);
+-                                    }
+-                                  },
+-                          );
+-                        },
+-                      ),
+-                    ],
++                                    ? 'Checked in today'
++                                    : 'I did this today',
++                        leading: completed
++                            ? 'check'
++                            : claimable
++                                ? 'sparkles'
++                                : 'check',
++                        tone: completed
++                            ? EcoButtonTone.ghost
++                            : checkedInToday
++                                ? EcoButtonTone.ghost
++                                : EcoButtonTone.primary,
++                        block: true,
++                        onPressed: completed || checkedInToday
++                            ? null
++                            : () {
++                                if (claimable) {
++                                  store.claim(featured.id);
++                                } else {
++                                  store.challengeDone(featured.id);
++                                }
++                              },
++                      );
++                    },
+                   ),
+-                ),
++                ],
+               ),
++            ),
++          ),
+ 
+-              // ---- Momentum -------------------------------------------------
+-              _section(
+-                child: HPad(
+-                  child: Column(
+-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+-                    children: <Widget>[
+-                      const SectionHead(title: 'Your momentum'),
+-                      IntrinsicHeight(
+-                        child: Row(
+-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+-                          children: <Widget>[
+-                            Expanded(
+-                              child: EcoCard(
+-                                flat: true,
+-                                padding: const EdgeInsets.all(14),
+-                                onTap: () => showLevelInfoSheet(context, store),
+-                                child: Column(
+-                                  crossAxisAlignment: CrossAxisAlignment.start,
+-                                  mainAxisAlignment:
+-                                      MainAxisAlignment.spaceBetween,
++          // ---- Momentum -------------------------------------------------
++          _section(
++            child: HPad(
++              child: Column(
++                crossAxisAlignment: CrossAxisAlignment.stretch,
++                children: <Widget>[
++                  const SectionHead(title: 'Your momentum'),
++                  IntrinsicHeight(
++                    child: Row(
++                      crossAxisAlignment: CrossAxisAlignment.stretch,
++                      children: <Widget>[
++                        Expanded(
++                          child: EcoCard(
++                            flat: true,
++                            padding: const EdgeInsets.all(14),
++                            onTap: () => showLevelInfoSheet(context, store),
++                            child: Column(
++                              crossAxisAlignment: CrossAxisAlignment.start,
++                              mainAxisAlignment:
++                                  MainAxisAlignment.spaceBetween,
++                              children: <Widget>[
++                                Row(
+                                   children: <Widget>[
+-                                    Row(
+-                                      children: <Widget>[
+-                                        EcoIcon(
+-                                          'trophy',
+-                                          size: 17,
+-                                          color: cs.amber,
+-                                        ),
+-                                        const SizedBox(width: Eco.s8),
+-                                        Expanded(
+-                                          child: Text(
+-                                            'Eco Points',
+-                                            style: F.b(12.5,
+-                                                wght: 700, color: cs.muted),
+-                                            maxLines: 1,
+-                                            overflow: TextOverflow.ellipsis,
+-                                          ),
+-                                        ),
+-                                      ],
++                                    EcoIcon(
++                                      'trophy',
++                                      size: 17,
++                                      color: cs.amber,
+                                     ),
+-                                    const SizedBox(height: Eco.s8),
+-                                    Text(
+-                                      groupThousands(store.points),
+-                                      style: F.d(25),
+-                                      maxLines: 1,
+-                                    ),
+-                                    const SizedBox(height: Eco.s4),
+-                                    SizedBox(
+-                                      width: double.infinity,
++                                    const SizedBox(width: Eco.s8),
++                                    Expanded(
+                                       child: Text(
+-                                        'Level ${lvl.idx + 1} · ${lvl.name}',
+-                                        style: F.b(13,
+-                                            height: 1.45, color: cs.muted),
++                                        'Eco Points',
++                                        style: F.b(12.5,
++                                            wght: 700, color: cs.muted),
+                                         maxLines: 1,
+                                         overflow: TextOverflow.ellipsis,
+                                       ),
+                                     ),
+                                   ],
+                                 ),
+-                              ),
++                                const SizedBox(height: Eco.s8),
++                                Text(
++                                  groupThousands(store.points),
++                                  style: F.d(25),
++                                  maxLines: 1,
++                                ),
++                                const SizedBox(height: Eco.s4),
++                                SizedBox(
++                                  width: double.infinity,
++                                  child: Text(
++                                    'Level ${lvl.idx + 1} · ${lvl.name}',
++                                    style: F.b(13,
++                                        height: 1.45, color: cs.muted),
++                                    maxLines: 1,
++                                    overflow: TextOverflow.ellipsis,
++                                  ),
++                                ),
++                              ],
+                             ),
+-                            const SizedBox(width: Eco.s12),
+-                            Expanded(
+-                              child: EcoCard(
+-                                flat: true,
+-                                padding: const EdgeInsets.all(14),
+-                                onTap: () => store.go(AppRoute.challenges),
+-                                child: Column(
+-                                  crossAxisAlignment: CrossAxisAlignment.start,
+-                                  mainAxisAlignment:
+-                                      MainAxisAlignment.spaceBetween,
++                          ),
++                        ),
++                        const SizedBox(width: Eco.s12),
++                        Expanded(
++                          child: EcoCard(
++                            flat: true,
++                            padding: const EdgeInsets.all(14),
++                            onTap: () => store.go(AppRoute.challenges),
++                            child: Column(
++                              crossAxisAlignment: CrossAxisAlignment.start,
++                              mainAxisAlignment:
++                                  MainAxisAlignment.spaceBetween,
++                              children: <Widget>[
++                                Row(
+                                   children: <Widget>[
+-                                    Row(
+-                                      children: <Widget>[
+-                                        EcoIcon(
+-                                          'flame',
+-                                          size: 17,
+-                                          color: cs.forest,
+-                                        ),
+-                                        const SizedBox(width: Eco.s8),
+-                                        Expanded(
+-                                          child: Text(
+-                                            'Streak',
+-                                            style: F.b(12.5,
+-                                                wght: 700, color: cs.muted),
+-                                            maxLines: 1,
+-                                            overflow: TextOverflow.ellipsis,
+-                                          ),
+-                                        ),
+-                                      ],
++                                    EcoIcon(
++                                      'flame',
++                                      size: 17,
++                                      color: cs.forest,
+                                     ),
+-                                    const SizedBox(height: Eco.s8),
+-                                    Text(
+-                                      '${store.streak} days',
+-                                      style: F.d(25),
+-                                      maxLines: 1,
++                                    const SizedBox(width: Eco.s8),
++                                    Expanded(
++                                      child: Text(
++                                        'Streak',
++                                        style: F.b(12.5,
++                                            wght: 700, color: cs.muted),
++                                        maxLines: 1,
++                                        overflow: TextOverflow.ellipsis,
++                                      ),
+                                     ),
+-                                    const SizedBox(height: Eco.s4),
+-                                    const SizedBox(height: 18),
+                                   ],
+                                 ),
+-                              ),
++                                const SizedBox(height: Eco.s8),
++                                Text(
++                                  '${store.streak} days',
++                                  style: F.d(25),
++                                  maxLines: 1,
++                                ),
++                                const SizedBox(height: Eco.s4),
++                                const SizedBox(height: 18),
++                              ],
+                             ),
+-                          ],
++                          ),
+                         ),
+-                      ),
+-                    ],
++                      ],
++                    ),
+                   ),
+-                ),
++                ],
+               ),
++            ),
++          ),
+ 
+-              // ---- Tips rail ------------------------------------------------
+-              _section(
+-                child: HPad(
+-                  child: SectionHead(
+-                    title: 'Small wins for today',
+-                    action: SectionLink(
+-                      label: 'All tips',
+-                      onTap: () => store.go(AppRoute.tips),
+-                    ),
+-                  ),
++          // ---- Tips rail ------------------------------------------------
++          _section(
++            child: HPad(
++              child: SectionHead(
++                title: 'Small wins for today',
++                action: SectionLink(
++                  label: 'All tips',
++                  onTap: () => store.go(AppRoute.tips),
+                 ),
+               ),
+-              EcoRail(
+-                gap: 12,
+-                children: <Widget>[
+-                  for (final Tip tp in kTips.take(4))
+-                    SizedBox(
+-                      width: tablet ? 246 : 214,
+-                      height: tablet ? 166 : 142,
+-                      child: EcoCard(
+-                        flat: true,
+-                        padding: const EdgeInsets.all(Eco.s12),
+-                        onTap: () => store.openTipFromRail(tp.id),
+-                        child: Column(
+-                          crossAxisAlignment: CrossAxisAlignment.start,
+-                          children: <Widget>[
+-                            CatBadge(
+-                              icon: tp.icon,
+-                              background: catOf(tp.cat)
+-                                  .resolve(
+-                                    cs,
+-                                    color: store.categoryColor(tp.cat),
+-                                  )
+-                                  .tint,
+-                              foreground: catOf(tp.cat)
+-                                  .resolve(
+-                                    cs,
+-                                    color: store.categoryColor(tp.cat),
+-                                  )
+-                                  .ink,
+-                              size: tablet ? 36 : 32,
+-                              iconSize: tablet ? 19 : 17,
+-                              radius: 11,
+-                            ),
+-                            const SizedBox(height: Eco.s4),
+-                            Text(
+-                              tp.title,
+-                              style: F.d(tablet ? 16 : 14.5, height: 1.2),
+-                              maxLines: 2,
+-                              overflow: TextOverflow.ellipsis,
+-                            ),
+-                            const SizedBox(height: Eco.s4),
+-                            Text(
+-                              tp.action,
+-                              style: F.b(
+-                                tablet ? 13 : 12,
+-                                height: 1.35,
+-                                color: cs.muted,
+-                              ),
+-                              maxLines: 2,
+-                              overflow: TextOverflow.ellipsis,
+-                            ),
+-                          ],
++            ),
++          ),
++          EcoRail(
++            gap: 12,
++            children: <Widget>[
++              for (final Tip tp in kTips.take(4))
++                SizedBox(
++                  width: tablet ? 246 : 214,
++                  height: tablet ? 166 : 142,
++                  child: EcoCard(
++                    flat: true,
++                    padding: const EdgeInsets.all(Eco.s12),
++                    onTap: () => store.openTipFromRail(tp.id),
++                    child: Column(
++                      crossAxisAlignment: CrossAxisAlignment.start,
++                      children: <Widget>[
++                        CatBadge(
++                          icon: tp.icon,
++                          background: catOf(tp.cat)
++                              .resolve(
++                                cs,
++                                color: store.categoryColor(tp.cat),
++                              )
++                              .tint,
++                          foreground: catOf(tp.cat)
++                              .resolve(
++                                cs,
++                                color: store.categoryColor(tp.cat),
++                              )
++                              .ink,
++                          size: tablet ? 36 : 32,
++                          iconSize: tablet ? 19 : 17,
++                          radius: 11,
+                         ),
+-                      ),
++                        const SizedBox(height: Eco.s4),
++                        Text(
++                          tp.title,
++                          style: F.d(tablet ? 16 : 14.5, height: 1.2),
++                          maxLines: 2,
++                          overflow: TextOverflow.ellipsis,
++                        ),
++                        const SizedBox(height: Eco.s4),
++                        Text(
++                          tp.action,
++                          style: F.b(
++                            tablet ? 13 : 12,
++                            height: 1.35,
++                            color: cs.muted,
++                          ),
++                          maxLines: 2,
++                          overflow: TextOverflow.ellipsis,
++                        ),
++                      ],
+                     ),
+-                ],
+-              ),
+-              const SizedBox(height: Eco.s8),
++                  ),
++                ),
+             ],
+           ),
+-        ),
+-        Positioned(
+-          right: 18,
+-          bottom: 18,
+-          child: EcoFab(
+-            label: 'Log activity',
+-            onTap: store.openAdd,
+-            tablet: tablet,
+-          ),
+-        ),
+-      ],
++          const SizedBox(height: Eco.s8),
++        ],
++      ),
+     );
+   }
+ }
+diff --git a/lib/screens/profile_screen.dart b/lib/screens/profile_screen.dart
+index e99e55a..8c23e30 100644
+--- a/lib/screens/profile_screen.dart
++++ b/lib/screens/profile_screen.dart
+@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
+ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+ import 'package:share_plus/share_plus.dart';
+ 
+-import '../icons.dart';
+-import '../models.dart';
+-import '../responsive.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../core/icons.dart';
++import '../models/models.dart';
++import '../core/responsive.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import '../widgets/common.dart';
+ import '../widgets/iso_social_button.dart';
+ import '../widgets/sheets.dart';
+@@ -1492,6 +1492,10 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
+   String? _titleError;
+   String? _detailsError;
+ 
++  /// Feedback shown inside the sheet (toasts are hidden behind the modal).
++  String? _statusMessage;
++  bool _copied = false;
++
+   @override
+   void dispose() {
+     _title.dispose();
+@@ -1539,6 +1543,18 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
+           ),
+         ),
+         const SizedBox(height: 14),
++        if (_statusMessage != null) ...<Widget>[
++          Text(
++            _statusMessage!,
++            key: const ValueKey<String>('report-status'),
++            style: F.role(
++              context.type.bodySmall!,
++              color: _copied ? cs.primary : cs.error,
++              height: 1.45,
++            ),
++          ),
++          const SizedBox(height: 10),
++        ],
+         Builder(
+           builder: (BuildContext context) => EcoButton(
+             label: 'Share report',
+@@ -1547,11 +1563,22 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
+             onPressed: () => _shareReport(context),
+           ),
+         ),
++        if (_statusMessage != null) ...<Widget>[
++          const SizedBox(height: 10),
++          EcoButton(
++            label: 'Copy report to clipboard',
++            leading: 'info',
++            tone: EcoButtonTone.ghost,
++            block: true,
++            onPressed: _copyReport,
++          ),
++        ],
+       ],
+     );
+   }
+ 
+-  Future<void> _shareReport(BuildContext shareContext) async {
++  /// Validates the form; returns the report text or null when invalid.
++  String? _validatedReport() {
+     final String title = _title.text.trim();
+     final String details = _details.text.trim();
+     if (title.length < 3 || details.length < 10) {
+@@ -1560,8 +1587,33 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
+         _detailsError =
+             details.length < 10 ? 'Add at least 10 characters of detail' : null;
+       });
+-      return;
++      return null;
+     }
++    return 'EcoTrack issue report\n\n$title\n\n$details';
++  }
++
++  Future<void> _copyReport() async {
++    final String? report = _validatedReport();
++    if (report == null) return;
++    await Clipboard.setData(ClipboardData(text: report));
++    if (!mounted) return;
++    setState(() {
++      _copied = true;
++      _statusMessage = 'Report copied. Paste it into an email or chat.';
++    });
++  }
++
++  void _showFailure(String message) {
++    setState(() {
++      _copied = false;
++      _statusMessage = message;
++    });
++  }
++
++  Future<void> _shareReport(BuildContext shareContext) async {
++    final String? report = _validatedReport();
++    if (report == null) return;
++    final String title = _title.text.trim();
+ 
+     try {
+       final RenderObject? renderObject = shareContext.findRenderObject();
+@@ -1570,25 +1622,31 @@ class _ReportIssueFormState extends State<_ReportIssueForm> {
+               ? renderObject.localToGlobal(Offset.zero) & renderObject.size
+               : null;
+       final ShareResult result = await Share.shareWithResult(
+-        'EcoTrack issue report\n\n$title\n\n$details',
++        report,
+         subject: 'EcoTrack issue report: $title',
+         sharePositionOrigin: sharePositionOrigin,
+       );
+       if (!mounted) return;
+-      if (result.status == ShareResultStatus.success) {
+-        Navigator.pop(context);
+-        widget.store.toast('Report shared');
++      switch (result.status) {
++        case ShareResultStatus.success:
++          Navigator.pop(context);
++          widget.store.toast('Report shared');
++        case ShareResultStatus.dismissed:
++          _showFailure('Sharing was cancelled. Try again or copy the report.');
++        case ShareResultStatus.unavailable:
++          _showFailure(
++            'Sharing is not available in this browser. '
++            'Copy the report instead.',
++          );
+       }
+     } on PlatformException catch (error) {
+       if (!mounted) return;
+-      widget.store.toast(
++      _showFailure(
+         'Could not open the share sheet: ${error.message ?? error.code}',
+-        kIcons['info'],
+       );
+     } on MissingPluginException {
+       if (!mounted) return;
+-      widget.store
+-          .toast('Sharing is unavailable on this device', kIcons['info']);
++      _showFailure('Sharing is unavailable on this device. Copy the report.');
+     }
+   }
+ }
+diff --git a/lib/screens/result_screen.dart b/lib/screens/result_screen.dart
+index 54697f2..54958ee 100644
+--- a/lib/screens/result_screen.dart
++++ b/lib/screens/result_screen.dart
+@@ -2,10 +2,10 @@ import 'dart:math' as math;
+ 
+ import 'package:flutter/material.dart';
+ 
+-import '../icons.dart';
+-import '../models.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../core/icons.dart';
++import '../models/models.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import '../widgets/common.dart';
+ import 'home_screen.dart';
+ 
+diff --git a/lib/screens/stats_screen.dart b/lib/screens/stats_screen.dart
+index 2a3e1ad..c6485e3 100644
+--- a/lib/screens/stats_screen.dart
++++ b/lib/screens/stats_screen.dart
+@@ -1,9 +1,9 @@
+ import 'package:flutter/material.dart';
+ 
+-import '../models.dart';
+-import '../responsive.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../models/models.dart';
++import '../core/responsive.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import '../widgets/charts.dart';
+ import '../widgets/common.dart';
+ 
+diff --git a/lib/screens/tips_screen.dart b/lib/screens/tips_screen.dart
+index e01d40c..a12a97a 100644
+--- a/lib/screens/tips_screen.dart
++++ b/lib/screens/tips_screen.dart
+@@ -1,10 +1,10 @@
+ import 'package:flutter/material.dart';
+ 
+-import '../icons.dart';
+-import '../models.dart';
+-import '../responsive.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../core/icons.dart';
++import '../models/models.dart';
++import '../core/responsive.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import '../widgets/common.dart';
+ 
+ class TipsScreen extends StatelessWidget {
+diff --git a/lib/screens/welcome_screen.dart b/lib/screens/welcome_screen.dart
+index d3afd03..0226b13 100644
+--- a/lib/screens/welcome_screen.dart
++++ b/lib/screens/welcome_screen.dart
+@@ -2,10 +2,10 @@ import 'dart:math' as math;
+ 
+ import 'package:flutter/material.dart';
+ 
+-import '../models.dart';
+-import '../responsive.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../models/models.dart';
++import '../core/responsive.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import '../widgets/common.dart';
+ 
+ class _Slide {
+diff --git a/lib/celebration_data.dart b/lib/state/celebration_data.dart
+similarity index 95%
+rename from lib/celebration_data.dart
+rename to lib/state/celebration_data.dart
+index 47f4c80..18840d5 100644
+--- a/lib/celebration_data.dart
++++ b/lib/state/celebration_data.dart
+@@ -1,4 +1,4 @@
+-import 'models.dart';
++import '../models/models.dart';
+ 
+ sealed class CelebrationData {
+   const CelebrationData();
+diff --git a/lib/store.dart b/lib/state/store.dart
+similarity index 99%
+rename from lib/store.dart
+rename to lib/state/store.dart
+index 1e18508..562507a 100644
+--- a/lib/store.dart
++++ b/lib/state/store.dart
+@@ -3,8 +3,8 @@ import 'dart:async';
+ import 'package:flutter/material.dart';
+ 
+ import 'celebration_data.dart';
+-import 'icons.dart';
+-import 'models.dart';
++import '../core/icons.dart';
++import '../models/models.dart';
+ 
+ /* ==========================================================================
+    Routes
+diff --git a/lib/widgets/celebrations.dart b/lib/widgets/celebrations.dart
+index 683ed45..0344c1e 100644
+--- a/lib/widgets/celebrations.dart
++++ b/lib/widgets/celebrations.dart
+@@ -2,11 +2,11 @@ import 'dart:async';
+ import 'dart:math' as math;
+ import 'package:flutter/material.dart';
+ 
+-import '../celebration_data.dart';
+-import '../icons.dart';
+-import '../models.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../state/celebration_data.dart';
++import '../core/icons.dart';
++import '../models/models.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ 
+ /* ==========================================================================
+    Celebration types
+diff --git a/lib/widgets/charts.dart b/lib/widgets/charts.dart
+index 4965e95..d04dcd7 100644
+--- a/lib/widgets/charts.dart
++++ b/lib/widgets/charts.dart
+@@ -2,9 +2,9 @@ import 'dart:math' as math;
+ 
+ import 'package:flutter/material.dart';
+ 
+-import '../models.dart';
+-import '../responsive.dart';
+-import '../theme.dart';
++import '../models/models.dart';
++import '../core/responsive.dart';
++import '../core/theme.dart';
+ 
+ /* ==========================================================================
+    Week bars (Home)
+diff --git a/lib/widgets/common.dart b/lib/widgets/common.dart
+index 32dc323..8cd9c92 100644
+--- a/lib/widgets/common.dart
++++ b/lib/widgets/common.dart
+@@ -3,10 +3,10 @@ import 'dart:math' as math;
+ import 'package:flutter/material.dart';
+ import 'package:flutter/rendering.dart';
+ 
+-import '../icons.dart';
+-import '../models.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../core/icons.dart';
++import '../models/models.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ 
+ /* ==========================================================================
+    Primitives
+diff --git a/lib/widgets/iso_social_button.dart b/lib/widgets/iso_social_button.dart
+index c882210..97be97f 100644
+--- a/lib/widgets/iso_social_button.dart
++++ b/lib/widgets/iso_social_button.dart
+@@ -3,7 +3,7 @@ import 'dart:math' as math;
+ import 'package:flutter/material.dart';
+ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+ 
+-import '../theme.dart';
++import '../core/theme.dart';
+ 
+ class IsoSocialButton extends StatefulWidget {
+   const IsoSocialButton({
+diff --git a/lib/widgets/sheets.dart b/lib/widgets/sheets.dart
+index ca31e22..f880c54 100644
+--- a/lib/widgets/sheets.dart
++++ b/lib/widgets/sheets.dart
+@@ -1,8 +1,8 @@
+ import 'package:flutter/material.dart';
+ 
+-import '../models.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../models/models.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ import 'charts.dart';
+ import 'common.dart';
+ 
+diff --git a/lib/widgets/tab_bar.dart b/lib/widgets/tab_bar.dart
+index c6aeab6..c1827d0 100644
+--- a/lib/widgets/tab_bar.dart
++++ b/lib/widgets/tab_bar.dart
+@@ -1,8 +1,8 @@
+ import 'package:flutter/material.dart';
+ 
+-import '../icons.dart';
+-import '../store.dart';
+-import '../theme.dart';
++import '../core/icons.dart';
++import '../state/store.dart';
++import '../core/theme.dart';
+ 
+ /// Primary bottom navigation. Hidden on the onboarding, auth, add and result
+ /// routes, exactly like the prototype's tab bar.
+diff --git a/test/amount_slider_test.dart b/test/amount_slider_test.dart
+new file mode 100644
+index 0000000..6c10abb
+--- /dev/null
++++ b/test/amount_slider_test.dart
+@@ -0,0 +1,45 @@
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++
++import 'package:ecotrack/core/theme.dart';
++import 'package:ecotrack/main.dart';
++import 'package:ecotrack/models/models.dart';
++import 'package:ecotrack/state/store.dart';
++
++void main() {
++  for (final String key in <String>['walking', 'bicycle']) {
++    testWidgets('$key slider stays in range when the unit is miles',
++        (WidgetTester tester) async {
++      final EcoStore store = EcoStore()
++        ..distanceUnit = 'mi'
++        ..addCat = CarbonCategory.transport
++        ..pickAct(key);
++      store
++        ..addStep = store.amountStep
++        ..go(AppRoute.add);
++      addTearDown(store.dispose);
++
++      await tester.pumpWidget(
++        MaterialApp(
++          theme: ecoTheme(),
++          home: EcoScope(notifier: store, child: const AppGate()),
++        ),
++      );
++      await tester.pumpAndSettle();
++
++      // Drive the amount to both canonical limits (1 km and the maximum).
++      store.amtSet(0.1);
++      await tester.pumpAndSettle();
++      Slider slider = tester.widget<Slider>(find.byType(Slider));
++      expect(slider.value, greaterThanOrEqualTo(slider.min));
++      expect(slider.value, lessThanOrEqualTo(slider.max));
++
++      store.amtSet(10000);
++      await tester.pumpAndSettle();
++      slider = tester.widget<Slider>(find.byType(Slider));
++      expect(slider.value, greaterThanOrEqualTo(slider.min));
++      expect(slider.value, lessThanOrEqualTo(slider.max));
++      expect(tester.takeException(), isNull);
++    });
++  }
++}
+diff --git a/test/flow_test.dart b/test/flow_test.dart
+index ddb29f0..164344b 100644
+--- a/test/flow_test.dart
++++ b/test/flow_test.dart
+@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
+ 
+ import 'package:ecotrack/main.dart';
+ import 'package:ecotrack/screens/add_activity_screen.dart';
+-import 'package:ecotrack/store.dart';
+-import 'package:ecotrack/theme.dart';
++import 'package:ecotrack/state/store.dart';
++import 'package:ecotrack/core/theme.dart';
+ import 'package:ecotrack/widgets/celebrations.dart';
+ import 'package:ecotrack/widgets/common.dart';
+ 
+diff --git a/test/home_test.dart b/test/home_test.dart
+index d846972..a7d52e9 100644
+--- a/test/home_test.dart
++++ b/test/home_test.dart
+@@ -3,11 +3,11 @@ import 'package:flutter/gestures.dart';
+ import 'package:flutter_test/flutter_test.dart';
+ 
+ import 'package:ecotrack/main.dart';
+-import 'package:ecotrack/models.dart';
++import 'package:ecotrack/models/models.dart';
+ import 'package:ecotrack/screens/challenges_screen.dart';
+ import 'package:ecotrack/screens/home_screen.dart';
+-import 'package:ecotrack/store.dart';
+-import 'package:ecotrack/theme.dart';
++import 'package:ecotrack/state/store.dart';
++import 'package:ecotrack/core/theme.dart';
+ import 'package:ecotrack/widgets/celebrations.dart';
+ import 'package:ecotrack/widgets/common.dart';
+ 
+diff --git a/test/profile_test.dart b/test/profile_test.dart
+index 0e6911d..173a922 100644
+--- a/test/profile_test.dart
++++ b/test/profile_test.dart
+@@ -1,10 +1,10 @@
+ import 'package:flutter/material.dart';
+ import 'package:flutter_test/flutter_test.dart';
+ 
+-import 'package:ecotrack/models.dart';
++import 'package:ecotrack/models/models.dart';
+ import 'package:ecotrack/screens/profile_screen.dart';
+-import 'package:ecotrack/store.dart';
+-import 'package:ecotrack/theme.dart';
++import 'package:ecotrack/state/store.dart';
++import 'package:ecotrack/core/theme.dart';
+ import 'package:ecotrack/widgets/common.dart';
+ import 'package:ecotrack/widgets/sheets.dart';
+ 
+diff --git a/test/responsive_test.dart b/test/responsive_test.dart
+index 3f33661..f73eb7e 100644
+--- a/test/responsive_test.dart
++++ b/test/responsive_test.dart
+@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
+ import 'package:flutter_test/flutter_test.dart';
+ 
+ import 'package:ecotrack/main.dart';
+-import 'package:ecotrack/store.dart';
+-import 'package:ecotrack/theme.dart';
++import 'package:ecotrack/state/store.dart';
++import 'package:ecotrack/core/theme.dart';
+ import 'package:ecotrack/widgets/common.dart';
+ import 'package:ecotrack/widgets/tab_bar.dart';
+ import 'package:ecotrack/widgets/celebrations.dart';
+@@ -152,4 +152,36 @@ void main() {
+     expect(store.route, AppRoute.add);
+     expect(find.byType(EcoFab), findsNothing);
+   });
++
++  testWidgets('home renders at 360x800 with text scale 1.3 without overflow',
++      (WidgetTester tester) async {
++    debugDisableCelebrationAnimations = true;
++    addTearDown(() => debugDisableCelebrationAnimations = false);
++    final EcoStore store = EcoStore()..go(AppRoute.home);
++    addTearDown(store.dispose);
++    tester.view.physicalSize = const Size(360, 800);
++    tester.view.devicePixelRatio = 1;
++    addTearDown(tester.view.resetPhysicalSize);
++    addTearDown(tester.view.resetDevicePixelRatio);
++
++    await tester.pumpWidget(
++      MaterialApp(
++        theme: ecoTheme(),
++        builder: (BuildContext context, Widget? child) => MediaQuery(
++          data: MediaQuery.of(context).copyWith(
++            textScaler: const TextScaler.linear(1.3),
++          ),
++          child: child!,
++        ),
++        home: EcoScope(notifier: store, child: const AppGate()),
++      ),
++    );
++    await tester.pumpAndSettle();
++
++    expect(find.byType(EcoFab), findsOneWidget);
++    // Scroll the whole Home screen so every fixed-height block is laid out.
++    await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
++    await tester.pumpAndSettle();
++    expect(tester.takeException(), isNull);
++  });
+ }
+diff --git a/test/store_test.dart b/test/store_test.dart
+index 3da5588..a7e5df0 100644
+--- a/test/store_test.dart
++++ b/test/store_test.dart
+@@ -1,8 +1,8 @@
+ import 'package:flutter_test/flutter_test.dart';
+ 
+-import 'package:ecotrack/celebration_data.dart';
+-import 'package:ecotrack/models.dart';
+-import 'package:ecotrack/store.dart';
++import 'package:ecotrack/state/celebration_data.dart';
++import 'package:ecotrack/models/models.dart';
++import 'package:ecotrack/state/store.dart';
+ 
+ void main() {
+   test('streak uses consecutive days with activity', () {

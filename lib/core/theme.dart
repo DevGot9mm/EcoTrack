@@ -437,13 +437,6 @@ TextTheme _ecoTextTheme(ColorScheme scheme) {
   );
 }
 
-FloatingActionButtonThemeData _ecoFabTheme(ColorScheme scheme) =>
-    FloatingActionButtonThemeData(
-      backgroundColor: scheme.primary,
-      foregroundColor: scheme.onPrimary,
-      shape: const CircleBorder(),
-    );
-
 InputDecorationTheme _ecoInputDecorationTheme(ColorScheme scheme) {
   OutlineInputBorder border(Color color) => OutlineInputBorder(
         borderRadius: BorderRadius.circular(Eco.rBtn),
@@ -581,7 +574,6 @@ ThemeData ecoTheme() {
     navigationRailTheme: _ecoNavigationRailTheme(scheme),
     segmentedButtonTheme: _ecoSegmentedButtonTheme(scheme),
     sliderTheme: _ecoSliderTheme(scheme),
-    floatingActionButtonTheme: _ecoFabTheme(scheme),
     hintColor: Eco.muted,
   );
 }
@@ -628,7 +620,6 @@ ThemeData ecoDarkTheme() {
     navigationRailTheme: _ecoNavigationRailTheme(scheme),
     segmentedButtonTheme: _ecoSegmentedButtonTheme(scheme),
     sliderTheme: _ecoSliderTheme(scheme),
-    floatingActionButtonTheme: _ecoFabTheme(scheme),
     hintColor: EcoDark.muted,
   );
 }

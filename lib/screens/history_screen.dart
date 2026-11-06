@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../models.dart';
-import '../store.dart';
-import '../theme.dart';
+import '../models/models.dart';
+import '../state/store.dart';
+import '../core/theme.dart';
 import '../widgets/common.dart';
 import '../widgets/sheets.dart';
 
@@ -202,8 +202,12 @@ class _HistRow extends StatelessWidget {
               textScaler: MediaQuery.textScalerOf(context),
               textAlign: TextAlign.end,
               text: TextSpan(
+                style: DefaultTextStyle.of(context).style,
                 children: <InlineSpan>[
-                  TextSpan(text: fmt2(entry.co2), style: F.d(16)),
+                  TextSpan(
+                    text: fmt2(entry.co2),
+                    style: F.d(16, color: cs.ink),
+                  ),
                   TextSpan(
                     text: ' kg',
                     style: F.b(11, wght: 800, color: cs.muted),

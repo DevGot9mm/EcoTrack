@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ecotrack/models.dart';
+import 'package:ecotrack/models/models.dart';
 import 'package:ecotrack/screens/profile_screen.dart';
-import 'package:ecotrack/store.dart';
-import 'package:ecotrack/theme.dart';
+import 'package:ecotrack/state/store.dart';
+import 'package:ecotrack/core/theme.dart';
 import 'package:ecotrack/widgets/common.dart';
 import 'package:ecotrack/widgets/sheets.dart';
 

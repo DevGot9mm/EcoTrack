@@ -10,9 +10,10 @@ import 'screens/stats_screen.dart';
 import 'screens/challenges_screen.dart';
 import 'screens/tips_screen.dart';
 import 'screens/profile_screen.dart';
-import 'responsive.dart';
-import 'store.dart';
-import 'theme.dart';
+import 'core/responsive.dart';
+import 'state/store.dart';
+import 'core/theme.dart';
+import 'widgets/common.dart';
 import 'widgets/tab_bar.dart';
 import 'widgets/celebrations.dart';
 
@@ -109,7 +110,13 @@ class AppGate extends StatelessWidget {
             bottomNavigationBar: store.showTabBar && !useSideNavigation
                 ? const EcoTabBar()
                 : null,
-            floatingActionButton: null,
+            floatingActionButton: store.route == AppRoute.home
+                ? EcoFab(
+                    label: 'Log activity',
+                    onTap: store.openAdd,
+                    tablet: context.windowSize != WindowSize.compact,
+                  )
+                : null,
             body: Stack(
               children: <Widget>[
                 Positioned.fill(

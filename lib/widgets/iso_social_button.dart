@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../theme.dart';
+import '../core/theme.dart';
 
 class IsoSocialButton extends StatefulWidget {
   const IsoSocialButton({
