@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ecotrack/main.dart';
+import 'package:ecotrack/screens/add_activity_screen.dart';
 import 'package:ecotrack/state/store.dart';
 import 'package:ecotrack/core/theme.dart';
 import 'package:ecotrack/widgets/common.dart';
@@ -32,6 +33,44 @@ void main() {
     );
     expect(overridden.fontWeight, FontWeight.w600);
     expect(overridden.height, 1.5);
+  });
+
+  testWidgets('Miles slider keeps zero-emission walking at its 1 km minimum',
+      (WidgetTester tester) async {
+    final EcoStore store = EcoStore()
+      ..addCat = CarbonCategory.transport
+      ..addKey = 'walking'
+      ..addStep = 2
+      ..addAmount = 1;
+    addTearDown(store.dispose);
+    store.setDistanceUnit('mi');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ecoTheme(),
+        home: EcoScope(
+          notifier: store,
+          child: const AddActivityScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final ActivityDef activity = store.activityOf('walking')!;
+    final Slider slider = tester.widget<Slider>(find.byType(Slider));
+    final double expectedMinimum = store.displayAmount(activity, 1);
+
+    expect(slider.min, expectedMinimum);
+    expect(slider.value, greaterThanOrEqualTo(slider.min));
+    expect(slider.value, lessThanOrEqualTo(slider.max));
+
+    slider.onChanged!(slider.min);
+    await tester.pump();
+
+    expect(store.addAmount, greaterThanOrEqualTo(1));
+    expect(store.displayAmount(activity, store.addAmount),
+        greaterThanOrEqualTo(slider.min));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('tablet-sized app lays out onboarding and tips without overflow',
