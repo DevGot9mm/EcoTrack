@@ -73,14 +73,10 @@ class Eco {
   static const Color danger = Color(0xFFB8452F);
   static const Color dangerTint = Color(0xFFFBEAE5);
 
-  // ---- On-hero overlays (white/ink on dark green cards) ---------------------
-  static const Color onHero72 = Color(0xB8FFFFFF);
-  static const Color onHero66 = Color(0xA8FFFFFF);
-  static const Color onHero75 = Color(0xBFFFFFFF);
-  static const Color onHero85 = Color(0xD9FFFFFF);
-  static const Color onHero78 = Color(0xC7FFFFFF);
-  static const Color onHero80 = Color(0xCCFFFFFF);
-  static const Color onHero76 = Color(0xC2FFFFFF);
+  // ---- On-hero text tiers (kept close to the existing contrast levels) ----
+  static const Color onHeroHigh = Color(0xD9FFFFFF); // 85% white
+  static const Color onHeroMedium = Color(0xC2FFFFFF); // 76% white
+  static const Color onHeroLow = Color(0xA8FFFFFF); // 66% white
   static const Color heroOverlay14 = Color(0x24FFFFFF);
   static const Color heroOverlay18 = Color(0x2EFFFFFF);
   static const Color heroTrack26 = Color(0x42FFFFFF);
@@ -325,19 +321,24 @@ class F {
   /// only choose weight, colour and spacing.
   static TextStyle role(
     TextStyle? base, {
-    double wght = 400,
+    double? wght,
     double ls = 0,
     Color? color,
     double? height,
   }) {
-    return TextStyle(
-      fontFamily: base?.fontFamily,
-      fontSize: base?.fontSize,
+    // Start from the role itself so its line height and other typography
+    // metrics survive unless a caller explicitly overrides them.
+    final TextStyle source = base ?? const TextStyle();
+    return source.copyWith(
+      fontFamily: source.fontFamily,
+      fontSize: source.fontSize,
       color: color,
       height: height,
       letterSpacing: ls,
-      fontWeight: _weight(wght),
-      fontVariations: <FontVariation>[FontVariation('wght', wght)],
+      fontWeight: wght == null ? source.fontWeight : _weight(wght),
+      fontVariations: wght == null
+          ? source.fontVariations
+          : <FontVariation>[FontVariation('wght', wght)],
     );
   }
 
