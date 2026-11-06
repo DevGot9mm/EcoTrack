@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ecotrack/main.dart';
+import 'package:ecotrack/models/models.dart';
 import 'package:ecotrack/screens/add_activity_screen.dart';
 import 'package:ecotrack/state/store.dart';
 import 'package:ecotrack/core/theme.dart';
