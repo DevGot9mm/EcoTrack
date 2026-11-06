@@ -394,7 +394,7 @@ List<Widget> _gapped(List<Widget> items, double gap) {
 
 /// Horizontal padding used by every screen block.
 class HPad extends StatelessWidget {
-  const HPad({super.key, required this.child, this.value = Eco.s20});
+  const HPad({super.key, required this.child, this.value = 24});
 
   final Widget child;
   final double value;

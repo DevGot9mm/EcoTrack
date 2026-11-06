@@ -104,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   context,
                   _BadgesSection(store: store),
                   maxHeightFactor: 0.72,
-                  maxWidth: 760,
+                  maxWidth: 920,
                 ),
                 fillWidth: true,
                 borderRadius: BorderRadius.circular(Eco.rCard),
@@ -467,9 +467,10 @@ class _BadgesSection extends StatelessWidget {
 
   void _showBadgeDetail(BuildContext context, Achievement b) {
     final cs = Theme.of(context).colorScheme;
-    showEcoSheet(
-      context,
-      Column(
+      showEcoSheet(
+        context,
+        maxWidth: 920,
+        Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Center(
@@ -524,7 +525,6 @@ class _BadgesSection extends StatelessWidget {
         ],
       ),
       maxHeightFactor: 0.72,
-      maxWidth: 760,
     );
   }
 }

@@ -139,7 +139,7 @@ class AppGate extends StatelessWidget {
                                     alignment: Alignment.topCenter,
                                     child: ConstrainedBox(
                                       constraints: const BoxConstraints(
-                                        maxWidth: 840,
+                                        maxWidth: 1280,
                                       ),
                                       child: _buildBody(store),
                                     ),
