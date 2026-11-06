@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ecotrack/main.dart';
+import 'package:ecotrack/models/models.dart';
 import 'package:ecotrack/state/store.dart';
 import 'package:ecotrack/core/theme.dart';
 import 'package:ecotrack/widgets/common.dart';
@@ -32,6 +33,28 @@ void main() {
     );
     expect(overridden.fontWeight, FontWeight.w600);
     expect(overridden.height, 1.5);
+  });
+
+  test('Miles conversion preserves the 1 km minimum for walking', () {
+    final EcoStore store = EcoStore()
+      ..addCat = CarbonCategory.transport
+      ..addKey = 'walking'
+      ..addAmount = 1;
+    addTearDown(store.dispose);
+    store.setDistanceUnit('mi');
+
+    final ActivityDef activity = store.activityOf('walking')!;
+    final double displayMinimum = store.displayAmount(activity, 1);
+    final double displayMaximum = store.displayMax(activity);
+
+    expect(displayMinimum, closeTo(0.6, 0.01));
+    expect(displayMinimum, lessThan(displayMaximum));
+
+    store.amtSet(displayMinimum);
+
+    expect(store.addAmount, greaterThanOrEqualTo(1));
+    expect(store.displayAmount(activity, store.addAmount),
+        greaterThanOrEqualTo(displayMinimum));
   });
 
   testWidgets('tablet-sized app lays out onboarding and tips without overflow',
