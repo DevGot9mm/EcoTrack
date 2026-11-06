@@ -14,6 +14,11 @@ import '../widgets/common.dart';
 import '../widgets/iso_social_button.dart';
 import '../widgets/sheets.dart';
 
+part 'profile/profile_identity_goals.dart';
+part 'profile/profile_badges.dart';
+part 'profile/profile_social_settings.dart';
+part 'profile/profile_settings_forms.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -137,11 +142,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-
-part 'profile/profile_identity_goals.dart';
-part 'profile/profile_badges.dart';
-part 'profile/profile_social_settings.dart';
-part 'profile/profile_settings_forms.dart';
 
 Future<void> _confirmSignOut(BuildContext context, EcoStore store) async {
   final bool shouldSignOut = await showDialog<bool>(
