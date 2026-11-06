@@ -21,7 +21,7 @@ class EcoTabBar extends StatelessWidget {
         .map(
           (TabSpec tab) => NavigationDestination(
             icon: Icon(kIcons[tab.icon]),
-            selectedIcon: Icon(kIcons[tab.icon]),
+            selectedIcon: Icon(kSelectedIcons[tab.icon] ?? kIcons[tab.icon]),
             label: tab.label,
           ),
         )
@@ -44,7 +44,7 @@ class EcoTabBar extends StatelessWidget {
                 .map(
                   (TabSpec tab) => NavigationRailDestination(
                     icon: Icon(kIcons[tab.icon]),
-                    selectedIcon: Icon(kIcons[tab.icon]),
+                    selectedIcon: Icon(kSelectedIcons[tab.icon] ?? kIcons[tab.icon]),
                     label: Text(tab.label),
                   ),
                 )
