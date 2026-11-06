@@ -204,7 +204,7 @@ class WelcomeScreen extends StatelessWidget {
                 horizontal: Eco.s4, vertical: Eco.s8),
             child: Text(
               'Skip',
-              style: F.b(14, wght: 700, color: Eco.onHero78),
+              style: F.b(14, wght: 700, color: Eco.onHeroMedium),
             ),
           ),
         ),
@@ -248,7 +248,7 @@ class WelcomeScreen extends StatelessWidget {
         Text(
           'Track your impact, change your future.',
           textAlign: align,
-          style: F.b(16 * scale, color: Eco.onHero80),
+          style: F.b(16 * scale, color: Eco.onHeroHigh),
         ),
         Padding(
           padding: EdgeInsets.only(top: compact ? 8 : 18),
@@ -267,7 +267,7 @@ class WelcomeScreen extends StatelessWidget {
                 style: F.b(
                   15 * scale,
                   height: 1.4,
-                  color: Eco.onHero76,
+                  color: Eco.onHeroMedium,
                 ),
               ),
             ],
