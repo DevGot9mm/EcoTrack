@@ -1,0 +1,65 @@
+--- a/lib/screens/stats_screen.dart
++++ b/lib/screens/stats_screen.dart
+@@ -64,6 +64,9 @@ class StatsScreen extends StatelessWidget {
+     final double rankMax = top.isNotEmpty ? top.first.value : 1;
+ 
+     final double targetPerDay = store.weeklyTarget / 7;
++
++    final bool twoCol = context.windowSize == WindowSize.expanded;
++    const double twoColCardHeight = 320;
+ 
+     final Widget trendLegend = Wrap(
+       spacing: 14,
+@@ -81,11 +84,13 @@ class StatsScreen extends StatelessWidget {
+           const SectionHead(title: 'Your trend'),
+-          EcoCard(
++          SizedBox(
++            height: twoCol ? twoColCardHeight : null,
++            child: EcoCard(
+             flat: true,
+             padding: const EdgeInsets.fromLTRB(Eco.s16, 18, Eco.s16, 14),
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.stretch,
+               mainAxisSize: MainAxisSize.min,
+               children: <Widget>[
+                 SizedBox(
+-                  height: context.windowSize == WindowSize.expanded ? 260 : 220,
++                  height: twoCol ? 240 : 220,
+                   child: TrendChart(
+@@ -105,6 +110,7 @@ class StatsScreen extends StatelessWidget {
+               ],
+             ),
+           ),
++          ),
+         ],
+       ),
+     );
+@@ -116,15 +122,16 @@ class StatsScreen extends StatelessWidget {
+           const SectionHead(title: 'By category'),
+-          EcoCard(
++          SizedBox(
++            height: twoCol ? twoColCardHeight : null,
++            child: EcoCard(
+             flat: true,
+             child: LayoutBuilder(
+               builder: (BuildContext context, BoxConstraints c) {
+                 final bool wide = context.windowSize != WindowSize.compact;
+                 final double donutSize =
+                     (c.maxWidth * (wide ? 0.4 : 0.32)).clamp(
+                   100.0,
+                   wide ? 190.0 : 160.0,
+                 );
+-                return SizedBox(
+-                  height: context.windowSize == WindowSize.expanded ? 260 : null,
+-                  child: Row(
++                return Center(
++                  child: Row(
+                     children: <Widget>[
+@@ -181,6 +188,7 @@ class StatsScreen extends StatelessWidget {
+               },
+             ),
+           ),
++          ),
+         ],
+       ),
+     );
