@@ -57,6 +57,33 @@ void main() {
         greaterThanOrEqualTo(displayMinimum));
   });
 
+  testWidgets('Home section headings stay on one line at 390x844',
+      (WidgetTester tester) async {
+    final EcoStore store = EcoStore()..go(AppRoute.home);
+    addTearDown(store.dispose);
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ecoTheme(),
+        home: EcoScope(notifier: store, child: const AppGate()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    for (final String title in <String>[
+      'Today’s challenge',
+      'Small wins for today',
+    ]) {
+      final Text heading = tester.widget<Text>(find.text(title));
+      expect(heading.maxLines, 1, reason: title);
+    }
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('tablet-sized app lays out onboarding and tips without overflow',
       (WidgetTester tester) async {
     tester.view.physicalSize = const Size(768, 1024);

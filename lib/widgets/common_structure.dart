@@ -62,25 +62,52 @@ class SectionHead extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: Eco.s12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          // Both sides are flexible so a long action wraps instead of
-          // overflowing at large text scales.
-          Flexible(child: Text(title, style: textTheme.titleLarge)),
-          if (action != null) ...<Widget>[
-            const SizedBox(width: Eco.s12),
-            Flexible(
-              flex: 2,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: action!,
-              ),
-            ),
-          ],
-        ],
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          if (constraints.maxWidth < 600) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    title,
+                    style: textTheme.titleLarge,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (action != null) ...<Widget>[
+                  const SizedBox(width: Eco.s12),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: constraints.maxWidth * 0.45,
+                    ),
+                    child: action!,
+                  ),
+                ],
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Flexible(child: Text(title, style: textTheme.titleLarge)),
+              if (action != null) ...<Widget>[
+                const SizedBox(width: Eco.s12),
+                Flexible(
+                  flex: 2,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: action!,
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
