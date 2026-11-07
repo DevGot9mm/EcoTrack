@@ -81,6 +81,7 @@ class HomeScreen extends StatelessWidget {
                         radius: 16,
                       ),
                     ),
+                  ),
                   const SizedBox(width: Eco.s12),
                   Expanded(
                     child: Column(
