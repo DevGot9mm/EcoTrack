@@ -73,13 +73,12 @@ class HomeScreen extends StatelessWidget {
                     button: true,
                     label: 'Open profile',
                     child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => store.go(AppRoute.profile),
-                        child: MascotCrop(
-                          store.playerAvatar,
-                          size: 46,
-                          radius: 16,
-                        ),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => store.go(AppRoute.profile),
+                      child: MascotCrop(
+                        store.playerAvatar,
+                        size: 46,
+                        radius: 16,
                       ),
                     ),
                   const SizedBox(width: Eco.s12),
