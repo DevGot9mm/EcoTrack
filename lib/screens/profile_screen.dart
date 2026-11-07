@@ -56,9 +56,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       header: EcoTopBar(
         title: 'Profile',
         right: FlipIconButton(
-          tooltip: store.isDark
-              ? 'Switch to light appearance'
-              : 'Switch to dark appearance',
           frontIcon:
               store.isDark ? Icons.nightlight_round : Icons.wb_sunny_outlined,
           backIcon:
