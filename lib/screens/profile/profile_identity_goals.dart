@@ -21,16 +21,15 @@ class _ProfileIdentityCard extends StatelessWidget {
       child: Row(
         children: <Widget>[
           CircleAvatar(
+            radius: 27,
+            backgroundColor: cs.mint,
+            child: MascotCrop(
+              store.playerAvatar,
+              size: 54,
               radius: 27,
-              backgroundColor: cs.mint,
-              child: MascotCrop(
-                store.playerAvatar,
-                size: 54,
-                radius: 27,
-                background: cs.mint,
-                circular: true,
-                photoScale: 1.08,
-              ),
+              background: cs.mint,
+              circular: true,
+              photoScale: 1.08,
             ),
           ),
           const SizedBox(width: Eco.s12),
