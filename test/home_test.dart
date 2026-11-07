@@ -160,7 +160,9 @@ void main() {
     await tester.tap(find.text('Profile').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Switch to dark appearance'));
+    expect(find.byTooltip('Switch to dark appearance'), findsNothing);
+    expect(find.byTooltip('Switch to light appearance'), findsNothing);
+    await tester.tap(find.byType(FlipIconButton));
     await tester.pumpAndSettle();
 
     final ThemeData darkTheme =
@@ -180,7 +182,7 @@ void main() {
     );
     expect(profileHeadingStyle.style.color, EcoDark.ink);
 
-    await tester.tap(find.byTooltip('Switch to light appearance'));
+    await tester.tap(find.byType(FlipIconButton));
     await tester.pumpAndSettle();
 
     final ThemeData lightTheme =
