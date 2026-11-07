@@ -20,10 +20,7 @@ class _ProfileIdentityCard extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: <Widget>[
-          Tooltip(
-            message:
-                'Profile picture: ${_avatarName(store.playerAvatar)}. Tap to change.',
-            child: CircleAvatar(
+          CircleAvatar(
               radius: 27,
               backgroundColor: cs.mint,
               child: MascotCrop(
@@ -239,9 +236,7 @@ void _showAvatarPicker(BuildContext context, EcoStore store) {
               runSpacing: 12,
               children: _avatarOptions.map((String avatar) {
                 final bool selected = store.playerAvatar == avatar;
-                return Tooltip(
-                  message: 'Use ${_avatarName(avatar)} profile picture',
-                  child: Semantics(
+                return Semantics(
                     button: true,
                     selected: selected,
                     label: '${_avatarName(avatar)} profile picture',
