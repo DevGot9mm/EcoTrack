@@ -121,6 +121,8 @@ void main() {
 
     expect(find.textContaining(', Guest'), findsOneWidget);
 
+    expect(find.byTooltip('Profile'), findsNothing);
+    expect(find.byTooltip('Eco tips'), findsNothing);
     await tester.tap(find.byIcon(Icons.tips_and_updates_outlined));
     await tester.pumpAndSettle();
     expect(find.text('Eco Tips'), findsOneWidget);
@@ -163,31 +165,18 @@ void main() {
     await mouse.removePointer();
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    await tester
-        .tap(find.byTooltip('Profile picture: Portrait 1. Tap to change.'));
+    await tester.tap(find.byType(MascotCrop).first);
     await tester.pumpAndSettle();
     expect(find.text('Choose a profile picture'), findsOneWidget);
+    expect(find.byTooltip('Profile picture: Portrait 1. Tap to change.'),
+        findsNothing);
+    expect(find.byTooltip('Use Portrait 1 profile picture'), findsNothing);
+    expect(find.byTooltip('Use Portrait 2 profile picture'), findsNothing);
+    expect(find.byTooltip('Use Portrait 3 profile picture'), findsNothing);
+    expect(find.bySemanticsLabel('Portrait 1 profile picture'), findsOneWidget);
     expect(
       find.descendant(
-        of: find.byTooltip('Profile picture: Portrait 1. Tap to change.'),
-        matching: find.byType(ClipOval),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: find.byTooltip('Profile picture: Portrait 1. Tap to change.'),
-        matching: find.byType(CircleAvatar),
-      ),
-      findsOneWidget,
-    );
-    expect(find.byTooltip('Use Eco profile picture'), findsNothing);
-    expect(find.byTooltip('Use Portrait 1 profile picture'), findsOneWidget);
-    expect(find.byTooltip('Use Portrait 2 profile picture'), findsOneWidget);
-    expect(find.byTooltip('Use Portrait 3 profile picture'), findsOneWidget);
-    expect(
-      find.descendant(
-        of: find.byTooltip('Profile picture: Portrait 1. Tap to change.'),
+        of: find.bySemanticsLabel('Portrait 1 profile picture'),
         matching: find.byWidgetPredicate(
           (Widget widget) {
             if (widget is! Image || widget.image is! ResizeImage) return false;
@@ -202,10 +191,10 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.tap(find.byTooltip('Use Portrait 2 profile picture'));
+    await tester.tap(find.bySemanticsLabel('Portrait 2 profile picture'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Profile picture: Portrait 2. Tap to change.'),
-        findsOneWidget);
+        findsNothing);
 
     await tester.ensureVisible(find.text('Units & colors'));
     await tester.tap(find.text('Units & colors'));
