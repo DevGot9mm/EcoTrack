@@ -236,7 +236,6 @@ class FlipIconButton extends StatefulWidget {
     this.size = 36,
     this.borderRadius = 12,
     this.duration = const Duration(milliseconds: 500),
-    this.tooltip,
   });
 
   final IconData frontIcon;
@@ -250,7 +249,6 @@ class FlipIconButton extends StatefulWidget {
   final double size;
   final double borderRadius;
   final Duration duration;
-  final String? tooltip;
 
   @override
   State<FlipIconButton> createState() => _FlipIconButtonState();
@@ -296,9 +294,7 @@ class _FlipIconButtonState extends State<FlipIconButton>
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: widget.tooltip ?? '',
-      child: MouseRegion(
+    return MouseRegion(
         cursor: SystemMouseCursors.click,
         onEnter: (_) => _controller.forward(),
         onExit: (_) => _controller.reverse(),
@@ -351,7 +347,6 @@ class _FlipIconButtonState extends State<FlipIconButton>
             },
           ),
         ),
-      ),
     );
   }
 }
