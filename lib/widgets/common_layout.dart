@@ -45,15 +45,23 @@ class EcoGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints c) {
         final int cols = columns < 1 ? 1 : columns;
+        final double availableWidth =
+            c.maxWidth.isFinite ? c.maxWidth : 0;
+        // Keep the row's gaps within the available width. During viewport
+        // changes, a temporarily narrow constraint must never produce a
+        // negative cell width or gaps wider than the entire row.
+        final double maxGap =
+            cols > 1 ? availableWidth / (cols - 1) : 0;
+        final double rowGap = gap.clamp(0.0, maxGap).toDouble();
         final double cellW =
-            c.maxWidth.isFinite ? (c.maxWidth - gap * (cols - 1)) / cols : 0;
+            (availableWidth - rowGap * (cols - 1)) / cols;
 
         final List<Widget> rows = <Widget>[];
         for (int i = 0; i < items.length; i += cols) {
           final List<Widget> row = <Widget>[];
           for (int k = 0; k < cols; k++) {
             final int idx = i + k;
-            if (k > 0) row.add(SizedBox(width: gap));
+            if (k > 0) row.add(SizedBox(width: rowGap));
             row.add(
               SizedBox(
                 width: cellW,
