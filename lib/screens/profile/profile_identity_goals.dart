@@ -20,20 +20,16 @@ class _ProfileIdentityCard extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: <Widget>[
-          Tooltip(
-            message:
-                'Profile picture: ${_avatarName(store.playerAvatar)}. Tap to change.',
-            child: CircleAvatar(
+          CircleAvatar(
+            radius: 27,
+            backgroundColor: cs.mint,
+            child: MascotCrop(
+              store.playerAvatar,
+              size: 54,
               radius: 27,
-              backgroundColor: cs.mint,
-              child: MascotCrop(
-                store.playerAvatar,
-                size: 54,
-                radius: 27,
-                background: cs.mint,
-                circular: true,
-                photoScale: 1.08,
-              ),
+              background: cs.mint,
+              circular: true,
+              photoScale: 1.08,
             ),
           ),
           const SizedBox(width: Eco.s12),
@@ -239,37 +235,34 @@ void _showAvatarPicker(BuildContext context, EcoStore store) {
               runSpacing: 12,
               children: _avatarOptions.map((String avatar) {
                 final bool selected = store.playerAvatar == avatar;
-                return Tooltip(
-                  message: 'Use ${_avatarName(avatar)} profile picture',
-                  child: Semantics(
-                    button: true,
-                    selected: selected,
-                    label: '${_avatarName(avatar)} profile picture',
-                    child: Pressable(
-                      onTap: () {
-                        store.setPlayerAvatar(avatar);
-                        Navigator.of(ctx).pop();
-                      },
-                      scale: 0.95,
-                      child: Container(
-                        padding: const EdgeInsets.all(Eco.s4),
-                        decoration: BoxDecoration(
-                          color: selected ? cs.mint : cs.surface,
-                          border: Border.all(
-                            color: selected ? cs.leaf : cs.outline,
-                            width: selected ? 2 : 1,
-                          ),
-                          shape: BoxShape.circle,
+                return Semantics(
+                  button: true,
+                  selected: selected,
+                  label: '${_avatarName(avatar)} profile picture',
+                  child: Pressable(
+                    onTap: () {
+                      store.setPlayerAvatar(avatar);
+                      Navigator.of(ctx).pop();
+                    },
+                    scale: 0.95,
+                    child: Container(
+                      padding: const EdgeInsets.all(Eco.s4),
+                      decoration: BoxDecoration(
+                        color: selected ? cs.mint : cs.surface,
+                        border: Border.all(
+                          color: selected ? cs.leaf : cs.outline,
+                          width: selected ? 2 : 1,
                         ),
-                        child: CircleAvatar(
+                        shape: BoxShape.circle,
+                      ),
+                      child: CircleAvatar(
+                        radius: 26,
+                        backgroundColor: cs.mint,
+                        child: MascotCrop(
+                          avatar,
+                          size: 52,
                           radius: 26,
-                          backgroundColor: cs.mint,
-                          child: MascotCrop(
-                            avatar,
-                            size: 52,
-                            radius: 26,
-                            circular: true,
-                          ),
+                          circular: true,
                         ),
                       ),
                     ),

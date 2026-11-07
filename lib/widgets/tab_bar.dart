@@ -23,6 +23,7 @@ class EcoTabBar extends StatelessWidget {
             icon: Icon(kIcons[tab.icon]),
             selectedIcon: Icon(kSelectedIcons[tab.icon] ?? kIcons[tab.icon]),
             label: tab.label,
+            tooltip: tab.label == 'Profile' ? '' : null,
           ),
         )
         .toList();

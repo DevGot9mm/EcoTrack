@@ -72,16 +72,13 @@ class HomeScreen extends StatelessWidget {
                   Semantics(
                     button: true,
                     label: 'Open profile',
-                    child: Tooltip(
-                      message: 'Profile',
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => store.go(AppRoute.profile),
-                        child: MascotCrop(
-                          store.playerAvatar,
-                          size: 46,
-                          radius: 16,
-                        ),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => store.go(AppRoute.profile),
+                      child: MascotCrop(
+                        store.playerAvatar,
+                        size: 46,
+                        radius: 16,
                       ),
                     ),
                   ),
@@ -103,12 +100,9 @@ class HomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Tooltip(
-                    message: 'Eco tips',
-                    child: EcoIconButton(
-                      'tips',
-                      onPressed: () => store.go(AppRoute.tips),
-                    ),
+                  EcoIconButton(
+                    'tips',
+                    onPressed: () => store.go(AppRoute.tips),
                   ),
                 ],
               ),
