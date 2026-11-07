@@ -35,6 +35,71 @@ void main() {
     expect(overridden.height, 1.5);
   });
 
+  testWidgets('EcoGrid handles temporarily narrow width constraints',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 10,
+              child: EcoGrid(
+                columns: 3,
+                gap: 12,
+                items: List<Widget>.generate(
+                  3,
+                  (int index) => SizedBox(
+                    key: ValueKey<String>('narrow-grid-$index'),
+                    height: 24,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(tester.getSize(find.byType(EcoGrid)).width, 10);
+  });
+
+  testWidgets('EcoGrid preserves configured gaps at normal widths',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 390,
+              child: EcoGrid(
+                columns: 3,
+                gap: 10,
+                items: List<Widget>.generate(
+                  3,
+                  (int index) => SizedBox(
+                    key: ValueKey<String>('normal-grid-$index'),
+                    height: 24,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(
+      tester.getSize(find.byKey(const ValueKey<String>('normal-grid-0'))).width,
+      closeTo((390 - 20) / 3, 0.01),
+    );
+  });
+
   test('Miles conversion preserves the 1 km minimum for walking', () {
     final EcoStore store = EcoStore()
       ..addCat = CarbonCategory.transport
